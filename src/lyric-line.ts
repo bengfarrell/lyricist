@@ -1,5 +1,15 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, PropertyValues } from 'lit';
 import { cursorManager } from './cursor-manager.js';
+
+export interface Chord {
+  id: string;
+  name: string;
+  position: number;
+}
+
+interface ChordLibrary {
+  [category: string]: string[];
+}
 
 export class LyricLine extends LitElement {
   static properties = {
@@ -289,33 +299,41 @@ export class LyricLine extends LitElement {
     }
   `;
 
+  text: string = '';
+  chords: Chord[] = [];
+  hasChordSection: boolean = false;
+  x: number = 0;
+  y: number = 0;
+  id: string = '';
+  rotation: number = 0;
+  zIndex: number = 1;
+  
+  private _isDragging: boolean = false;
+  private _startX: number = 0;
+  private _startY: number = 0;
+  _offsetX: number = 0;
+  _offsetY: number = 0;
+  private _showChordPicker: boolean = false;
+  private _pickerPosition: number = 0;
+  private _editingChordId: string | null = null;
+  private _pickerX: number = 0;
+  private _pickerY: number = 0;
+  private _pickerHeight: number = 500;
+  private _isDraggingChord: boolean = false;
+  private _draggedChordId: string | null = null;
+  private _dragStartX: number = 0;
+  private _chordDragStarted: boolean = false;
+  private _pickerWasOpenBeforeDrag: boolean = false;
+  private _isEditingText: boolean = false;
+  private _chordLibrary: ChordLibrary;
+  
+  private _boundHandleClickOutside?: (e: Event) => void;
+  private _boundHandleClosePickerEvent?: (e: Event) => void;
+  private _boundHandleChordDragMove?: (e: MouseEvent) => void;
+  private _boundHandleChordDragEnd?: (e: MouseEvent) => void;
+
   constructor() {
     super();
-    this.text = '';
-    this.chords = [];
-    this.hasChordSection = false;
-    this.x = 0;
-    this.y = 0;
-    this.id = '';
-    this.rotation = 0;
-    this.zIndex = 1;
-    this._isDragging = false;
-    this._startX = 0;
-    this._startY = 0;
-    this._offsetX = 0;
-    this._offsetY = 0;
-    this._showChordPicker = false;
-    this._pickerPosition = 0;
-    this._editingChordId = null;
-    this._pickerX = 0;
-    this._pickerY = 0;
-    this._pickerHeight = 500;
-    this._isDraggingChord = false;
-    this._draggedChordId = null;
-    this._dragStartX = 0;
-    this._chordDragStarted = false;
-    this._pickerWasOpenBeforeDrag = false;
-    this._isEditingText = false;
     
     // Complete chord library
     this._chordLibrary = {
@@ -329,26 +347,26 @@ export class LyricLine extends LitElement {
     };
   }
 
-
-  updated(changedProperties) {
+  updated(changedProperties: PropertyValues): void {
     if (changedProperties.has('x') || changedProperties.has('y') || changedProperties.has('rotation') || changedProperties.has('zIndex')) {
       this.updatePosition();
     }
   }
 
-  updatePosition() {
+  updatePosition(): void {
     // Position is relative to the lyric line, not the container
     this.style.left = `${this.x}px`;
     this.style.top = `${this.y}px`;
     this.style.transform = `rotate(${this.rotation}deg)`;
     this.style.transformOrigin = 'top left';
-    this.style.zIndex = this.zIndex;
+    this.style.zIndex = this.zIndex.toString();
   }
 
-  _handleMouseDown(e) {
+  private _handleMouseDown(e: MouseEvent): void {
     // Don't start dragging if editing text, clicking buttons, or clicking on editable text
-    if (e.target.classList.contains('action-btn') || 
-        e.target.classList.contains('lyric-text-editable') ||
+    const target = e.target as HTMLElement;
+    if (target.classList.contains('action-btn') || 
+        target.classList.contains('lyric-text-editable') ||
         this._isEditingText) {
       return;
     }
@@ -375,9 +393,10 @@ export class LyricLine extends LitElement {
     }));
   }
 
-  _handleDoubleClick(e) {
+  private _handleDoubleClick(e: MouseEvent): void {
     // Don't start editing if clicking on buttons
-    if (e.target.classList.contains('action-btn') || e.target.classList.contains('chord-toggle-btn')) {
+    const target = e.target as HTMLElement;
+    if (target.classList.contains('action-btn') || target.classList.contains('chord-toggle-btn')) {
       return;
     }
 
@@ -386,21 +405,24 @@ export class LyricLine extends LitElement {
     
     // Focus the editable span after render
     this.updateComplete.then(() => {
-      const editableSpan = this.shadowRoot.querySelector('.lyric-text-editable');
+      const editableSpan = this.shadowRoot?.querySelector('.lyric-text-editable') as HTMLElement;
       if (editableSpan) {
         editableSpan.focus();
         // Select all text
         const range = document.createRange();
         range.selectNodeContents(editableSpan);
         const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
+        if (selection) {
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
       }
     });
   }
 
-  _handleTextBlur(e) {
-    const newText = e.target.textContent.trim();
+  private _handleTextBlur(e: FocusEvent): void {
+    const target = e.target as HTMLElement;
+    const newText = target.textContent?.trim();
     if (newText && newText !== this.text) {
       this.dispatchEvent(new CustomEvent('text-changed', {
         detail: { id: this.id, text: newText },
@@ -411,17 +433,17 @@ export class LyricLine extends LitElement {
     this._isEditingText = false;
   }
 
-  _handleTextKeyDown(e) {
+  private _handleTextKeyDown(e: KeyboardEvent): void {
     if (e.key === 'Enter') {
       e.preventDefault();
-      e.target.blur();
+      (e.target as HTMLElement).blur();
     } else if (e.key === 'Escape') {
       e.preventDefault();
       this._isEditingText = false;
     }
   }
 
-  _handleDelete(e) {
+  private _handleDelete(e: MouseEvent): void {
     e.stopPropagation();
     this.dispatchEvent(new CustomEvent('delete-line', {
       detail: { id: this.id },
@@ -430,7 +452,7 @@ export class LyricLine extends LitElement {
     }));
   }
 
-  _handleDuplicate(e) {
+  private _handleDuplicate(e: MouseEvent): void {
     e.stopPropagation();
     this.dispatchEvent(new CustomEvent('duplicate-line', {
       detail: { id: this.id },
@@ -439,7 +461,7 @@ export class LyricLine extends LitElement {
     }));
   }
 
-  _handleToggleChordSection(e) {
+  private _handleToggleChordSection(e: MouseEvent): void {
     e.stopPropagation();
     
     // If the chord section is open and picker is showing, close the picker
@@ -455,8 +477,9 @@ export class LyricLine extends LitElement {
     }));
   }
 
-  _handleChordSectionClick(e) {
-    if (e.target.closest('.chord-picker')) {
+  private _handleChordSectionClick(e: MouseEvent): void {
+    const target = e.target as HTMLElement;
+    if (target.closest('.chord-picker')) {
       return;
     }
     
@@ -469,7 +492,7 @@ export class LyricLine extends LitElement {
       composed: true
     }));
     
-    const rect = e.currentTarget.getBoundingClientRect();
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const percentPosition = (clickX / rect.width) * 100;
     
@@ -479,7 +502,7 @@ export class LyricLine extends LitElement {
     this._calculatePickerPosition();
   }
 
-  _handleChordMarkerMouseDown(e, chord) {
+  private _handleChordMarkerMouseDown(e: MouseEvent, chord: Chord): void {
     e.stopPropagation();
     
     // Check if picker is open for this chord
@@ -491,7 +514,7 @@ export class LyricLine extends LitElement {
     this._pickerWasOpenBeforeDrag = pickerWasOpen;
   }
 
-  _handleChordDragMove(e) {
+  private _handleChordDragMove(e: MouseEvent): void {
     if (!this._draggedChordId) return;
     
     const dragDistance = Math.abs(e.clientX - this._dragStartX);
@@ -507,7 +530,7 @@ export class LyricLine extends LitElement {
         cursorManager.setCursor('ew-resize');
       }
       
-      const chordSection = this.shadowRoot.querySelector('.chord-section');
+      const chordSection = this.shadowRoot?.querySelector('.chord-section');
       if (!chordSection) return;
       
       const rect = chordSection.getBoundingClientRect();
@@ -527,7 +550,7 @@ export class LyricLine extends LitElement {
     }
   }
 
-  _handleChordDragEnd(e) {
+  private _handleChordDragEnd(e: MouseEvent): void {
     if (!this._draggedChordId) return;
     
     const chord = this.chords.find(c => c.id === this._draggedChordId);
@@ -559,7 +582,7 @@ export class LyricLine extends LitElement {
     this._pickerWasOpenBeforeDrag = false;
   }
 
-  _calculatePickerPosition() {
+  private _calculatePickerPosition(): void {
     // Find the canvas element to position relative to it
     const canvas = document.querySelector('.canvas');
     if (canvas) {
@@ -571,7 +594,7 @@ export class LyricLine extends LitElement {
     }
   }
 
-  _handleChordSelect(chordName) {
+  private _handleChordSelect(chordName: string): void {
     if (this._editingChordId) {
       // Update existing chord
       this.dispatchEvent(new CustomEvent('chord-updated', {
@@ -581,7 +604,7 @@ export class LyricLine extends LitElement {
       }));
     } else {
       // Add new chord
-      const newChord = {
+      const newChord: Chord = {
         id: `chord-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         name: chordName,
         position: this._pickerPosition
@@ -598,7 +621,7 @@ export class LyricLine extends LitElement {
     this._editingChordId = null;
   }
 
-  _handleDeleteChord(e, chordId) {
+  private _handleDeleteChord(e: MouseEvent, chordId: string): void {
     e.stopPropagation();
     this.dispatchEvent(new CustomEvent('chord-deleted', {
       detail: { lineId: this.id, chordId },
@@ -607,27 +630,28 @@ export class LyricLine extends LitElement {
     }));
   }
 
-  _handleClickOutside(e) {
-    const picker = this.shadowRoot.querySelector('.chord-picker');
+  private _handleClickOutside(e: Event): void {
+    const picker = this.shadowRoot?.querySelector('.chord-picker');
     if (!picker) return;
     
     // Close if clicking outside the picker
-    if (!e.composedPath().includes(picker)) {
+    if (!(e as Event & { composedPath: () => EventTarget[] }).composedPath().includes(picker)) {
       this._showChordPicker = false;
     }
   }
 
-  _handlePickerClick(e) {
+  private _handlePickerClick(e: MouseEvent): void {
     // Close if clicking on the picker background (not on an option)
-    if (e.target.classList.contains('chord-picker') || 
-        e.target.classList.contains('chord-picker-group') ||
-        e.target.classList.contains('chord-picker-label') ||
-        e.target.classList.contains('chord-picker-options')) {
+    const target = e.target as HTMLElement;
+    if (target.classList.contains('chord-picker') || 
+        target.classList.contains('chord-picker-group') ||
+        target.classList.contains('chord-picker-label') ||
+        target.classList.contains('chord-picker-options')) {
       this._showChordPicker = false;
     }
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this.updatePosition();
     this._boundHandleClickOutside = this._handleClickOutside.bind(this);
@@ -640,12 +664,20 @@ export class LyricLine extends LitElement {
     document.addEventListener('mouseup', this._boundHandleChordDragEnd);
   }
 
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     super.disconnectedCallback();
-    document.removeEventListener('click', this._boundHandleClickOutside);
-    document.removeEventListener('close-chord-picker', this._boundHandleClosePickerEvent);
-    document.removeEventListener('mousemove', this._boundHandleChordDragMove);
-    document.removeEventListener('mouseup', this._boundHandleChordDragEnd);
+    if (this._boundHandleClickOutside) {
+      document.removeEventListener('click', this._boundHandleClickOutside);
+    }
+    if (this._boundHandleClosePickerEvent) {
+      document.removeEventListener('close-chord-picker', this._boundHandleClosePickerEvent);
+    }
+    if (this._boundHandleChordDragMove) {
+      document.removeEventListener('mousemove', this._boundHandleChordDragMove);
+    }
+    if (this._boundHandleChordDragEnd) {
+      document.removeEventListener('mouseup', this._boundHandleChordDragEnd);
+    }
     
     // Clean up cursor if we were dragging
     if (this._chordDragStarted) {
@@ -653,9 +685,10 @@ export class LyricLine extends LitElement {
     }
   }
 
-  _handleClosePickerEvent(e) {
+  private _handleClosePickerEvent(e: Event): void {
     // Close picker if the event is for a different line
-    if (e.detail && e.detail.exceptId !== this.id) {
+    const customEvent = e as CustomEvent;
+    if (customEvent.detail && customEvent.detail.exceptId !== this.id) {
       this._showChordPicker = false;
     }
   }
@@ -671,7 +704,7 @@ export class LyricLine extends LitElement {
           <div 
             class="chord-section"
             @click=${this._handleChordSectionClick}
-            @mousedown=${(e) => e.stopPropagation()}
+            @mousedown=${(e: MouseEvent) => e.stopPropagation()}
           >
             ${this.chords.length === 0 ? html`
               <div class="chord-section-hint">Click to add chords</div>
@@ -682,11 +715,11 @@ export class LyricLine extends LitElement {
                 <div 
                   class="chord-marker" 
                   style="left: ${chord.position}%"
-                  @mousedown=${(e) => this._handleChordMarkerMouseDown(e, chord)}
-                  @click=${(e) => e.stopPropagation()}
+                  @mousedown=${(e: MouseEvent) => this._handleChordMarkerMouseDown(e, chord)}
+                  @click=${(e: MouseEvent) => e.stopPropagation()}
                 >
                   ${chord.name}
-                  <div class="chord-delete-btn" @click=${(e) => this._handleDeleteChord(e, chord.id)}>×</div>
+                  <div class="chord-delete-btn" @click=${(e: MouseEvent) => this._handleDeleteChord(e, chord.id)}>×</div>
                 </div>
               `)}
             </div>

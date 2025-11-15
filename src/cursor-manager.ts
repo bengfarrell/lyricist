@@ -1,9 +1,7 @@
 class CursorManager {
-  constructor() {
-    this.currentCursor = null;
-  }
+  private currentCursor: string | null = null;
 
-  setCursor(cursorType) {
+  setCursor(cursorType: string): void {
     if (this.currentCursor === cursorType) {
       return;
     }
@@ -12,18 +10,18 @@ class CursorManager {
     this.currentCursor = cursorType;
   }
 
-  clearCursor() {
+  clearCursor(): void {
     if (this.currentCursor !== null) {
       document.body.style.removeProperty('cursor');
       this.currentCursor = null;
     }
   }
 
-  isActive() {
+  isActive(): boolean {
     return this.currentCursor !== null;
   }
 
-  getCurrentCursor() {
+  getCurrentCursor(): string | null {
     return this.currentCursor;
   }
 }

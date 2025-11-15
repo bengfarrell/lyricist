@@ -5,3 +5,16 @@ dist
 .idea
 .vscode
 
+# TypeScript compiled output (side-by-side with .ts files)
+# Ignore generated JS, declaration files, and source maps in src/
+src/**/*.js
+src/**/*.js.map
+src/**/*.d.ts
+src/**/*.d.ts.map
+
+# Also ignore compiled output for config files at root
+vite.config.js
+vite.config.js.map
+vite.config.d.ts
+vite.config.d.ts.map
+
