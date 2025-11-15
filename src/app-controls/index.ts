@@ -47,7 +47,9 @@ export class AppControls extends LitElement {
     return html`
       <div class="controls">
         <form class="input-container" @submit=${this._addLine}>
+          <label for="lyric-input" class="visually-hidden">Lyric line</label>
           <input 
+            id="lyric-input"
             type="text" 
             class="lyric-input" 
             placeholder="Enter a line of lyrics..."

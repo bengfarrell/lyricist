@@ -4,6 +4,7 @@ dist
 *.log
 .idea
 .vscode
+package-lock.json
 
 # TypeScript compiled output (side-by-side with .ts files)
 # Ignore generated JS, declaration files, and source maps in src/
@@ -18,3 +19,11 @@ vite.config.js.map
 vite.config.d.ts
 vite.config.d.ts.map
 
+# Test coverage
+coverage/
+.nyc_output/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/

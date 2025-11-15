@@ -40,7 +40,9 @@ export class AppHeader extends LitElement {
       <div class="header">
         <h1>🎵 Lyricist</h1>
         <div class="header-controls">
+          <label for="song-name-input" class="visually-hidden">Song name</label>
           <input 
+            id="song-name-input"
             type="text" 
             class="song-name-input" 
             placeholder="Song Name"

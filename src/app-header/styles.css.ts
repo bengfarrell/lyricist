@@ -27,6 +27,18 @@ export const appHeaderStyles = css`
     align-items: center;
   }
 
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
   .song-name-input {
     padding: 8px 16px;
     border: 2px solid rgba(255, 255, 255, 0.3);
