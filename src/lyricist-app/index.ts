@@ -1,57 +1,28 @@
-import { LitElement, html, PropertyValues } from 'lit';
+import { LitElement, html } from 'lit';
 import '../lyric-line/index.js';
 import { cursorManager } from '../cursor-manager/index.js';
-import { Chord } from '../lyric-line/index.js';
 import { lyricistAppStyles } from './styles.css.js';
-
-export interface LyricLine {
-  id: string;
-  text: string;
-  chords: Chord[];
-  hasChordSection: boolean;
-  x: number;
-  y: number;
-  rotation: number;
-  zIndex: number;
-}
-
-export interface SavedSong {
-  name: string;
-  lines: LyricLine[];
-  lastModified: string;
-  exportedAt?: string;
-}
+import { SongStoreController } from '../store/index.js';
+import type { LyricLine, SavedSong } from '../store/index.js';
 
 export class LyricistApp extends LitElement {
-  static properties = {
-    lines: { type: Array },
-    songName: { type: String },
-    savedSongs: { type: Array },
-    showLoadDialog: { type: Boolean },
-    newLineText: { type: String },
-    lyricsPanelWidth: { type: Number }
-  };
-
   static styles = lyricistAppStyles;
-
-  lines: LyricLine[] = [];
-  songName: string = '';
-  savedSongs: SavedSong[] = [];
-  showLoadDialog: boolean = false;
-  newLineText: string = '';
-  lyricsPanelWidth: number = 350;
   
+  // Reactive store controller - auto registers/unregisters this component
+  private store = new SongStoreController(this);
+  
+  // Local UI state (not shared with other components)
   private _draggedLine: LyricLine | null = null;
   private _isDraggingDivider: boolean = false;
+  private _newLineText: string = '';
   private _boundHandleMouseMove?: (e: MouseEvent) => void;
   private _boundHandleMouseUp?: (e: MouseEvent) => void;
   private _boundHandleDividerMove?: (e: MouseEvent) => void;
 
   constructor() {
     super();
-    this._loadSavedSongs();
     // Load sample song on startup for development
-    this._loadSampleSong();
+    this.store.loadSampleSong();
   }
 
   connectedCallback(): void {
@@ -77,34 +48,12 @@ export class LyricistApp extends LitElement {
     }
   }
 
-  private _loadSavedSongs(): void {
-    const saved = localStorage.getItem('lyricist-songs');
-    if (saved) {
-      this.savedSongs = JSON.parse(saved);
-    }
-  }
-
   private _saveSong(): void {
-    if (!this.songName.trim()) {
+    const success = this.store.saveSong();
+    if (!success) {
       alert('Please enter a song name');
       return;
     }
-
-    const song: SavedSong = {
-      name: this.songName,
-      lines: this.lines,
-      lastModified: new Date().toISOString()
-    };
-
-    // Check if song already exists
-    const existingIndex = this.savedSongs.findIndex(s => s.name === this.songName);
-    if (existingIndex >= 0) {
-      this.savedSongs[existingIndex] = song;
-    } else {
-      this.savedSongs = [...this.savedSongs, song];
-    }
-
-    localStorage.setItem('lyricist-songs', JSON.stringify(this.savedSongs));
     
     // Visual feedback
     const btn = this.shadowRoot?.querySelector('.btn-primary');
@@ -117,30 +66,18 @@ export class LyricistApp extends LitElement {
     }
   }
 
-  private _loadSong(song: SavedSong): void {
-    this.songName = song.name;
-    // Close all chord sections by default when loading
-    this.lines = song.lines.map(line => ({ ...line, hasChordSection: false }));
-    this.showLoadDialog = false;
-    this.requestUpdate();
-  }
-
   private _deleteSong(song: SavedSong, e: MouseEvent): void {
     e.stopPropagation();
     if (confirm(`Delete "${song.name}"?`)) {
-      this.savedSongs = this.savedSongs.filter(s => s.name !== song.name);
-      localStorage.setItem('lyricist-songs', JSON.stringify(this.savedSongs));
-      this.requestUpdate();
+      this.store.deleteSong(song.name);
     }
   }
 
   private _newSong(): void {
-    if (this.lines.length > 0 && !confirm('Start a new song? Unsaved changes will be lost.')) {
+    if (this.store.lines.length > 0 && !confirm('Start a new song? Unsaved changes will be lost.')) {
       return;
     }
-    this.songName = '';
-    this.lines = [];
-    this.requestUpdate();
+    this.store.newSong();
   }
 
   private _addLine(e: Event): void {
@@ -149,7 +86,6 @@ export class LyricistApp extends LitElement {
     if (!input) return;
     
     const text = input.value.trim();
-    
     if (!text) return;
 
     const canvas = this.shadowRoot?.querySelector('.canvas');
@@ -160,7 +96,7 @@ export class LyricistApp extends LitElement {
     // Generate a subtle random rotation between -5 and +5 degrees
     const rotation = (Math.random() * 10) - 5;
     
-    const maxZ = this.lines.length > 0 ? Math.max(...this.lines.map(line => line.zIndex || 1)) : 0;
+    const maxZ = this.store.getMaxZIndex();
     
     const newLine: LyricLine = {
       id: `line-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -168,18 +104,19 @@ export class LyricistApp extends LitElement {
       chords: [],
       hasChordSection: false,
       x: rect.width / 2 - 100,
-      y: rect.height / 2 - 20 + (this.lines.length * 60),
+      y: rect.height / 2 - 20 + (this.store.lines.length * 60),
       rotation,
       zIndex: maxZ + 1
     };
 
-    this.lines = [...this.lines, newLine];
+    this.store.addLine(newLine);
     input.value = '';
-    this.newLineText = '';
+    this._newLineText = '';
+    this.requestUpdate();
   }
 
   private _handleDragStart(e: CustomEvent): void {
-    const line = this.lines.find(line => line.id === e.detail.id);
+    const line = this.store.lines.find(line => line.id === e.detail.id);
     if (line) {
       this._draggedLine = line;
       cursorManager.setCursor('move');
@@ -194,12 +131,7 @@ export class LyricistApp extends LitElement {
       detail: { exceptId: clickedId }
     }));
     
-    // Find the maximum z-index
-    const maxZ = Math.max(...this.lines.map(line => line.zIndex || 1));
-    // Update all lines: clicked line gets maxZ + 1, others stay the same
-    this.lines = this.lines.map(line => 
-      line.id === clickedId ? { ...line, zIndex: maxZ + 1 } : line
-    );
+    this.store.bringLineToFront(clickedId);
   }
 
   private _handleMouseMove(e: MouseEvent): void {
@@ -217,12 +149,7 @@ export class LyricistApp extends LitElement {
     const newX = e.clientX - rect.left - lineElement._offsetX;
     const newY = e.clientY - rect.top - lineElement._offsetY;
 
-    // Update the line position
-    this.lines = this.lines.map(line => 
-      line.id === this._draggedLine!.id 
-        ? { ...line, x: newX, y: newY }
-        : line
-    );
+    this.store.updateLinePosition(this._draggedLine.id, newX, newY);
   }
 
   private _handleMouseUp(): void {
@@ -259,33 +186,15 @@ export class LyricistApp extends LitElement {
     // Calculate new width from the right edge
     const newWidth = rect.right - e.clientX;
     
-    // Constrain between 200px and 600px
-    this.lyricsPanelWidth = Math.max(200, Math.min(600, newWidth));
+    this.store.setLyricsPanelWidth(newWidth);
   }
 
   private _handleDeleteLine(e: CustomEvent): void {
-    const lineId = e.detail.id;
-    this.lines = this.lines.filter(line => line.id !== lineId);
+    this.store.deleteLine(e.detail.id);
   }
 
   private _handleDuplicateLine(e: CustomEvent): void {
-    const originalLine = this.lines.find(line => line.id === e.detail.id);
-    if (!originalLine) return;
-
-    // Create a duplicate with slight offset and new rotation
-    const newLine: LyricLine = {
-      ...originalLine,
-      id: `line-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      x: originalLine.x + 30,
-      y: originalLine.y + 30,
-      rotation: (Math.random() * 10) - 5
-    };
-
-    this.lines = [...this.lines, newLine];
-  }
-
-  private _getSortedLines(): LyricLine[] {
-    return [...this.lines].sort((a, b) => a.y - b.y);
+    this.store.duplicateLine(e.detail.id);
   }
 
   private _renderChordLine(line: LyricLine): string {
@@ -328,11 +237,11 @@ export class LyricistApp extends LitElement {
   }
 
   private _copyLyricsToClipboard(): void {
-    const sortedLines = this._getSortedLines();
+    const sortedLines = this.store.getSortedLines();
     let text = '';
 
-    if (this.songName) {
-      text += `${this.songName}\n\n`;
+    if (this.store.songName) {
+      text += `${this.store.songName}\n\n`;
     }
 
     sortedLines.forEach(line => {
@@ -361,68 +270,33 @@ export class LyricistApp extends LitElement {
 
   private _handleToggleChordSection(e: CustomEvent): void {
     const { id, hasChordSection } = e.detail;
-    this.lines = this.lines.map(line => 
-      line.id === id ? { ...line, hasChordSection } : line
-    );
+    this.store.toggleChordSection(id, hasChordSection);
   }
 
   private _handleChordAdded(e: CustomEvent): void {
     const { lineId, chord } = e.detail;
-    this.lines = this.lines.map(line => 
-      line.id === lineId ? { ...line, chords: [...(line.chords || []), chord] } : line
-    );
+    this.store.addChord(lineId, chord);
   }
 
   private _handleChordUpdated(e: CustomEvent): void {
     const { lineId, chordId, name } = e.detail;
-    this.lines = this.lines.map(line => 
-      line.id === lineId ? { 
-        ...line, 
-        chords: line.chords.map(c => c.id === chordId ? { ...c, name } : c)
-      } : line
-    );
+    this.store.updateChord(lineId, chordId, name);
   }
 
   private _handleChordDeleted(e: CustomEvent): void {
     const { lineId, chordId } = e.detail;
-    this.lines = this.lines.map(line => 
-      line.id === lineId ? { ...line, chords: line.chords.filter(c => c.id !== chordId) } : line
-    );
+    this.store.deleteChord(lineId, chordId);
   }
 
   private _handleChordPositionChanged(e: CustomEvent): void {
     const { lineId, chordId, position } = e.detail;
-    this.lines = this.lines.map(line => 
-      line.id === lineId ? {
-        ...line,
-        chords: line.chords.map(c => c.id === chordId ? { ...c, position } : c)
-      } : line
-    );
+    this.store.updateChordPosition(lineId, chordId, position);
   }
 
   private _handleTextChanged(e: CustomEvent): void {
     const { id, text } = e.detail;
-    this.lines = this.lines.map(line => 
-      line.id === id ? { ...line, text } : line
-    );
+    this.store.updateLineText(id, text);
     this._saveSong();
-  }
-
-  private _exportToJSON(): void {
-    const song: SavedSong = {
-      name: this.songName || 'Untitled Song',
-      lines: this.lines,
-      lastModified: new Date().toISOString(),
-      exportedAt: new Date().toISOString()
-    };
-
-    const blob = new Blob([JSON.stringify(song, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${song.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
   }
 
   private _importFromJSON(): void {
@@ -430,98 +304,6 @@ export class LyricistApp extends LitElement {
     if (input) {
       input.click();
     }
-  }
-
-  private _loadSampleSong(): void {
-    const sampleSong: SavedSong = {
-      name: "Morning Coffee (Sample)",
-      lastModified: new Date().toISOString(),
-      lines: [
-        {
-          id: "line-sample-1",
-          text: "Wake up to the sunrise glow",
-          chords: [
-            { id: "chord-1-1", name: "C", position: 0 },
-            { id: "chord-1-2", name: "G", position: 60 }
-          ],
-          hasChordSection: false,
-          x: 150,
-          y: 100,
-          rotation: -2,
-          zIndex: 1
-        },
-        {
-          id: "line-sample-2",
-          text: "Pour a cup and take it slow",
-          chords: [
-            { id: "chord-2-1", name: "Am", position: 15 },
-            { id: "chord-2-2", name: "F", position: 65 }
-          ],
-          hasChordSection: false,
-          x: 160,
-          y: 180,
-          rotation: 1,
-          zIndex: 2
-        },
-        {
-          id: "line-sample-3",
-          text: "Every morning feels brand new",
-          chords: [
-            { id: "chord-3-1", name: "C", position: 20 },
-            { id: "chord-3-2", name: "G", position: 70 }
-          ],
-          hasChordSection: false,
-          x: 140,
-          y: 260,
-          rotation: -1,
-          zIndex: 3
-        },
-        {
-          id: "line-sample-4",
-          text: "Simple moments just me and you",
-          chords: [
-            { id: "chord-4-1", name: "Am", position: 25 },
-            { id: "chord-4-2", name: "F", position: 55 },
-            { id: "chord-4-3", name: "G", position: 85 }
-          ],
-          hasChordSection: false,
-          x: 155,
-          y: 340,
-          rotation: 2,
-          zIndex: 4
-        },
-        {
-          id: "line-sample-5",
-          text: "Morning coffee, warm and sweet",
-          chords: [
-            { id: "chord-5-1", name: "F", position: 10 },
-            { id: "chord-5-2", name: "C", position: 60 }
-          ],
-          hasChordSection: false,
-          x: 145,
-          y: 450,
-          rotation: -3,
-          zIndex: 5
-        },
-        {
-          id: "line-sample-6",
-          text: "Makes my day feel complete",
-          chords: [
-            { id: "chord-6-1", name: "G", position: 15 },
-            { id: "chord-6-2", name: "C", position: 70 }
-          ],
-          hasChordSection: false,
-          x: 170,
-          y: 530,
-          rotation: 1,
-          zIndex: 6
-        }
-      ]
-    };
-
-    this.songName = sampleSong.name;
-    this.lines = sampleSong.lines;
-    this.requestUpdate();
   }
 
   private _handleFileImport(e: Event): void {
@@ -535,10 +317,7 @@ export class LyricistApp extends LitElement {
         const result = e.target?.result;
         if (typeof result === 'string') {
           const song = JSON.parse(result) as SavedSong;
-          this.songName = song.name || 'Imported Song';
-          // Close all chord sections by default when loading
-          this.lines = (song.lines || []).map(line => ({ ...line, hasChordSection: false }));
-          this.requestUpdate();
+          this.store.importFromJSON(song);
         }
       } catch (error) {
         alert('Error importing file: Invalid JSON');
@@ -557,13 +336,13 @@ export class LyricistApp extends LitElement {
               type="text" 
               class="song-name-input" 
               placeholder="Song Name"
-              .value=${this.songName}
-              @input=${(e: InputEvent) => this.songName = (e.target as HTMLInputElement).value}
+              .value=${this.store.songName}
+              @input=${(e: InputEvent) => this.store.setSongName((e.target as HTMLInputElement).value)}
             />
             <button class="btn btn-primary" @click=${this._saveSong}>Save</button>
-            <button class="btn btn-secondary" @click=${() => this.showLoadDialog = true}>Load</button>
+            <button class="btn btn-secondary" @click=${() => this.store.setShowLoadDialog(true)}>Load</button>
             <button class="btn btn-secondary" @click=${this._newSong}>New</button>
-            <button class="btn btn-secondary" @click=${this._loadSampleSong}>Load Sample</button>
+            <button class="btn btn-secondary" @click=${() => this.store.loadSampleSong()}>Load Sample</button>
           </div>
         </div>
 
@@ -573,8 +352,8 @@ export class LyricistApp extends LitElement {
               type="text" 
               class="lyric-input" 
               placeholder="Enter a line of lyrics..."
-              .value=${this.newLineText}
-              @input=${(e: InputEvent) => this.newLineText = (e.target as HTMLInputElement).value}
+              .value=${this._newLineText}
+              @input=${(e: InputEvent) => this._newLineText = (e.target as HTMLInputElement).value}
             />
             <button type="submit" class="btn btn-primary">Add Line</button>
           </form>
@@ -593,7 +372,7 @@ export class LyricistApp extends LitElement {
             @bring-to-front=${this._handleBringToFront}
             @text-changed=${this._handleTextChanged}
           >
-            ${this.lines.length === 0 ? html`
+            ${this.store.lines.length === 0 ? html`
               <div class="empty-state">
                 <div class="empty-state-icon">✨</div>
                 <h2>Start Creating</h2>
@@ -601,7 +380,7 @@ export class LyricistApp extends LitElement {
               </div>
             ` : ''}
             
-            ${this.lines.map(line => html`
+            ${this.store.lines.map(line => html`
               <lyric-line
                 id=${line.id}
                 text=${line.text}
@@ -617,18 +396,18 @@ export class LyricistApp extends LitElement {
 
           <div class="panel-divider" @mousedown=${this._handleDividerMouseDown}></div>
 
-          <div class="lyrics-panel" style="width: ${this.lyricsPanelWidth}px">
+          <div class="lyrics-panel" style="width: ${this.store.lyricsPanelWidth}px">
             <div class="lyrics-panel-header">
               <h2>📝 Song Lyrics</h2>
               <button class="copy-lyrics-btn" @click=${this._copyLyricsToClipboard} title="Copy all lyrics">📋</button>
             </div>
             <div class="lyrics-panel-content">
-              ${this.lines.length === 0 ? html`
+              ${this.store.lines.length === 0 ? html`
                 <div class="lyrics-text empty">
                   No lyrics yet. Add lines and arrange them on the canvas to see your song here.
                 </div>
               ` : html`
-                <div class="lyrics-text">${this._getSortedLines().map(line => {
+                <div class="lyrics-text">${this.store.getSortedLines().map(line => {
                   const chordLine = this._renderChordLine(line);
                   return html`<div class="lyric-line-with-chords">${chordLine ? html`<div class="chord-line">${chordLine}</div>` : ''}<div class="lyric-text-line">${'\u00A0\u00A0'}${line.text}${'  '}</div></div>`;
                 })}</div>
@@ -638,19 +417,19 @@ export class LyricistApp extends LitElement {
         </div>
       </div>
 
-      ${this.showLoadDialog ? html`
-        <div class="dialog-overlay" @click=${() => this.showLoadDialog = false}>
+      ${this.store.showLoadDialog ? html`
+        <div class="dialog-overlay" @click=${() => this.store.setShowLoadDialog(false)}>
           <div class="dialog" @click=${(e: MouseEvent) => e.stopPropagation()}>
             <h2>Load Song</h2>
             
-            ${this.savedSongs.length === 0 ? html`
+            ${this.store.savedSongs.length === 0 ? html`
               <p style="color: #6b7280; text-align: center; padding: 40px 0;">
                 No saved songs yet. Create and save your first song!
               </p>
             ` : html`
               <div class="song-list">
-                ${this.savedSongs.map(song => html`
-                  <div class="song-item" @click=${() => this._loadSong(song)}>
+                ${this.store.savedSongs.map(song => html`
+                  <div class="song-item" @click=${() => this.store.loadSong(song)}>
                     <div class="song-item-info">
                       <div class="song-item-name">${song.name}</div>
                       <div class="song-item-meta">
@@ -667,13 +446,13 @@ export class LyricistApp extends LitElement {
               <h3>Import/Export</h3>
               <div class="export-actions">
                 <button class="btn btn-secondary" @click=${this._importFromJSON}>Import JSON</button>
-                <button class="btn btn-secondary" @click=${this._exportToJSON}>Export JSON</button>
+                <button class="btn btn-secondary" @click=${() => this.store.exportToJSON()}>Export JSON</button>
               </div>
               <input type="file" class="file-input" accept=".json" @change=${this._handleFileImport} />
             </div>
 
             <div class="dialog-actions">
-              <button class="btn btn-secondary" @click=${() => this.showLoadDialog = false}>Close</button>
+              <button class="btn btn-secondary" @click=${() => this.store.setShowLoadDialog(false)}>Close</button>
             </div>
           </div>
         </div>
@@ -683,4 +462,3 @@ export class LyricistApp extends LitElement {
 }
 
 customElements.define('lyricist-app', LyricistApp);
-

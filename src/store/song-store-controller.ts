@@ -1,0 +1,165 @@
+import { ReactiveController, ReactiveControllerHost } from 'lit';
+import { songStore } from './song-store.js';
+import { LyricLine, SavedSong } from './types.js';
+import { Chord } from '../lyric-line/index.js';
+
+/**
+ * Reactive Controller that connects Lit components to the SongStore
+ * Automatically registers/unregisters the host component for reactive updates
+ * 
+ * Usage in a Lit component:
+ *   private store = new SongStoreController(this);
+ * 
+ * The component will automatically re-render when store data changes
+ */
+export class SongStoreController implements ReactiveController {
+  private host: ReactiveControllerHost;
+  
+  constructor(host: ReactiveControllerHost) {
+    this.host = host;
+    host.addController(this);
+  }
+  
+  // ===== Lifecycle Hooks =====
+  
+  hostConnected(): void {
+    songStore.addHost(this.host);
+  }
+  
+  hostDisconnected(): void {
+    songStore.removeHost(this.host);
+  }
+  
+  // ===== Getters (Proxied from Store) =====
+  
+  get lines(): LyricLine[] {
+    return songStore.lines;
+  }
+  
+  get songName(): string {
+    return songStore.songName;
+  }
+  
+  get savedSongs(): SavedSong[] {
+    return songStore.savedSongs;
+  }
+  
+  get showLoadDialog(): boolean {
+    return songStore.showLoadDialog;
+  }
+  
+  get lyricsPanelWidth(): number {
+    return songStore.lyricsPanelWidth;
+  }
+  
+  // ===== Song Metadata Actions =====
+  
+  setSongName(name: string): void {
+    songStore.setSongName(name);
+  }
+  
+  // ===== Line Management Actions =====
+  
+  addLine(line: LyricLine): void {
+    songStore.addLine(line);
+  }
+  
+  updateLine(id: string, updates: Partial<LyricLine>): void {
+    songStore.updateLine(id, updates);
+  }
+  
+  deleteLine(id: string): void {
+    songStore.deleteLine(id);
+  }
+  
+  duplicateLine(id: string): void {
+    songStore.duplicateLine(id);
+  }
+  
+  bringLineToFront(id: string): void {
+    songStore.bringLineToFront(id);
+  }
+  
+  updateLinePosition(id: string, x: number, y: number): void {
+    songStore.updateLinePosition(id, x, y);
+  }
+  
+  updateLineText(id: string, text: string): void {
+    songStore.updateLineText(id, text);
+  }
+  
+  // ===== Chord Management Actions =====
+  
+  toggleChordSection(id: string, hasChordSection: boolean): void {
+    songStore.toggleChordSection(id, hasChordSection);
+  }
+  
+  addChord(lineId: string, chord: Chord): void {
+    songStore.addChord(lineId, chord);
+  }
+  
+  updateChord(lineId: string, chordId: string, name: string): void {
+    songStore.updateChord(lineId, chordId, name);
+  }
+  
+  deleteChord(lineId: string, chordId: string): void {
+    songStore.deleteChord(lineId, chordId);
+  }
+  
+  updateChordPosition(lineId: string, chordId: string, position: number): void {
+    songStore.updateChordPosition(lineId, chordId, position);
+  }
+  
+  // ===== Song Management Actions =====
+  
+  saveSong(): boolean {
+    return songStore.saveSong();
+  }
+  
+  loadSong(song: SavedSong): void {
+    songStore.loadSong(song);
+  }
+  
+  deleteSong(songName: string): void {
+    songStore.deleteSong(songName);
+  }
+  
+  newSong(): void {
+    songStore.newSong();
+  }
+  
+  // ===== Import/Export Actions =====
+  
+  exportToJSON(): void {
+    songStore.exportToJSON();
+  }
+  
+  importFromJSON(song: SavedSong): void {
+    songStore.importFromJSON(song);
+  }
+  
+  loadSampleSong(): void {
+    songStore.loadSampleSong();
+  }
+  
+  // ===== UI State Actions =====
+  
+  setShowLoadDialog(show: boolean): void {
+    songStore.setShowLoadDialog(show);
+  }
+  
+  setLyricsPanelWidth(width: number): void {
+    songStore.setLyricsPanelWidth(width);
+  }
+  
+  // ===== Utility Methods =====
+  
+  getSortedLines(): LyricLine[] {
+    return songStore.getSortedLines();
+  }
+  
+  getMaxZIndex(): number {
+    return songStore.getMaxZIndex();
+  }
+}
+
