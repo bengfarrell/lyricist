@@ -3,7 +3,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   build: {
     lib: {
-      entry: 'src/lyricist-app.ts',
+      entry: 'src/lyricist-app/index.ts',
       formats: ['es']
     },
     rollupOptions: {
