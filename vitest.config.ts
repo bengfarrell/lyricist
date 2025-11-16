@@ -4,12 +4,12 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./src/__tests__/setup.ts'],
-    include: ['src/**/*.{test,spec}.ts'], // Only run TypeScript tests
+    setupFiles: ['./tests/unit/integration-workflows/setup.ts'],
+    include: ['tests/unit/**/*.{test,spec}.ts'], // Unit tests
     exclude: [
       '**/node_modules/**',
       '**/dist/**',
-      '**/tests/**', // Exclude Playwright tests
+      '**/tests/integration/**', // Exclude Playwright tests
       '**/.{idea,git,cache,output,temp}/**',
       '**/*.js', // Exclude compiled JavaScript
     ],
@@ -18,11 +18,11 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
       exclude: [
         'node_modules/',
-        'src/__tests__/',
+        'tests/unit/',
+        'tests/integration/',
         '**/*.d.ts',
         '**/*.config.*',
         '**/dist/',
-        'tests/', // Exclude Playwright tests from coverage
       ],
     },
   },

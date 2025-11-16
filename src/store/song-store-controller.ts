@@ -1,6 +1,6 @@
 import { ReactiveController, ReactiveControllerHost } from 'lit';
 import { songStore } from './song-store.js';
-import { LyricLine, SavedSong } from './types.js';
+import { LyricLine, LyricGroup, CanvasItem, SavedSong } from './types.js';
 import { Chord } from '../lyric-line/index.js';
 
 /**
@@ -32,8 +32,16 @@ export class SongStoreController implements ReactiveController {
   
   // ===== Getters (Proxied from Store) =====
   
+  get items(): CanvasItem[] {
+    return songStore.items;
+  }
+  
   get lines(): LyricLine[] {
     return songStore.lines;
+  }
+  
+  get groups(): LyricGroup[] {
+    return songStore.groups;
   }
   
   get songName(): string {
@@ -50,6 +58,10 @@ export class SongStoreController implements ReactiveController {
   
   get lyricsPanelWidth(): number {
     return songStore.lyricsPanelWidth;
+  }
+  
+  get selectedLineIds(): Set<string> {
+    return songStore.selectedLineIds;
   }
   
   // ===== Song Metadata Actions =====
@@ -86,6 +98,28 @@ export class SongStoreController implements ReactiveController {
   
   updateLineText(id: string, text: string): void {
     songStore.updateLineText(id, text);
+  }
+  
+  // ===== Group Management Actions =====
+  
+  addGroup(group: LyricGroup): void {
+    songStore.addGroup(group);
+  }
+  
+  updateGroup(id: string, updates: Partial<LyricGroup>): void {
+    songStore.updateGroup(id, updates);
+  }
+  
+  deleteGroup(id: string): void {
+    songStore.deleteGroup(id);
+  }
+
+  ungroupGroup(id: string): void {
+    songStore.ungroupGroup(id);
+  }
+  
+  createGroup(sectionName: string): void {
+    songStore.createGroup(sectionName);
   }
   
   // ===== Chord Management Actions =====
@@ -152,10 +186,34 @@ export class SongStoreController implements ReactiveController {
     songStore.setLyricsPanelWidth(width);
   }
   
+  setSelectedLineIds(ids: string[]): void {
+    songStore.setSelectedLineIds(ids);
+  }
+  
+  toggleLineSelection(id: string): void {
+    songStore.toggleLineSelection(id);
+  }
+  
+  selectLine(id: string): void {
+    songStore.selectLine(id);
+  }
+  
+  clearSelection(): void {
+    songStore.clearSelection();
+  }
+  
+  isLineSelected(id: string): boolean {
+    return songStore.isLineSelected(id);
+  }
+  
   // ===== Utility Methods =====
   
   getSortedLines(): LyricLine[] {
     return songStore.getSortedLines();
+  }
+  
+  getSortedItems(): CanvasItem[] {
+    return songStore.getSortedItems();
   }
   
   getMaxZIndex(): number {

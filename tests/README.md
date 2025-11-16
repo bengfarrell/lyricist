@@ -3,23 +3,63 @@
 ## Overview
 
 This project has two types of tests:
-- **Unit Tests** (Vitest): Test components and business logic in isolation
-- **Integration Tests** (Playwright): Test user workflows in a real browser
+- **Unit Tests** (Vitest): Located in `tests/unit/` - Test components and business logic in isolation
+- **Integration Tests** (Playwright): Located in `tests/integration/` - Test user workflows in a real browser
 
 ## Running Tests
 
 ```bash
-# Unit tests
-npm test                    # Run once
+# Unit tests (Vitest)
+npm run test:ci             # Run once (CI mode)
+npm test                    # Run once (interactive)
 npm test -- --watch         # Watch mode
 npm run test:ui             # Visual UI
 npm run test:coverage       # With coverage report
 
 # Integration tests (Playwright)
+npm run test:integration:ci         # CI mode with line reporter
 npm run test:integration            # Headless (default)
 npm run test:integration:headed     # See the browser
 npm run test:integration:ui         # Interactive UI mode
 npm run test:integration:debug      # Debug mode with dev tools
+```
+
+## Important: Integration Test Behavior
+
+**Playwright integration tests take 10-30 seconds to start** because they:
+
+1. **Start the Vite dev server** (`npm run dev`) in the background
+2. **Wait for the server** to be available at `http://localhost:5173` (up to 120s timeout)
+3. **Launch a browser** (Chromium by default)
+4. **Then run the tests**
+
+### When Running from Command Line
+
+⚠️ **Do NOT use `tail` or `head` on Playwright commands** - they will appear to hang because:
+- The initial startup is quiet (minimal output)
+- `tail` waits for the command to complete before showing output
+- The tests are actually working, just not producing visible output yet
+
+✅ **Instead, use:**
+```bash
+# Let output stream naturally
+npm run test:integration:ci
+
+# Or set a reasonable timeout if needed
+timeout 60s npm run test:integration:ci
+
+# Or check if server starts properly first
+npm run dev  # In one terminal
+npm run test:integration  # In another terminal
+```
+
+### Before Running Tests
+
+If you recently modified TypeScript files, **rebuild first**:
+```bash
+# The source files are TypeScript, but tests import .js files
+npx tsc  # Compile TypeScript to JavaScript
+npm run test:ci  # Then run tests
 ```
 
 ## Test Coverage

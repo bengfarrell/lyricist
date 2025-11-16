@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { fixture, html } from '@open-wc/testing';
-import { AppHeader } from '../index.js';
-import { songStore } from '../../store/song-store.js';
-import type { LyricLine } from '../../store/types.js';
+import { AppHeader } from '../../../src/app-header/index.js';
+import { songStore } from '../../../src/store/song-store.js';
+import type { LyricLine } from '../../../src/store/types.js';
 
 // Ensure the component is registered
-import '../index.js';
+import '../../../src/app-header/index.js';
 
 describe('AppHeader', () => {
   beforeEach(() => {
@@ -15,6 +15,7 @@ describe('AppHeader', () => {
 
   it('should render the header with title', async () => {
     const el = await fixture<AppHeader>(html`<app-header></app-header>`);
+    await el.updateComplete;
     
     const header = el.shadowRoot!.querySelector('.header');
     expect(header).toBeTruthy();
@@ -59,6 +60,7 @@ describe('AppHeader', () => {
       songStore.setSongName('Test Song');
       const line: LyricLine = {
         id: 'line-1',
+        type: 'line' as const,
         text: 'Test',
         chords: [],
         hasChordSection: false,
@@ -104,7 +106,7 @@ describe('AppHeader', () => {
       expect(alertMock).toHaveBeenCalledWith('Please enter a song name');
       
       // Reload saved songs to get fresh state
-      const freshStore = new (await import('../../store/song-store.js')).SongStore();
+      const freshStore = new (await import('../../../src/store/song-store.js')).SongStore();
       expect(freshStore.savedSongs).toHaveLength(0);
 
       alertMock.mockRestore();
@@ -133,6 +135,7 @@ describe('AppHeader', () => {
       songStore.setSongName('Old Song');
       const line: LyricLine = {
         id: 'line-1',
+        type: 'line' as const,
         text: 'Test',
         chords: [],
         hasChordSection: false,
@@ -166,6 +169,7 @@ describe('AppHeader', () => {
       songStore.setSongName('Old Song');
       const line: LyricLine = {
         id: 'line-1',
+        type: 'line' as const,
         text: 'Test',
         chords: [],
         hasChordSection: false,

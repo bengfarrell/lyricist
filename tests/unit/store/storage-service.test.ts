@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { storageService } from '../storage-service.js';
-import type { SavedSong } from '../types.js';
+import { storageService } from '../../../src/store/storage-service.js';
+import type { SavedSong } from '../../../src/store/types.js';
 
 describe('StorageService', () => {
   beforeEach(() => {
@@ -87,7 +87,7 @@ describe('StorageService', () => {
 
       const updatedSong: SavedSong = {
         name: 'Test Song',
-        lines: [{ id: '1', text: 'Updated', chords: [], hasChordSection: false, x: 0, y: 0, rotation: 0, zIndex: 1 }],
+        lines: [{ id: '1', type: 'line' as const, text: 'Updated', chords: [], hasChordSection: false, x: 0, y: 0, rotation: 0, zIndex: 1 }],
         lastModified: '2025-01-02T00:00:00.000Z',
       };
       const result = storageService.saveSong(updatedSong);

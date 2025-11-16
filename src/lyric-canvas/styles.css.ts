@@ -42,5 +42,13 @@ export const lyricCanvasStyles = css`
     font-size: 16px;
     margin: 0;
   }
+
+  .selection-box {
+    position: absolute;
+    border: 2px solid #667eea;
+    background: rgba(102, 126, 234, 0.1);
+    pointer-events: none;
+    z-index: 10000;
+  }
 `;
 

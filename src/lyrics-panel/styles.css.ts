@@ -100,5 +100,32 @@ export const lyricsPanelStyles = css`
     color: #1f2937;
     line-height: 16px;
   }
+  
+  .section-group {
+    margin-top: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .section-group:first-child {
+    margin-top: 0;
+  }
+  
+  .section-header {
+    font-family: 'Courier New', 'Courier', monospace;
+    font-size: 16px;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .section-divider {
+    font-family: 'Courier New', 'Courier', monospace;
+    font-size: 16px;
+    color: #9ca3af;
+    margin-top: 8px;
+    line-height: 16px;
+  }
 `;
 

@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { fixture, html } from '@open-wc/testing';
-import { songStore } from '../store/song-store.js';
-import type { LyricLine, SavedSong } from '../store/types.js';
-import '../app-header/index.js';
-import '../lyrics-panel/index.js';
-import '../load-dialog/index.js';
+import { songStore } from '../../../src/store/song-store.js';
+import type { LyricLine, SavedSong } from '../../../src/store/types.js';
+import '../../../src/app-header/index.js';
+import '../../../src/lyrics-panel/index.js';
+import '../../../src/load-dialog/index.js';
 
 describe('Integration Tests', () => {
   beforeEach(() => {
@@ -25,6 +25,7 @@ describe('Integration Tests', () => {
       // Step 3: Add lyric lines
       const line1: LyricLine = {
         id: 'line-1',
+        type: 'line' as const,
         text: 'First line of lyrics',
         chords: [],
         hasChordSection: false,
@@ -37,6 +38,7 @@ describe('Integration Tests', () => {
 
       const line2: LyricLine = {
         id: 'line-2',
+        type: 'line' as const,
         text: 'Second line of lyrics',
         chords: [],
         hasChordSection: false,
@@ -71,12 +73,13 @@ describe('Integration Tests', () => {
       expect(success).toBe(true);
       expect(songStore.savedSongs).toHaveLength(1);
       expect(songStore.savedSongs[0].name).toBe('My First Song');
-      expect(songStore.savedSongs[0].lines).toHaveLength(2);
+      expect(songStore.savedSongs[0].items).toHaveLength(2);
     });
 
     it('should duplicate and delete lines', async () => {
       const line: LyricLine = {
         id: 'line-1',
+        type: 'line' as const,
         text: 'Original line',
         chords: [{ id: 'chord-1', name: 'C', position: 10 }],
         hasChordSection: false,
@@ -107,6 +110,7 @@ describe('Integration Tests', () => {
       songStore.setSongName('Original Song');
       const line: LyricLine = {
         id: 'line-1',
+        type: 'line' as const,
         text: 'Original text',
         chords: [{ id: 'chord-1', name: 'C', position: 10 }],
         hasChordSection: false,
@@ -135,6 +139,7 @@ describe('Integration Tests', () => {
       songStore.updateLineText('line-1', 'Modified text');
       songStore.addLine({
         id: 'line-2',
+        type: 'line' as const,
         text: 'New line',
         chords: [],
         hasChordSection: false,
@@ -149,7 +154,7 @@ describe('Integration Tests', () => {
       // Save the modified song (should update existing)
       songStore.saveSong();
       expect(songStore.savedSongs).toHaveLength(1); // Still only one song
-      expect(songStore.savedSongs[0].lines).toHaveLength(2); // But now with 2 lines
+      expect(songStore.savedSongs[0].items).toHaveLength(2); // But now with 2 lines
     });
   });
 
@@ -159,6 +164,7 @@ describe('Integration Tests', () => {
       songStore.setSongName('Song A');
       songStore.addLine({
         id: 'line-a1',
+        type: 'line' as const,
         text: 'Line from Song A',
         chords: [],
         hasChordSection: false,
@@ -174,6 +180,7 @@ describe('Integration Tests', () => {
       songStore.setSongName('Song B');
       songStore.addLine({
         id: 'line-b1',
+        type: 'line' as const,
         text: 'Line from Song B',
         chords: [],
         hasChordSection: false,
@@ -205,6 +212,7 @@ describe('Integration Tests', () => {
     it('should manage chords on a line', async () => {
       const line: LyricLine = {
         id: 'line-1',
+        type: 'line' as const,
         text: 'Test line with chords',
         chords: [],
         hasChordSection: false,
@@ -249,6 +257,7 @@ describe('Integration Tests', () => {
       
       songStore.addLine({
         id: 'line-1',
+        type: 'line' as const,
         text: 'First line',
         chords: [
           { id: 'chord-1', name: 'C', position: 0 },
@@ -263,6 +272,7 @@ describe('Integration Tests', () => {
 
       songStore.addLine({
         id: 'line-2',
+        type: 'line' as const,
         text: 'Second line',
         chords: [{ id: 'chord-3', name: 'Am', position: 20 }],
         hasChordSection: false,
@@ -299,6 +309,7 @@ describe('Integration Tests', () => {
       // Add multiple lines
       songStore.addLine({
         id: 'line-1',
+        type: 'line' as const,
         text: 'Bottom line',
         chords: [],
         hasChordSection: false,
@@ -310,6 +321,7 @@ describe('Integration Tests', () => {
 
       songStore.addLine({
         id: 'line-2',
+        type: 'line' as const,
         text: 'Middle line',
         chords: [],
         hasChordSection: false,
@@ -321,6 +333,7 @@ describe('Integration Tests', () => {
 
       songStore.addLine({
         id: 'line-3',
+        type: 'line' as const,
         text: 'Top line',
         chords: [],
         hasChordSection: false,
@@ -347,6 +360,7 @@ describe('Integration Tests', () => {
       songStore.setSongName('Persistent Song');
       songStore.addLine({
         id: 'line-1',
+        type: 'line' as const,
         text: 'This should persist',
         chords: [],
         hasChordSection: false,
@@ -364,10 +378,10 @@ describe('Integration Tests', () => {
       const songs: SavedSong[] = JSON.parse(saved!);
       expect(songs).toHaveLength(1);
       expect(songs[0].name).toBe('Persistent Song');
-      expect(songs[0].lines).toHaveLength(1);
+      expect(songs[0].items).toHaveLength(1);
 
       // Create new store instance (simulating page reload)
-      const { SongStore } = await import('../store/song-store.js');
+      const { SongStore } = await import('../../../src/store/song-store.js');
       const newStore = new SongStore();
 
       // Should load saved songs from localStorage
@@ -406,6 +420,7 @@ describe('Integration Tests', () => {
       // Add lines in random order
       songStore.addLine({
         id: 'line-3',
+        type: 'line' as const,
         text: 'Third line',
         chords: [],
         hasChordSection: false,
@@ -417,6 +432,7 @@ describe('Integration Tests', () => {
 
       songStore.addLine({
         id: 'line-1',
+        type: 'line' as const,
         text: 'First line',
         chords: [],
         hasChordSection: false,
@@ -428,6 +444,7 @@ describe('Integration Tests', () => {
 
       songStore.addLine({
         id: 'line-2',
+        type: 'line' as const,
         text: 'Second line',
         chords: [],
         hasChordSection: false,

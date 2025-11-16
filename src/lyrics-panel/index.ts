@@ -1,6 +1,6 @@
 import { LitElement, html } from 'lit';
 import { SongStoreController } from '../store/index.js';
-import type { LyricLine } from '../store/index.js';
+import type { LyricLine, CanvasItem } from '../store/index.js';
 import { lyricsPanelStyles } from './styles.css.js';
 
 /**
@@ -58,20 +58,34 @@ export class LyricsPanel extends LitElement {
   }
 
   private _copyLyricsToClipboard(): void {
-    const sortedLines = this.store.getSortedLines();
+    const sortedItems = this.store.getSortedItems();
     let text = '';
 
     if (this.store.songName) {
       text += `${this.store.songName}\n\n`;
     }
 
-    sortedLines.forEach(line => {
-      const chordLine = this._renderChordLine(line);
-      if (chordLine) {
-        text += chordLine + '\n';
+    sortedItems.forEach(item => {
+      if (item.type === 'line') {
+        const chordLine = this._renderChordLine(item);
+        if (chordLine) {
+          text += chordLine + '\n';
+        }
+        text += '  ' + item.text + '  \n\n';
+      } else {
+        // Add section header
+        text += `[${item.sectionName}]\n`;
+        // Add all lines in the group
+        item.lines.forEach(line => {
+          const chordLine = this._renderChordLine(line);
+          if (chordLine) {
+            text += chordLine + '\n';
+          }
+          text += '  ' + line.text + '  \n\n';
+        });
+        // Add section divider
+        text += '------------------------\n\n';
       }
-      // Add padding spaces to match the visual layout (using regular spaces for clipboard)
-      text += '  ' + line.text + '  \n\n';
     });
 
     navigator.clipboard.writeText(text.trim()).then(() => {
@@ -96,15 +110,42 @@ export class LyricsPanel extends LitElement {
         <button class="copy-lyrics-btn" @click=${this._copyLyricsToClipboard} title="Copy all lyrics">📋</button>
       </div>
       <div class="lyrics-panel-content">
-        ${this.store.lines.length === 0 ? html`
+        ${this.store.items.length === 0 ? html`
           <div class="lyrics-text empty">
             No lyrics yet. Add lines and arrange them on the canvas to see your song here.
           </div>
         ` : html`
-          <div class="lyrics-text">${this.store.getSortedLines().map(line => {
-            const chordLine = this._renderChordLine(line);
-            return html`<div class="lyric-line-with-chords">${chordLine ? html`<div class="chord-line">${chordLine}</div>` : ''}<div class="lyric-text-line">${'\u00A0\u00A0'}${line.text}${'\u00A0\u00A0'}</div></div>`;
-          })}</div>
+          <div class="lyrics-text">
+            ${this.store.getSortedItems().map(item => {
+              if (item.type === 'line') {
+                // Render a single line
+                const chordLine = this._renderChordLine(item);
+                return html`
+                  <div class="lyric-line-with-chords">
+                    ${chordLine ? html`<div class="chord-line">${chordLine}</div>` : ''}
+                    <div class="lyric-text-line">${'\u00A0\u00A0'}${item.text}${'\u00A0\u00A0'}</div>
+                  </div>
+                `;
+              } else {
+                // Render a group with section header
+                return html`
+                  <div class="section-group">
+                    <div class="section-header">[${item.sectionName}]</div>
+                    ${item.lines.map(line => {
+                      const chordLine = this._renderChordLine(line);
+                      return html`
+                        <div class="lyric-line-with-chords">
+                          ${chordLine ? html`<div class="chord-line">${chordLine}</div>` : ''}
+                          <div class="lyric-text-line">${'\u00A0\u00A0'}${line.text}${'\u00A0\u00A0'}</div>
+                        </div>
+                      `;
+                    })}
+                    <div class="section-divider">------------------------</div>
+                  </div>
+                `;
+              }
+            })}
+          </div>
         `}
       </div>
     `;

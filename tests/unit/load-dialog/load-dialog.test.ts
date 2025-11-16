@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { fixture, html } from '@open-wc/testing';
-import { LoadDialog } from '../index.js';
-import { songStore } from '../../store/song-store.js';
-import type { SavedSong } from '../../store/types.js';
+import { LoadDialog } from '../../../src/load-dialog/index.js';
+import { songStore } from '../../../src/store/song-store.js';
+import type { SavedSong } from '../../../src/store/types.js';
 
 // Ensure the component is registered
-import '../index.js';
+import '../../../src/load-dialog/index.js';
 
 describe('LoadDialog', () => {
   beforeEach(() => {
@@ -78,6 +78,7 @@ describe('LoadDialog', () => {
         lines: [
           {
             id: 'line-1',
+        type: 'line' as const,
             text: 'Test',
             chords: [],
             hasChordSection: false,
@@ -90,7 +91,7 @@ describe('LoadDialog', () => {
         lastModified: '2025-01-15T00:00:00.000Z',
       };
       songStore.setSongName('Test Song');
-      songStore.addLine(song.lines[0]);
+      songStore.addLine(song.lines![0]);
       songStore.saveSong();
       songStore.setShowLoadDialog(true);
 
@@ -103,7 +104,7 @@ describe('LoadDialog', () => {
       const songItem = el.shadowRoot!.querySelector('.song-item');
       expect(songItem).toBeTruthy();
       expect(songItem?.textContent).toContain('Test Song');
-      expect(songItem?.textContent).toContain('1 lines');
+      expect(songItem?.textContent).toContain('1 items');
     });
 
     it('should load song when song item is clicked', async () => {
@@ -112,6 +113,7 @@ describe('LoadDialog', () => {
         lines: [
           {
             id: 'line-1',
+        type: 'line' as const,
             text: 'Test',
             chords: [],
             hasChordSection: false,
@@ -124,7 +126,7 @@ describe('LoadDialog', () => {
         lastModified: '2025-01-15T00:00:00.000Z',
       };
       songStore.setSongName('Test Song');
-      songStore.addLine(song.lines[0]);
+      songStore.addLine(song.lines![0]);
       songStore.saveSong();
       
       // Clear current state
@@ -269,7 +271,7 @@ describe('LoadDialog', () => {
     localStorage.clear();
     
     // Create a completely fresh store
-    const { SongStore } = await import('../../store/song-store.js');
+    const { SongStore } = await import('../../../src/store/song-store.js');
     const freshStore = new SongStore();
     expect(freshStore.savedSongs).toHaveLength(0);
     

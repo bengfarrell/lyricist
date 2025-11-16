@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { fixture, html } from '@open-wc/testing';
-import { LyricsPanel } from '../index.js';
-import { songStore } from '../../store/song-store.js';
-import type { LyricLine } from '../../store/types.js';
+import { LyricsPanel } from '../../../src/lyrics-panel/index.js';
+import { songStore } from '../../../src/store/song-store.js';
+import type { LyricLine } from '../../../src/store/types.js';
 
 // Ensure the component is registered
-import '../index.js';
+import '../../../src/lyrics-panel/index.js';
 
 describe('LyricsPanel', () => {
   beforeEach(() => {
@@ -25,6 +25,7 @@ describe('LyricsPanel', () => {
   it('should render lyrics lines', async () => {
     const line: LyricLine = {
       id: 'line-1',
+        type: 'line' as const,
       text: 'Test lyric line',
       chords: [],
       hasChordSection: false,
@@ -45,6 +46,7 @@ describe('LyricsPanel', () => {
   it('should render chords above lyrics', async () => {
     const line: LyricLine = {
       id: 'line-1',
+        type: 'line' as const,
       text: 'Test lyric line',
       chords: [
         { id: 'chord-1', name: 'C', position: 10 },
@@ -70,6 +72,7 @@ describe('LyricsPanel', () => {
   it('should sort lines by y position', async () => {
     const line1: LyricLine = {
       id: 'line-1',
+        type: 'line' as const,
       text: 'Second line',
       chords: [],
       hasChordSection: false,
@@ -80,6 +83,7 @@ describe('LyricsPanel', () => {
     };
     const line2: LyricLine = {
       id: 'line-2',
+        type: 'line' as const,
       text: 'First line',
       chords: [],
       hasChordSection: false,
@@ -112,6 +116,7 @@ describe('LyricsPanel', () => {
 
       const line: LyricLine = {
         id: 'line-1',
+        type: 'line' as const,
         text: 'Test lyric',
         chords: [{ id: 'chord-1', name: 'C', position: 0 }],
         hasChordSection: false,
@@ -147,6 +152,7 @@ describe('LyricsPanel', () => {
 
       const line: LyricLine = {
         id: 'line-1',
+        type: 'line' as const,
         text: 'Test lyric',
         chords: [],
         hasChordSection: false,
@@ -191,6 +197,7 @@ describe('LyricsPanel', () => {
     // Add a line
     const line: LyricLine = {
       id: 'line-1',
+        type: 'line' as const,
       text: 'New line',
       chords: [],
       hasChordSection: false,

@@ -12,6 +12,19 @@ export const lyricLineStyles = css`
     opacity: 0.8;
   }
 
+  :host([selected]) .lyric-line {
+    box-shadow: 0 0 0 3px #667eea, 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+    border: 2px solid #667eea;
+  }
+
+  :host([selected]:hover) .lyric-line {
+    box-shadow: 0 0 0 3px #667eea, 0 10px 15px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  :host([selected][dragging]) .lyric-line {
+    box-shadow: 0 0 0 3px #667eea, 0 20px 25px rgba(0, 0, 0, 0.2), 0 10px 10px rgba(0, 0, 0, 0.1);
+  }
+
   .container {
     display: inline-block;
   }
@@ -198,12 +211,13 @@ export const lyricLineStyles = css`
     background: white;
     padding: 12px 20px;
     border-radius: 8px;
+    border: 2px solid transparent;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
     font-size: 18px;
     font-weight: 500;
     color: #333;
     white-space: nowrap;
-    transition: box-shadow 0.2s ease, transform 0.1s ease;
+    transition: box-shadow 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
     position: relative;
     display: inline-block;
   }

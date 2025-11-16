@@ -22,6 +22,7 @@ export class LyricLine extends LitElement {
     id: { type: String },
     rotation: { type: Number },
     zIndex: { type: Number },
+    selected: { type: Boolean },
     _showChordPicker: { type: Boolean, state: true },
     _pickerPosition: { type: Number, state: true },
     _editingChordId: { type: String, state: true },
@@ -39,6 +40,7 @@ export class LyricLine extends LitElement {
   id: string = '';
   rotation: number = 0;
   zIndex: number = 1;
+  selected: boolean = false;
   
   private _isDragging: boolean = false;
   private _startX: number = 0;
@@ -86,6 +88,17 @@ export class LyricLine extends LitElement {
     if (changedProperties.has('x') || changedProperties.has('y') || changedProperties.has('rotation') || changedProperties.has('zIndex')) {
       this.updatePosition();
     }
+    if (changedProperties.has('selected')) {
+      this.updateSelectedState();
+    }
+  }
+
+  updateSelectedState(): void {
+    if (this.selected) {
+      this.setAttribute('selected', '');
+    } else {
+      this.removeAttribute('selected');
+    }
   }
 
   updatePosition(): void {
@@ -105,6 +118,13 @@ export class LyricLine extends LitElement {
         this._isEditingText) {
       return;
     }
+
+    // Select this line
+    this.dispatchEvent(new CustomEvent('line-selected', {
+      detail: { id: this.id, shiftKey: e.shiftKey },
+      bubbles: true,
+      composed: true
+    }));
 
     // Bring this line to front
     this.dispatchEvent(new CustomEvent('bring-to-front', {
@@ -452,6 +472,7 @@ export class LyricLine extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     this.updatePosition();
+    this.updateSelectedState();
     this._boundHandleClickOutside = this._handleClickOutside.bind(this);
     this._boundHandleClosePickerEvent = this._handleClosePickerEvent.bind(this);
     this._boundHandleChordDragMove = this._handleChordDragMove.bind(this);

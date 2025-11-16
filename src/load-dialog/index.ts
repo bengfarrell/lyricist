@@ -66,7 +66,7 @@ export class LoadDialog extends LitElement {
                   <div class="song-item-info">
                     <div class="song-item-name">${song.name}</div>
                     <div class="song-item-meta">
-                      ${song.lines.length} lines • Last modified: ${new Date(song.lastModified).toLocaleDateString()}
+                      ${(song.items || song.lines || []).length} items • Last modified: ${new Date(song.lastModified).toLocaleDateString()}
                     </div>
                   </div>
                   <button class="btn btn-danger" @click=${(e: MouseEvent) => this._deleteSong(song, e)}>Delete</button>

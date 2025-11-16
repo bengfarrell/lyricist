@@ -1,8 +1,9 @@
 import { LitElement, html } from 'lit';
 import { SongStoreController } from '../store/index.js';
-import type { LyricLine } from '../store/index.js';
+import type { LyricLine, CanvasItem } from '../store/index.js';
 import { cursorManager } from '../cursor-manager/index.js';
 import '../lyric-line/index.js';
+import '../lyric-group/index.js';
 import { lyricCanvasStyles } from './styles.css.js';
 
 /**
@@ -13,9 +14,14 @@ export class LyricCanvas extends LitElement {
   
   private store = new SongStoreController(this);
   
-  private _draggedLine: LyricLine | null = null;
+  private _draggedItem: CanvasItem | null = null;
   private _boundHandleMouseMove?: (e: MouseEvent) => void;
   private _boundHandleMouseUp?: (e: MouseEvent) => void;
+  
+  // Selection box state
+  private _isSelectionBoxActive: boolean = false;
+  private _selectionBoxStart: { x: number; y: number } | null = null;
+  private _selectionBoxEnd: { x: number; y: number } | null = null;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -36,9 +42,9 @@ export class LyricCanvas extends LitElement {
   }
 
   private _handleDragStart(e: CustomEvent): void {
-    const line = this.store.lines.find(line => line.id === e.detail.id);
-    if (line) {
-      this._draggedLine = line;
+    const item = this.store.items.find(item => item.id === e.detail.id);
+    if (item) {
+      this._draggedItem = item;
       cursorManager.setCursor('move');
     }
   }
@@ -55,33 +61,130 @@ export class LyricCanvas extends LitElement {
   }
 
   private _handleMouseMove(e: MouseEvent): void {
-    if (!this._draggedLine) return;
+    // Handle item dragging
+    if (this._draggedItem) {
+      const canvas = this.shadowRoot?.querySelector('.canvas');
+      if (!canvas) return;
+      
+      const rect = canvas.getBoundingClientRect();
 
-    const canvas = this.shadowRoot?.querySelector('.canvas');
-    if (!canvas) return;
-    
-    const rect = canvas.getBoundingClientRect();
+      const elementSelector = this._draggedItem.type === 'line' ? 'lyric-line' : 'lyric-group';
+      const itemElement = this.shadowRoot?.querySelector(`${elementSelector}[id="${this._draggedItem.id}"]`) as any;
+      if (!itemElement) return;
 
-    const lineElement = this.shadowRoot?.querySelector(`lyric-line[id="${this._draggedLine.id}"]`) as any;
-    if (!lineElement) return;
+      // Calculate new position relative to canvas, accounting for where user clicked within the element
+      const newX = e.clientX - rect.left - itemElement._offsetX;
+      const newY = e.clientY - rect.top - itemElement._offsetY;
 
-    // Calculate new position relative to canvas, accounting for where user clicked within the element
-    const newX = e.clientX - rect.left - lineElement._offsetX;
-    const newY = e.clientY - rect.top - lineElement._offsetY;
-
-    this.store.updateLinePosition(this._draggedLine.id, newX, newY);
-  }
-
-  private _handleMouseUp(): void {
-    if (this._draggedLine) {
-      const lineElement = this.shadowRoot?.querySelector(`lyric-line[id="${this._draggedLine.id}"]`);
-      if (lineElement) {
-        lineElement.removeAttribute('dragging');
-      }
-      this._draggedLine = null;
+      this.store.updateLinePosition(this._draggedItem.id, newX, newY);
+      return;
     }
     
-    cursorManager.clearCursor();
+    // Handle selection box
+    if (this._isSelectionBoxActive && this._selectionBoxStart) {
+      const canvas = this.shadowRoot?.querySelector('.canvas');
+      if (!canvas) return;
+      
+      const rect = canvas.getBoundingClientRect();
+      this._selectionBoxEnd = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+      
+      // Update selection in real-time
+      this._updateSelectionFromBox(e.shiftKey);
+      this.requestUpdate();
+    }
+  }
+
+  private _handleMouseUp(e: MouseEvent): void {
+    // Handle item drag end
+    if (this._draggedItem) {
+      const elementSelector = this._draggedItem.type === 'line' ? 'lyric-line' : 'lyric-group';
+      const itemElement = this.shadowRoot?.querySelector(`${elementSelector}[id="${this._draggedItem.id}"]`);
+      if (itemElement) {
+        itemElement.removeAttribute('dragging');
+      }
+      this._draggedItem = null;
+      cursorManager.clearCursor();
+    }
+    
+    // Handle selection box end
+    if (this._isSelectionBoxActive) {
+      this._updateSelectionFromBox(e.shiftKey);
+      this._isSelectionBoxActive = false;
+      this._selectionBoxStart = null;
+      this._selectionBoxEnd = null;
+      this.requestUpdate();
+    }
+  }
+  
+  private _updateSelectionFromBox(shiftKey: boolean): void {
+    if (!this._selectionBoxStart || !this._selectionBoxEnd) return;
+    
+    const box = this._getSelectionBoxRect();
+    const selectedIds: string[] = [];
+    
+    // Check which items intersect with the selection box
+    this.store.items.forEach(item => {
+      const elementSelector = item.type === 'line' ? 'lyric-line' : 'lyric-group';
+      const itemElement = this.shadowRoot?.querySelector(`${elementSelector}[id="${item.id}"]`) as HTMLElement;
+      if (!itemElement) return;
+      
+      const itemRect = itemElement.getBoundingClientRect();
+      const canvas = this.shadowRoot?.querySelector('.canvas');
+      if (!canvas) return;
+      
+      const canvasRect = canvas.getBoundingClientRect();
+      
+      // Convert to canvas-relative coordinates
+      const itemBox = {
+        left: itemRect.left - canvasRect.left,
+        top: itemRect.top - canvasRect.top,
+        right: itemRect.right - canvasRect.left,
+        bottom: itemRect.bottom - canvasRect.top
+      };
+      
+      // Check for intersection
+      if (this._boxesIntersect(box, itemBox)) {
+        selectedIds.push(item.id);
+      }
+    });
+    
+    if (shiftKey) {
+      // Add to existing selection
+      const currentSelection = Array.from(this.store.selectedLineIds);
+      const combined = [...new Set([...currentSelection, ...selectedIds])];
+      this.store.setSelectedLineIds(combined);
+    } else {
+      // Replace selection
+      this.store.setSelectedLineIds(selectedIds);
+    }
+  }
+  
+  private _getSelectionBoxRect(): { left: number; top: number; right: number; bottom: number } {
+    if (!this._selectionBoxStart || !this._selectionBoxEnd) {
+      return { left: 0, top: 0, right: 0, bottom: 0 };
+    }
+    
+    return {
+      left: Math.min(this._selectionBoxStart.x, this._selectionBoxEnd.x),
+      top: Math.min(this._selectionBoxStart.y, this._selectionBoxEnd.y),
+      right: Math.max(this._selectionBoxStart.x, this._selectionBoxEnd.x),
+      bottom: Math.max(this._selectionBoxStart.y, this._selectionBoxEnd.y)
+    };
+  }
+  
+  private _boxesIntersect(
+    box1: { left: number; top: number; right: number; bottom: number },
+    box2: { left: number; top: number; right: number; bottom: number }
+  ): boolean {
+    return !(
+      box1.right < box2.left ||
+      box1.left > box2.right ||
+      box1.bottom < box2.top ||
+      box1.top > box2.bottom
+    );
   }
 
   private _handleDeleteLine(e: CustomEvent): void {
@@ -124,12 +227,81 @@ export class LyricCanvas extends LitElement {
     this.store.saveSong();
   }
 
+  private _handleLineSelected(e: CustomEvent): void {
+    const { id, shiftKey } = e.detail;
+    
+    if (shiftKey) {
+      // Shift is held: toggle selection
+      this.store.toggleLineSelection(id);
+    } else {
+      // Shift not held: clear selection and select only this line
+      this.store.selectLine(id);
+    }
+  }
+  
+  private _handleGroupSelected(e: CustomEvent): void {
+    const { id, shiftKey } = e.detail;
+    
+    if (shiftKey) {
+      // Shift is held: toggle selection
+      this.store.toggleLineSelection(id);
+    } else {
+      // Shift not held: clear selection and select only this group
+      this.store.selectLine(id);
+    }
+  }
+  
+  private _handleDeleteGroup(e: CustomEvent): void {
+    this.store.deleteGroup(e.detail.id);
+  }
+  
+  private _handleDuplicateGroup(e: CustomEvent): void {
+    this.store.duplicateLine(e.detail.id); // This already handles groups
+  }
+
+  private _handleUngroupGroup(e: CustomEvent): void {
+    this.store.ungroupGroup(e.detail.id);
+  }
+
+  private _handleCanvasClick(e: MouseEvent): void {
+    // This will be handled by mousedown/mouseup for selection box
+  }
+  
+  private _handleCanvasMouseDown(e: MouseEvent): void {
+    // Only start selection box if clicking directly on canvas background
+    if (e.target !== e.currentTarget) return;
+    
+    const canvas = e.currentTarget as HTMLElement;
+    const rect = canvas.getBoundingClientRect();
+    
+    this._isSelectionBoxActive = true;
+    this._selectionBoxStart = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+    this._selectionBoxEnd = { ...this._selectionBoxStart };
+    
+    // Clear selection if shift is not held
+    if (!e.shiftKey) {
+      this.store.clearSelection();
+    }
+    
+    this.requestUpdate();
+  }
+
   render() {
+    const selectionBox = this._isSelectionBoxActive && this._selectionBoxStart && this._selectionBoxEnd
+      ? this._getSelectionBoxRect()
+      : null;
+    
     return html`
       <div class="canvas" 
         @drag-start=${this._handleDragStart} 
         @delete-line=${this._handleDeleteLine} 
         @duplicate-line=${this._handleDuplicateLine}
+        @delete-group=${this._handleDeleteGroup}
+        @duplicate-group=${this._handleDuplicateGroup}
+        @ungroup=${this._handleUngroupGroup}
         @toggle-chord-section=${this._handleToggleChordSection}
         @chord-added=${this._handleChordAdded}
         @chord-updated=${this._handleChordUpdated}
@@ -137,8 +309,11 @@ export class LyricCanvas extends LitElement {
         @chord-position-changed=${this._handleChordPositionChanged}
         @bring-to-front=${this._handleBringToFront}
         @text-changed=${this._handleTextChanged}
+        @line-selected=${this._handleLineSelected}
+        @group-selected=${this._handleGroupSelected}
+        @mousedown=${this._handleCanvasMouseDown}
       >
-        ${this.store.lines.length === 0 ? html`
+        ${this.store.items.length === 0 ? html`
           <div class="empty-state">
             <div class="empty-state-icon">✨</div>
             <h2>Start Creating</h2>
@@ -146,18 +321,45 @@ export class LyricCanvas extends LitElement {
           </div>
         ` : ''}
         
-        ${this.store.lines.map(line => html`
-          <lyric-line
-            id=${line.id}
-            text=${line.text}
-            .chords=${line.chords || []}
-            .hasChordSection=${line.hasChordSection || false}
-            .x=${line.x}
-            .y=${line.y}
-            .rotation=${line.rotation || 0}
-            .zIndex=${line.zIndex || 1}
-          ></lyric-line>
-        `)}
+        ${this.store.items.map(item => {
+          if (item.type === 'line') {
+            return html`
+              <lyric-line
+                id=${item.id}
+                text=${item.text}
+                .chords=${item.chords || []}
+                .hasChordSection=${item.hasChordSection || false}
+                .x=${item.x}
+                .y=${item.y}
+                .rotation=${item.rotation || 0}
+                .zIndex=${item.zIndex || 1}
+                .selected=${this.store.isLineSelected(item.id)}
+              ></lyric-line>
+            `;
+          } else {
+            return html`
+              <lyric-group
+                id=${item.id}
+                .sectionName=${item.sectionName}
+                .lines=${item.lines}
+                .x=${item.x}
+                .y=${item.y}
+                .rotation=${item.rotation || 0}
+                .zIndex=${item.zIndex || 1}
+                .selected=${this.store.isLineSelected(item.id)}
+              ></lyric-group>
+            `;
+          }
+        })}
+        
+        ${selectionBox ? html`
+          <div class="selection-box" style="
+            left: ${selectionBox.left}px;
+            top: ${selectionBox.top}px;
+            width: ${selectionBox.right - selectionBox.left}px;
+            height: ${selectionBox.bottom - selectionBox.top}px;
+          "></div>
+        ` : ''}
       </div>
     `;
   }
