@@ -17,6 +17,7 @@ describe('SongStore', () => {
       expect(store.savedSongs).toEqual([]);
       expect(store.showLoadDialog).toBe(false);
       expect(store.lyricsPanelWidth).toBe(350);
+      expect(store.newLineInputText).toBe('');
     });
 
     it('should load saved songs from localStorage', () => {
@@ -1075,6 +1076,31 @@ describe('SongStore', () => {
 
       expect(sortedItems[0].y).toBe(100);
       expect(sortedItems[1].y).toBe(300);
+    });
+  });
+
+  describe('newLineInputText', () => {
+    it('should start with empty input text', () => {
+      expect(store.newLineInputText).toBe('');
+    });
+
+    it('should set and get input text', () => {
+      store.setNewLineInputText('Test lyric line');
+      expect(store.newLineInputText).toBe('Test lyric line');
+    });
+
+    it('should update input text', () => {
+      store.setNewLineInputText('First text');
+      expect(store.newLineInputText).toBe('First text');
+      
+      store.setNewLineInputText('Updated text');
+      expect(store.newLineInputText).toBe('Updated text');
+    });
+
+    it('should allow empty string', () => {
+      store.setNewLineInputText('Some text');
+      store.setNewLineInputText('');
+      expect(store.newLineInputText).toBe('');
     });
   });
 });

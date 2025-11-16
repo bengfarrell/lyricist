@@ -64,6 +64,10 @@ export class SongStoreController implements ReactiveController {
     return songStore.selectedLineIds;
   }
   
+  get newLineInputText(): string {
+    return songStore.newLineInputText;
+  }
+  
   // ===== Song Metadata Actions =====
   
   setSongName(name: string): void {
@@ -204,6 +208,10 @@ export class SongStoreController implements ReactiveController {
   
   isLineSelected(id: string): boolean {
     return songStore.isLineSelected(id);
+  }
+  
+  setNewLineInputText(text: string): void {
+    songStore.setNewLineInputText(text);
   }
   
   // ===== Utility Methods =====

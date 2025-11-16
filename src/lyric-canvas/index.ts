@@ -1,5 +1,5 @@
 import { LitElement, html } from 'lit';
-import { SongStoreController } from '../store/index.js';
+import { SongStoreController, DEFAULT_LINE_TEXT } from '../store/index.js';
 import type { LyricLine, CanvasItem } from '../store/index.js';
 import { cursorManager } from '../cursor-manager/index.js';
 import '../lyric-line/index.js';
@@ -22,6 +22,9 @@ export class LyricCanvas extends LitElement {
   private _isSelectionBoxActive: boolean = false;
   private _selectionBoxStart: { x: number; y: number } | null = null;
   private _selectionBoxEnd: { x: number; y: number } | null = null;
+  
+  // Click detection for adding lines
+  private _canvasMouseDownPos: { x: number; y: number } | null = null;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -109,12 +112,35 @@ export class LyricCanvas extends LitElement {
       cursorManager.clearCursor();
     }
     
-    // Handle selection box end
-    if (this._isSelectionBoxActive) {
-      this._updateSelectionFromBox(e.shiftKey);
+    // Handle selection box end or click to add line
+    if (this._isSelectionBoxActive && this._canvasMouseDownPos) {
+      const canvas = this.shadowRoot?.querySelector('.canvas');
+      if (canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseUpX = e.clientX - rect.left;
+        const mouseUpY = e.clientY - rect.top;
+        
+        // Calculate distance between mousedown and mouseup
+        const dx = mouseUpX - this._canvasMouseDownPos.x;
+        const dy = mouseUpY - this._canvasMouseDownPos.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // If distance is small (less than 5 pixels), it's a click, not a drag
+        const CLICK_THRESHOLD = 5;
+        
+        if (distance < CLICK_THRESHOLD) {
+          // It's a click - add a new line at this position
+          this._addLineAtPosition(this._canvasMouseDownPos.x, this._canvasMouseDownPos.y);
+        } else {
+          // It's a drag - complete the selection box
+          this._updateSelectionFromBox(e.shiftKey);
+        }
+      }
+      
       this._isSelectionBoxActive = false;
       this._selectionBoxStart = null;
       this._selectionBoxEnd = null;
+      this._canvasMouseDownPos = null;
       this.requestUpdate();
     }
   }
@@ -262,6 +288,29 @@ export class LyricCanvas extends LitElement {
   private _handleUngroupGroup(e: CustomEvent): void {
     this.store.ungroupGroup(e.detail.id);
   }
+  
+  private _addLineAtPosition(x: number, y: number): void {
+    const maxZ = this.store.items.length > 0 
+      ? Math.max(...this.store.items.map(item => item.zIndex || 1)) 
+      : 0;
+    
+    // Use the current input text from the store, or default text if empty
+    const text = (this.store.newLineInputText || '').trim() || DEFAULT_LINE_TEXT;
+    
+    const newLine: LyricLine = {
+      id: `line-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type: 'line',
+      text,
+      chords: [],
+      hasChordSection: false,
+      x: x,
+      y: y,
+      rotation: (Math.random() * 10) - 5, // Random rotation between -5 and 5 degrees
+      zIndex: maxZ + 1
+    };
+    
+    this.store.addLine(newLine);
+  }
 
   private _handleCanvasClick(e: MouseEvent): void {
     // This will be handled by mousedown/mouseup for selection box
@@ -274,12 +323,13 @@ export class LyricCanvas extends LitElement {
     const canvas = e.currentTarget as HTMLElement;
     const rect = canvas.getBoundingClientRect();
     
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+    
     this._isSelectionBoxActive = true;
-    this._selectionBoxStart = {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
+    this._selectionBoxStart = { x: clickX, y: clickY };
     this._selectionBoxEnd = { ...this._selectionBoxStart };
+    this._canvasMouseDownPos = { x: clickX, y: clickY };
     
     // Clear selection if shift is not held
     if (!e.shiftKey) {

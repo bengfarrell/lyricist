@@ -1,5 +1,5 @@
 import { LitElement, html } from 'lit';
-import { SongStoreController } from '../store/index.js';
+import { SongStoreController, DEFAULT_LINE_TEXT } from '../store/index.js';
 import type { LyricLine } from '../store/index.js';
 import { appControlsStyles } from './styles.css.js';
 
@@ -10,17 +10,15 @@ export class AppControls extends LitElement {
   static styles = appControlsStyles;
   
   private store = new SongStoreController(this);
-  private _newLineText: string = '';
   private _showCustomSectionInput: boolean = false;
   private _customSectionName: string = '';
+  private _inputValue: string = '';
 
   private _addLine(e: Event): void {
     e.preventDefault();
-    const input = this.shadowRoot?.querySelector('.lyric-input') as HTMLInputElement;
-    if (!input) return;
     
-    const text = input.value.trim();
-    if (!text) return;
+    // Use the input value or default text if empty
+    const text = this._inputValue.trim() || DEFAULT_LINE_TEXT;
 
     // Generate a subtle random rotation between -5 and +5 degrees
     const rotation = (Math.random() * 10) - 5;
@@ -41,8 +39,14 @@ export class AppControls extends LitElement {
     };
 
     this.store.addLine(newLine);
-    input.value = '';
-    this._newLineText = '';
+    // Don't clear the input - keep the text for reuse
+  }
+  
+  private _handleInput(e: InputEvent): void {
+    const target = e.target as HTMLInputElement;
+    this._inputValue = target.value;
+    // Also update the store so canvas clicks can use it
+    this.store.setNewLineInputText(target.value);
     this.requestUpdate();
   }
   
@@ -135,9 +139,9 @@ export class AppControls extends LitElement {
               id="lyric-input"
               type="text" 
               class="lyric-input" 
-              placeholder="Enter a line of lyrics..."
-              .value=${this._newLineText}
-              @input=${(e: InputEvent) => this._newLineText = (e.target as HTMLInputElement).value}
+              placeholder=${DEFAULT_LINE_TEXT}
+              .value=${this._inputValue}
+              @input=${this._handleInput}
             />
             <button type="submit" class="btn btn-primary">Add Line</button>
           </form>

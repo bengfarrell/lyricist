@@ -19,6 +19,7 @@ export class SongStore {
   private _showLoadDialog: boolean = false;
   private _lyricsPanelWidth: number = 350;
   private _selectedLineIds: Set<string> = new Set();
+  private _newLineInputText: string = '';
   
   // Reactive hosts (Lit components)
   private _hosts = new Set<ReactiveControllerHost>();
@@ -74,6 +75,10 @@ export class SongStore {
   
   get selectedLineIds(): Set<string> {
     return this._selectedLineIds;
+  }
+  
+  get newLineInputText(): string {
+    return this._newLineInputText;
   }
   
   // ===== Song Metadata Actions =====
@@ -576,6 +581,11 @@ export class SongStore {
   
   isLineSelected(id: string): boolean {
     return this._selectedLineIds.has(id);
+  }
+  
+  setNewLineInputText(text: string): void {
+    this._newLineInputText = text;
+    this.notify();
   }
   
   // ===== Utility Methods =====

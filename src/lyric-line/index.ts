@@ -174,6 +174,29 @@ export class LyricLine extends LitElement {
       }
     });
   }
+  
+  // Public method to programmatically start editing
+  focusTextarea(): void {
+    this._isEditingText = true;
+    
+    // Focus the editable span after render
+    this.updateComplete.then(() => {
+      const editableSpan = this.shadowRoot?.querySelector('.lyric-text-editable') as HTMLElement;
+      if (editableSpan) {
+        editableSpan.focus();
+        // Select all text if there is any
+        if (this.text) {
+          const range = document.createRange();
+          range.selectNodeContents(editableSpan);
+          const selection = window.getSelection();
+          if (selection) {
+            selection.removeAllRanges();
+            selection.addRange(range);
+          }
+        }
+      }
+    });
+  }
 
   private _handleTextBlur(e: FocusEvent): void {
     const target = e.target as HTMLElement;
