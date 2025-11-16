@@ -6,11 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:watch": "vite build --watch",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "test:integration": "playwright test",
+    "test:integration:ci": "playwright test --reporter=line",
     "test:integration:ui": "playwright test --ui",
     "test:integration:headed": "playwright test --headed",
     "test:integration:debug": "playwright test --debug",

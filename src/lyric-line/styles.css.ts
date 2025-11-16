@@ -71,6 +71,28 @@ export const lyricLineStyles = css`
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
 
+  :host([chord-drag-active]) .chord-marker:hover {
+    background: #000;
+    border-color: #000;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  .chord-marker.active {
+    background: #667eea;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3), 0 2px 4px rgba(0, 0, 0, 0.3);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3), 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 0 6px rgba(102, 126, 234, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+  }
+
   .chord-marker::after {
     content: '';
     position: absolute;
@@ -159,6 +181,15 @@ export const lyricLineStyles = css`
     display: flex;
   }
 
+  :host([chord-drag-active]) .chord-delete-btn {
+    display: none !important;
+    pointer-events: none !important;
+  }
+  
+  :host([chord-drag-active]) .chord-marker:hover .chord-delete-btn {
+    display: none !important;
+  }
+
   .chord-delete-btn:hover {
     background: #dc2626;
   }
@@ -179,6 +210,10 @@ export const lyricLineStyles = css`
 
   :host(:hover) .lyric-line {
     box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  :host([chord-drag-active]:hover) .lyric-line {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
   }
 
   :host([dragging]) .lyric-line {
@@ -219,6 +254,15 @@ export const lyricLineStyles = css`
 
   :host(:hover) .action-btn {
     display: flex;
+  }
+
+  :host([chord-drag-active]) .action-btn {
+    display: none !important;
+    pointer-events: none !important;
+  }
+  
+  :host([chord-drag-active]:hover) .action-btn {
+    display: none !important;
   }
 
   .delete-btn {
@@ -262,6 +306,15 @@ export const lyricLineStyles = css`
 
   :host(:hover) .chord-toggle-btn {
     display: flex;
+  }
+
+  :host([chord-drag-active]) .chord-toggle-btn {
+    display: none !important;
+    pointer-events: none !important;
+  }
+  
+  :host([chord-drag-active]:hover) .chord-toggle-btn {
+    display: none !important;
   }
 
   .chord-toggle-btn:hover {

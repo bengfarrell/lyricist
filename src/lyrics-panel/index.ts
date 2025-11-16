@@ -19,26 +19,33 @@ export class LyricsPanel extends LitElement {
     // Sort chords by position
     const sortedChords = [...line.chords].sort((a, b) => a.position - b.position);
     
-    // The lyric line has 20px padding on each side
-    // In monospace font (Courier New), approximate character width is ~9.6px at 16px font
-    // So 20px ≈ 2 characters of spacing
-    const paddingChars = 2;
-    
-    // Calculate character positions based on line text length and chord positions
-    // The total width includes padding on both sides
+    // The lyric line in the canvas has 20px padding on each side
+    // Match that exactly by calculating: padding as a fraction of character width
+    // At 16px font, Courier New has character width of ~0.6em = ~9.6px
+    // 20px padding / 9.6px per char = 2.083 chars
+    // But we add the 2 non-breaking spaces in HTML, so we work with text length directly
     const textLength = line.text.length;
-    const totalWidth = paddingChars + textLength + paddingChars;
     
     let chordLine = '';
     let currentPos = 0;
 
     sortedChords.forEach(chord => {
-      // Convert percentage position to character position within the full width (including padding)
-      const charPos = Math.floor((chord.position / 100) * totalWidth);
+      // The chord position is a percentage of the TOTAL width (padding + text + padding)
+      // We have 2 spaces for padding on each side
+      const totalWidth = 2 + textLength + 2;
+      const rawPos = (chord.position / 100) * totalWidth;
+      // The chord marker is centered at this position, so we need to position the START
+      // of the chord name by subtracting half its length
+      const chordStartPos = rawPos - (chord.name.length / 2);
+      // Use floor to avoid rounding up - chords should appear at or before their center position
+      const charPos = Math.floor(chordStartPos);
       
-      // Add spaces to reach the chord position
-      while (currentPos < charPos) {
-        chordLine += ' ';
+      // Ensure we don't go backwards
+      const targetPos = Math.max(currentPos, charPos);
+      
+      // Add spaces to reach the chord position (use non-breaking spaces to match text line)
+      while (currentPos < targetPos) {
+        chordLine += '\u00A0';
         currentPos++;
       }
       
@@ -63,8 +70,8 @@ export class LyricsPanel extends LitElement {
       if (chordLine) {
         text += chordLine + '\n';
       }
-      // Add padding spaces to match the visual layout
-      text += '  ' + line.text + '  ' + '\n\n';
+      // Add padding spaces to match the visual layout (using regular spaces for clipboard)
+      text += '  ' + line.text + '  \n\n';
     });
 
     navigator.clipboard.writeText(text.trim()).then(() => {
@@ -96,7 +103,7 @@ export class LyricsPanel extends LitElement {
         ` : html`
           <div class="lyrics-text">${this.store.getSortedLines().map(line => {
             const chordLine = this._renderChordLine(line);
-            return html`<div class="lyric-line-with-chords">${chordLine ? html`<div class="chord-line">${chordLine}</div>` : ''}<div class="lyric-text-line">${'\u00A0\u00A0'}${line.text}${'  '}</div></div>`;
+            return html`<div class="lyric-line-with-chords">${chordLine ? html`<div class="chord-line">${chordLine}</div>` : ''}<div class="lyric-text-line">${'\u00A0\u00A0'}${line.text}${'\u00A0\u00A0'}</div></div>`;
           })}</div>
         `}
       </div>
