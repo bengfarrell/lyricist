@@ -1,12 +1,26 @@
 import { ReactiveControllerHost } from 'lit';
-import { LyricLine, LyricGroup, CanvasItem, SavedSong } from './types.js';
-import { storageService } from './storage-service.js';
-import { Chord } from '../lyric-line/index.js';
+import { LyricLine, LyricGroup, CanvasItem, SavedSong, Chord, WordLadderSet, SampleContent } from './types';
+import { storageService } from './storage-service';
 
 /**
  * Central store for song data and application state
  * Manages reactive updates to all connected Lit components
  */
+// Default starting word ladder set
+const DEFAULT_WORD_LADDER_SET: WordLadderSet = {
+  id: 'default-1',
+  leftColumn: {
+    title: 'Verbs',
+    placeholder: 'run',
+    words: []
+  },
+  rightColumn: {
+    title: 'Nouns',
+    placeholder: 'table',
+    words: []
+  }
+};
+
 export class SongStore {
   // Core song data
   private _items: CanvasItem[] = [];
@@ -18,8 +32,18 @@ export class SongStore {
   // UI state
   private _showLoadDialog: boolean = false;
   private _lyricsPanelWidth: number = 350;
+  private _leftPanelWidth: number = 300;
   private _selectedLineIds: Set<string> = new Set();
   private _newLineInputText: string = '';
+  
+  // Word Ladder state - part of the current song
+  private _wordLadderSets: WordLadderSet[] = [{ ...DEFAULT_WORD_LADDER_SET }];
+  private _wordLadderSetIndex: number = 0;
+  private _wordLadderSelectedLeft: number = -1;
+  private _wordLadderSelectedRight: number = -1;
+  
+  // Sample content for loading
+  private _sampleContent: SampleContent | null = null;
   
   // Reactive hosts (Lit components)
   private _hosts = new Set<ReactiveControllerHost>();
@@ -27,6 +51,60 @@ export class SongStore {
   constructor() {
     // Load saved songs on initialization
     this._savedSongs = storageService.loadSongs();
+    
+    // Load sample content asynchronously
+    this._loadSampleContent();
+  }
+
+  private async _loadSampleContent(): Promise<void> {
+    try {
+      const response = await fetch('/sample-content.json');
+      if (!response.ok) {
+        throw new Error(`Failed to load sample content: ${response.statusText}`);
+      }
+      this._sampleContent = await response.json();
+      this.notify();
+    } catch (error) {
+      console.error('Error loading sample content:', error);
+      // Fallback to empty structure
+      this._sampleContent = {
+        sampleSongs: []
+      };
+      this.notify();
+    }
+  }
+
+  private _autoSelectRandomWords(): void {
+    if (this._wordLadderSets.length === 0) {
+      return;
+    }
+
+    const currentSet = this._wordLadderSets[this._wordLadderSetIndex];
+    const leftWords = currentSet.leftColumn.words;
+    const rightWords = currentSet.rightColumn.words;
+
+    // Pick random indices if words are available
+    let leftIndex = -1;
+    let rightIndex = -1;
+
+    if (leftWords.length > 0) {
+      leftIndex = Math.floor(Math.random() * leftWords.length);
+    }
+
+    if (rightWords.length > 0) {
+      rightIndex = Math.floor(Math.random() * rightWords.length);
+    }
+
+    // Set the selection
+    this._wordLadderSelectedLeft = leftIndex;
+    this._wordLadderSelectedRight = rightIndex;
+
+    // If both are real words (not placeholders), set the input text value
+    // Otherwise, leave it empty to show as placeholder
+    if (leftIndex !== -1 && rightIndex !== -1) {
+      const combinedText = `${leftWords[leftIndex]} ${rightWords[rightIndex]}`;
+      this._newLineInputText = combinedText;
+    }
   }
   
   // ===== Registration =====
@@ -73,12 +151,57 @@ export class SongStore {
     return this._lyricsPanelWidth;
   }
   
+  get leftPanelWidth(): number {
+    return this._leftPanelWidth;
+  }
+  
   get selectedLineIds(): Set<string> {
     return this._selectedLineIds;
   }
   
   get newLineInputText(): string {
     return this._newLineInputText;
+  }
+  
+  get wordLadderSets(): WordLadderSet[] {
+    return this._wordLadderSets;
+  }
+
+  get currentWordLadderSet(): WordLadderSet {
+    return this._wordLadderSets[this._wordLadderSetIndex] || {
+      id: 'default',
+      leftColumn: { title: 'Left', placeholder: 'word', words: [] },
+      rightColumn: { title: 'Right', placeholder: 'word', words: [] }
+    };
+  }
+
+  get wordLadderSetIndex(): number {
+    return this._wordLadderSetIndex;
+  }
+
+  get wordLadderSelectedLeft(): number {
+    return this._wordLadderSelectedLeft;
+  }
+
+  get wordLadderSelectedRight(): number {
+    return this._wordLadderSelectedRight;
+  }
+  
+  // Legacy getters for backwards compatibility (deprecated - use currentWordLadderSet instead)
+  get wordLadderVerbs(): string[] {
+    return this._wordLadderSets[0]?.leftColumn.words || [];
+  }
+  
+  get wordLadderNouns(): string[] {
+    return this._wordLadderSets[0]?.rightColumn.words || [];
+  }
+  
+  get wordLadderLocations(): string[] {
+    return this._wordLadderSets[1]?.leftColumn.words || [];
+  }
+  
+  get wordLadderAdjectives(): string[] {
+    return this._wordLadderSets[1]?.rightColumn.words || [];
   }
   
   // ===== Song Metadata Actions =====
@@ -352,6 +475,7 @@ export class SongStore {
     const song: SavedSong = {
       name: this._songName,
       items: this._items,
+      wordLadderSets: this._wordLadderSets,
       lastModified: new Date().toISOString()
     };
     
@@ -382,6 +506,19 @@ export class SongStore {
     } else {
       this._items = [];
     }
+
+    // Load word ladder sets from song, or use default
+    if (song.wordLadderSets && song.wordLadderSets.length > 0) {
+      this._wordLadderSets = song.wordLadderSets;
+      this._wordLadderSetIndex = 0;
+      this._autoSelectRandomWords();
+    } else {
+      // Reset to default
+      this._wordLadderSets = [{ ...DEFAULT_WORD_LADDER_SET }];
+      this._wordLadderSetIndex = 0;
+      this._wordLadderSelectedLeft = -1;
+      this._wordLadderSelectedRight = -1;
+    }
     
     this._showLoadDialog = false;
     this._selectedLineIds.clear();
@@ -396,6 +533,10 @@ export class SongStore {
   newSong(): void {
     this._songName = '';
     this._items = [];
+    this._wordLadderSets = [{ ...DEFAULT_WORD_LADDER_SET }];
+    this._wordLadderSetIndex = 0;
+    this._wordLadderSelectedLeft = -1;
+    this._wordLadderSelectedRight = -1;
     this._selectedLineIds.clear();
     this.notify();
   }
@@ -447,99 +588,11 @@ export class SongStore {
   }
   
   loadSampleSong(): void {
-    const sampleSong: SavedSong = {
-      name: "Morning Coffee (Sample)",
-      lastModified: new Date().toISOString(),
-      items: [
-        {
-          id: "line-sample-1",
-          type: 'line' as const,
-          text: "Wake up to the sunrise glow",
-          chords: [
-            { id: "chord-1-1", name: "C", position: 0 },
-            { id: "chord-1-2", name: "G", position: 60 }
-          ],
-          hasChordSection: false,
-          x: 150,
-          y: 100,
-          rotation: -2,
-          zIndex: 1
-        },
-        {
-          id: "line-sample-2",
-          type: 'line' as const,
-          text: "Pour a cup and take it slow",
-          chords: [
-            { id: "chord-2-1", name: "Am", position: 15 },
-            { id: "chord-2-2", name: "F", position: 65 }
-          ],
-          hasChordSection: false,
-          x: 160,
-          y: 180,
-          rotation: 1,
-          zIndex: 2
-        },
-        {
-          id: "line-sample-3",
-          type: 'line' as const,
-          text: "Every morning feels brand new",
-          chords: [
-            { id: "chord-3-1", name: "C", position: 20 },
-            { id: "chord-3-2", name: "G", position: 70 }
-          ],
-          hasChordSection: false,
-          x: 140,
-          y: 260,
-          rotation: -1,
-          zIndex: 3
-        },
-        {
-          id: "line-sample-4",
-          type: 'line' as const,
-          text: "Simple moments just me and you",
-          chords: [
-            { id: "chord-4-1", name: "Am", position: 25 },
-            { id: "chord-4-2", name: "F", position: 55 },
-            { id: "chord-4-3", name: "G", position: 85 }
-          ],
-          hasChordSection: false,
-          x: 155,
-          y: 340,
-          rotation: 2,
-          zIndex: 4
-        },
-        {
-          id: "line-sample-5",
-          type: 'line' as const,
-          text: "Morning coffee, warm and sweet",
-          chords: [
-            { id: "chord-5-1", name: "F", position: 10 },
-            { id: "chord-5-2", name: "C", position: 60 }
-          ],
-          hasChordSection: false,
-          x: 145,
-          y: 450,
-          rotation: -3,
-          zIndex: 5
-        },
-        {
-          id: "line-sample-6",
-          type: 'line' as const,
-          text: "Makes my day feel complete",
-          chords: [
-            { id: "chord-6-1", name: "G", position: 15 },
-            { id: "chord-6-2", name: "C", position: 70 }
-          ],
-          hasChordSection: false,
-          x: 170,
-          y: 530,
-          rotation: 1,
-          zIndex: 6
-        }
-      ]
-    };
-    
-    this.loadSong(sampleSong);
+    if (this._sampleContent && this._sampleContent.sampleSongs.length > 0) {
+      // Load the first sample song from the JSON
+      const sampleSong = this._sampleContent.sampleSongs[0];
+      this.loadSong(sampleSong);
+    }
   }
   
   // ===== UI State Actions =====
@@ -551,6 +604,11 @@ export class SongStore {
   
   setLyricsPanelWidth(width: number): void {
     this._lyricsPanelWidth = Math.max(200, Math.min(600, width));
+    this.notify();
+  }
+  
+  setLeftPanelWidth(width: number): void {
+    this._leftPanelWidth = Math.max(200, Math.min(600, width));
     this.notify();
   }
   
@@ -586,6 +644,99 @@ export class SongStore {
   setNewLineInputText(text: string): void {
     this._newLineInputText = text;
     this.notify();
+  }
+  
+  // ===== Word Ladder Actions =====
+  
+  setWordLadderSetIndex(index: number): void {
+    const maxIndex = this._wordLadderSets.length - 1;
+    this._wordLadderSetIndex = Math.max(0, Math.min(index, maxIndex));
+    this.notify();
+  }
+
+  setWordLadderSelection(leftIndex: number, rightIndex: number): void {
+    this._wordLadderSelectedLeft = leftIndex;
+    this._wordLadderSelectedRight = rightIndex;
+    this.notify();
+  }
+
+  // Methods to update word ladder words in the current set
+  setWordLadderLeftWords(words: string[]): void {
+    if (this._wordLadderSets[this._wordLadderSetIndex]) {
+      this._wordLadderSets[this._wordLadderSetIndex].leftColumn.words = words;
+      this.notify();
+    }
+  }
+
+  setWordLadderRightWords(words: string[]): void {
+    if (this._wordLadderSets[this._wordLadderSetIndex]) {
+      this._wordLadderSets[this._wordLadderSetIndex].rightColumn.words = words;
+      this.notify();
+    }
+  }
+
+  // Method to add a new word ladder set
+  addWordLadderSet(): void {
+    const newSet: WordLadderSet = {
+      id: `set-${Date.now()}`,
+      leftColumn: {
+        title: 'Verbs',
+        placeholder: 'word',
+        words: []
+      },
+      rightColumn: {
+        title: 'Nouns',
+        placeholder: 'word',
+        words: []
+      }
+    };
+    this._wordLadderSets.push(newSet);
+    this._wordLadderSetIndex = this._wordLadderSets.length - 1;
+    this._wordLadderSelectedLeft = -1;
+    this._wordLadderSelectedRight = -1;
+    this.notify();
+  }
+
+  // Method to update column titles
+  updateWordLadderColumnTitle(column: 'left' | 'right', title: string): void {
+    const currentSet = this._wordLadderSets[this._wordLadderSetIndex];
+    if (currentSet) {
+      if (column === 'left') {
+        currentSet.leftColumn.title = title;
+      } else {
+        currentSet.rightColumn.title = title;
+      }
+      this.notify();
+    }
+  }
+  
+  // Legacy setters for backwards compatibility (deprecated - use setWordLadderLeftWords/RightWords instead)
+  setWordLadderVerbs(verbs: string[]): void {
+    if (this._wordLadderSets[0]) {
+      this._wordLadderSets[0].leftColumn.words = verbs;
+      this.notify();
+    }
+  }
+  
+  setWordLadderNouns(nouns: string[]): void {
+    if (this._wordLadderSets[0]) {
+      this._wordLadderSets[0].rightColumn.words = nouns;
+      this.notify();
+    }
+  }
+  
+  setWordLadderLocations(locations: string[]): void {
+    if (this._wordLadderSets[1]) {
+      this._wordLadderSets[1].leftColumn.words = locations;
+      this.notify();
+    }
+  }
+  
+  setWordLadderAdjectives(adjectives: string[]): void {
+    if (this._wordLadderSets[1]) {
+      this._wordLadderSets[1].rightColumn.words = adjectives;
+      this.notify();
+    }
   }
   
   // ===== Utility Methods =====

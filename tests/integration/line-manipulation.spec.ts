@@ -1,5 +1,18 @@
 import { test, expect } from '@playwright/test';
 
+// Helper function to fill lyric input inside shadow DOM
+async function fillLyricInput(page: any, text: string) {
+  await page.evaluate((textValue: string) => {
+    const app = document.querySelector('lyricist-app');
+    const controls = app?.shadowRoot?.querySelector('app-controls');
+    const input = controls?.shadowRoot?.querySelector('.lyric-input') as HTMLInputElement;
+    if (input) {
+      input.value = textValue;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }, text);
+}
+
 test.describe('Line Manipulation', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -14,10 +27,8 @@ test.describe('Line Manipulation', () => {
   });
 
   test('should add lyric lines', async ({ page }) => {
-    const lyricInput = page.locator('input[placeholder*="lyrics"]');
-    
     // Add a line
-    await lyricInput.fill('Test line');
+    await fillLyricInput(page, 'Test line');
     await page.getByRole('button', { name: 'Add Line' }).click();
     await page.waitForTimeout(300);
     
@@ -53,13 +64,11 @@ test.describe('Line Manipulation', () => {
   });
 
   test('should display lyrics in the panel', async ({ page }) => {
-    const lyricInput = page.locator('input[placeholder*="lyrics"]');
-    
     // Add multiple lines
     const lines = ['First line', 'Second line', 'Third line'];
     
     for (const line of lines) {
-      await lyricInput.fill(line);
+      await fillLyricInput(page, line);
       await page.getByRole('button', { name: 'Add Line' }).click();
       await page.waitForTimeout(200);
     }

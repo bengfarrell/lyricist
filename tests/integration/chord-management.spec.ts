@@ -1,5 +1,18 @@
 import { test, expect } from '@playwright/test';
 
+// Helper function to fill lyric input inside shadow DOM
+async function fillLyricInput(page: any, text: string) {
+  await page.evaluate((textValue: string) => {
+    const app = document.querySelector('lyricist-app');
+    const controls = app?.shadowRoot?.querySelector('app-controls');
+    const input = controls?.shadowRoot?.querySelector('.lyric-input') as HTMLInputElement;
+    if (input) {
+      input.value = textValue;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }, text);
+}
+
 test.describe('Chord Management', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -14,10 +27,8 @@ test.describe('Chord Management', () => {
   });
 
   test('should add lyrics and display them', async ({ page }) => {
-    const lyricInput = page.locator('input[placeholder*="lyrics"]');
-    
     // Add a lyric line
-    await lyricInput.fill('Amazing grace how sweet the sound');
+    await fillLyricInput(page, 'Amazing grace how sweet the sound');
     await page.getByRole('button', { name: 'Add Line' }).click();
     await page.waitForTimeout(300);
     
@@ -32,7 +43,6 @@ test.describe('Chord Management', () => {
   });
 
   test('should create and save a multi-line song', async ({ page }) => {
-    const lyricInput = page.locator('input[placeholder*="lyrics"]');
     const songNameInput = page.locator('input[placeholder="Song Name"]');
     
     // Set song name
@@ -47,7 +57,7 @@ test.describe('Chord Management', () => {
     ];
     
     for (const line of lines) {
-      await lyricInput.fill(line);
+      await fillLyricInput(page, line);
       await page.getByRole('button', { name: 'Add Line' }).click();
       await page.waitForTimeout(200);
     }
@@ -72,10 +82,8 @@ test.describe('Chord Management', () => {
   });
 
   test('should move chord with keyboard arrows when active', async ({ page }) => {
-    const lyricInput = page.locator('input[placeholder*="lyrics"]');
-    
     // Add a lyric line
-    await lyricInput.fill('Wake up to the sunrise glow');
+    await fillLyricInput(page, 'Wake up to the sunrise glow');
     await page.getByRole('button', { name: 'Add Line' }).click();
     await page.waitForTimeout(300);
     

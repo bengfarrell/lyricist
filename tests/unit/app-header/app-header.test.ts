@@ -4,6 +4,31 @@ import { AppHeader } from '../../../src/app-header/index.js';
 import { songStore } from '../../../src/store/song-store.js';
 import type { LyricLine } from '../../../src/store/types.js';
 
+// Mock fetch for sample content loading
+global.fetch = vi.fn().mockResolvedValue({
+  ok: true,
+  json: async () => ({
+    sampleSongs: [{
+      name: 'Morning Coffee (Sample)',
+      lastModified: '2024-01-01T00:00:00.000Z',
+      wordLadderSets: [],
+      items: [
+        {
+          id: 'line-1',
+          type: 'line',
+          text: 'Sample line',
+          chords: [],
+          hasChordSection: false,
+          x: 100,
+          y: 100,
+          rotation: 0,
+          zIndex: 1
+        }
+      ]
+    }]
+  }),
+} as Response);
+
 // Ensure the component is registered
 import '../../../src/app-header/index.js';
 
@@ -202,8 +227,37 @@ describe('AppHeader', () => {
 
   describe('load sample functionality', () => {
     it('should load sample song when button is clicked', async () => {
+      // Reset mock to return sample data
+      (global.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          sampleSongs: [{
+            name: 'Morning Coffee (Sample)',
+            lastModified: '2024-01-01T00:00:00.000Z',
+            wordLadderSets: [],
+            items: [
+              {
+                id: 'line-1',
+                type: 'line',
+                text: 'Sample line',
+                chords: [],
+                hasChordSection: false,
+                x: 100,
+                y: 100,
+                rotation: 0,
+                zIndex: 1
+              }
+            ]
+          }]
+        }),
+      } as Response);
+      
       const el = await fixture<AppHeader>(html`<app-header></app-header>`);
       await el.updateComplete;
+      
+      // Force sample content reload
+      await (songStore as any)._loadSampleContent();
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       const sampleBtn = Array.from(el.shadowRoot!.querySelectorAll('.btn')).find(
         btn => btn.textContent?.includes('Load Sample')
@@ -212,6 +266,9 @@ describe('AppHeader', () => {
 
       sampleBtn.click();
       await el.updateComplete;
+      
+      // Wait for the async load to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       expect(songStore.songName).toContain('Morning Coffee');
       expect(songStore.lines.length).toBeGreaterThan(0);

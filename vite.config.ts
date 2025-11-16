@@ -1,17 +1,25 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  root: './src',
+  publicDir: '../public',
+  resolve: {
+    extensions: ['.ts', '.js', '.tsx', '.jsx'],
+  },
   build: {
-    lib: {
-      entry: 'src/lyricist-app/index.ts',
-      formats: ['es']
-    },
-    rollupOptions: {
-      external: /^lit/
-    }
+    outDir: '../dist',
+    emptyOutDir: true,
   },
   server: {
-    open: true
-  }
+    port: 3000,
+    open: true,
+  },
+  preview: {
+    port: 4173,
+    open: true,
+  },
+  optimizeDeps: {
+    include: ['lit'],
+  },
 });
 

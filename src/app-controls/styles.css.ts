@@ -29,7 +29,6 @@ export const appControlsStyles = css`
   }
 
   .input-container {
-    flex: 1;
     display: flex;
     gap: 10px;
     align-items: center;
@@ -97,6 +96,23 @@ export const appControlsStyles = css`
     color: #495057;
     font-size: 13px;
   }
+
+  .lyric-creator {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .lyric-header {
+    margin-bottom: 8px;
+  }
+  
+  .lyric-title {
+    font-weight: 600;
+    color: #495057;
+    font-size: 13px;
+  }
   
   .section-buttons {
     display: flex;
@@ -144,6 +160,31 @@ export const appControlsStyles = css`
   .custom-section-input:focus {
     outline: none;
     border-color: #667eea;
+  }
+
+  .dice-btn {
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dice-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  }
+
+  .dice-btn:active {
+    transform: translateY(0);
   }
 `;
 

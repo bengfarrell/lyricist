@@ -2,6 +2,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SongStore } from '../../../src/store/song-store.js';
 import type { LyricLine, SavedSong } from '../../../src/store/types.js';
 
+// Mock fetch for sample content loading
+global.fetch = vi.fn().mockResolvedValue({
+  ok: true,
+  json: async () => ({ sampleSongs: [] }),
+} as Response);
+
 describe('SongStore', () => {
   let store: SongStore;
 
@@ -1101,6 +1107,69 @@ describe('SongStore', () => {
       store.setNewLineInputText('Some text');
       store.setNewLineInputText('');
       expect(store.newLineInputText).toBe('');
+    });
+  });
+
+  describe('Word Ladder state', () => {
+    it('should initialize with empty word lists', () => {
+      expect(store.wordLadderVerbs).toEqual([]);
+      expect(store.wordLadderNouns).toEqual([]);
+      expect(store.wordLadderLocations).toEqual([]);
+      expect(store.wordLadderAdjectives).toEqual([]);
+    });
+
+    it('should initialize with set index 0', () => {
+      expect(store.wordLadderSetIndex).toBe(0);
+    });
+
+    it('should set and get word ladder set index', () => {
+      // Need to add a second set first
+      store.addWordLadderSet();
+      
+      store.setWordLadderSetIndex(1);
+      expect(store.wordLadderSetIndex).toBe(1);
+      
+      store.setWordLadderSetIndex(0);
+      expect(store.wordLadderSetIndex).toBe(0);
+    });
+
+    it('should set and get verbs', () => {
+      store.setWordLadderVerbs(['run', 'jump', 'dance']);
+      expect(store.wordLadderVerbs).toEqual(['run', 'jump', 'dance']);
+    });
+
+    it('should set and get nouns', () => {
+      store.setWordLadderNouns(['table', 'chair', 'lamp']);
+      expect(store.wordLadderNouns).toEqual(['table', 'chair', 'lamp']);
+    });
+
+    it('should set and get locations', () => {
+      // Need to add a second set first for locations/adjectives
+      store.addWordLadderSet();
+      store.setWordLadderLocations(['park', 'beach', 'mountain']);
+      expect(store.wordLadderLocations).toEqual(['park', 'beach', 'mountain']);
+    });
+
+    it('should set and get adjectives', () => {
+      // Need to add a second set first for locations/adjectives
+      store.addWordLadderSet();
+      store.setWordLadderAdjectives(['bright', 'quiet', 'soft']);
+      expect(store.wordLadderAdjectives).toEqual(['bright', 'quiet', 'soft']);
+    });
+
+    it('should keep lists separate', () => {
+      // Add second set for locations/adjectives
+      store.addWordLadderSet();
+      
+      store.setWordLadderVerbs(['run', 'jump']);
+      store.setWordLadderNouns(['table', 'chair']);
+      store.setWordLadderLocations(['park']);
+      store.setWordLadderAdjectives(['bright']);
+      
+      expect(store.wordLadderVerbs).toEqual(['run', 'jump']);
+      expect(store.wordLadderNouns).toEqual(['table', 'chair']);
+      expect(store.wordLadderLocations).toEqual(['park']);
+      expect(store.wordLadderAdjectives).toEqual(['bright']);
     });
   });
 });

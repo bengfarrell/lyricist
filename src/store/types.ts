@@ -1,4 +1,8 @@
-import { Chord } from '../lyric-line/index.js';
+export interface Chord {
+  id: string;
+  name: string;
+  position: number;
+}
 
 export interface LyricLine {
   id: string;
@@ -29,7 +33,28 @@ export interface SavedSong {
   name: string;
   items?: CanvasItem[]; // New format: mixed lines and groups
   lines?: LyricLine[]; // Legacy format: only lines
+  wordLadderSets?: WordLadderSet[]; // Word ladder data for this song
   lastModified: string;
   exportedAt?: string;
+}
+
+export interface WordLadderColumn {
+  title: string;
+  placeholder: string;
+  words: string[];
+}
+
+export interface WordLadderSet {
+  id: string;
+  leftColumn: WordLadderColumn;
+  rightColumn: WordLadderColumn;
+}
+
+export interface SampleSong {
+  song: SavedSong;
+}
+
+export interface SampleContent {
+  sampleSongs: SavedSong[];
 }
 

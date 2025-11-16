@@ -1,6 +1,6 @@
 import { LitElement, html } from 'lit';
-import { SongStoreController } from '../store/index.js';
-import { appHeaderStyles } from './styles.css.js';
+import { SongStoreController } from '../store/index';
+import { appHeaderStyles } from './styles.css.ts';
 
 /**
  * App header component with song name input and action buttons

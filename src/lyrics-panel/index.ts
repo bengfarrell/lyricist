@@ -1,7 +1,7 @@
 import { LitElement, html } from 'lit';
-import { SongStoreController } from '../store/index.js';
-import type { LyricLine, CanvasItem } from '../store/index.js';
-import { lyricsPanelStyles } from './styles.css.js';
+import { SongStoreController } from '../store/index';
+import type { LyricLine, CanvasItem } from '../store/index';
+import { lyricsPanelStyles } from './styles.css.ts';
 
 /**
  * Panel component for displaying formatted lyrics with chords

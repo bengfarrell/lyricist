@@ -1,12 +1,9 @@
 import { LitElement, html, PropertyValues } from 'lit';
-import { cursorManager } from '../cursor-manager/index.js';
-import { lyricLineStyles } from './styles.css.js';
+import { cursorManager } from '../cursor-manager/index';
+import { lyricLineStyles } from './styles.css.ts';
+import type { Chord } from '../store/types';
 
-export interface Chord {
-  id: string;
-  name: string;
-  position: number;
-}
+export type { Chord };
 
 interface ChordLibrary {
   [category: string]: string[];

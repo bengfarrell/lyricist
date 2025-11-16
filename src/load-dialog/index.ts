@@ -1,7 +1,7 @@
 import { LitElement, html } from 'lit';
-import { SongStoreController } from '../store/index.js';
-import type { SavedSong } from '../store/index.js';
-import { loadDialogStyles } from './styles.css.js';
+import { SongStoreController } from '../store/index';
+import type { SavedSong } from '../store/index';
+import { loadDialogStyles } from './styles.css.ts';
 
 /**
  * Dialog component for managing saved songs (load/delete/import/export)

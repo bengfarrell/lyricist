@@ -1,0 +1,1 @@
+import './lyricist-app';

@@ -1,7 +1,6 @@
 import { ReactiveController, ReactiveControllerHost } from 'lit';
-import { songStore } from './song-store.js';
-import { LyricLine, LyricGroup, CanvasItem, SavedSong } from './types.js';
-import { Chord } from '../lyric-line/index.js';
+import { songStore } from './song-store';
+import { LyricLine, LyricGroup, CanvasItem, SavedSong, Chord } from './types';
 
 /**
  * Reactive Controller that connects Lit components to the SongStore
@@ -60,12 +59,52 @@ export class SongStoreController implements ReactiveController {
     return songStore.lyricsPanelWidth;
   }
   
+  get leftPanelWidth(): number {
+    return songStore.leftPanelWidth;
+  }
+  
   get selectedLineIds(): Set<string> {
     return songStore.selectedLineIds;
   }
   
   get newLineInputText(): string {
     return songStore.newLineInputText;
+  }
+  
+  get wordLadderSetIndex(): number {
+    return songStore.wordLadderSetIndex;
+  }
+  
+  get wordLadderVerbs(): string[] {
+    return songStore.wordLadderVerbs;
+  }
+  
+  get wordLadderNouns(): string[] {
+    return songStore.wordLadderNouns;
+  }
+  
+  get wordLadderLocations(): string[] {
+    return songStore.wordLadderLocations;
+  }
+  
+  get wordLadderAdjectives(): string[] {
+    return songStore.wordLadderAdjectives;
+  }
+
+  get wordLadderSets() {
+    return songStore.wordLadderSets;
+  }
+
+  get currentWordLadderSet() {
+    return songStore.currentWordLadderSet;
+  }
+
+  get wordLadderSelectedLeft(): number {
+    return songStore.wordLadderSelectedLeft;
+  }
+
+  get wordLadderSelectedRight(): number {
+    return songStore.wordLadderSelectedRight;
   }
   
   // ===== Song Metadata Actions =====
@@ -190,6 +229,10 @@ export class SongStoreController implements ReactiveController {
     songStore.setLyricsPanelWidth(width);
   }
   
+  setLeftPanelWidth(width: number): void {
+    songStore.setLeftPanelWidth(width);
+  }
+  
   setSelectedLineIds(ids: string[]): void {
     songStore.setSelectedLineIds(ids);
   }
@@ -212,6 +255,48 @@ export class SongStoreController implements ReactiveController {
   
   setNewLineInputText(text: string): void {
     songStore.setNewLineInputText(text);
+  }
+  
+  // ===== Word Ladder Actions =====
+  
+  setWordLadderSetIndex(index: number): void {
+    songStore.setWordLadderSetIndex(index);
+  }
+  
+  setWordLadderVerbs(verbs: string[]): void {
+    songStore.setWordLadderVerbs(verbs);
+  }
+  
+  setWordLadderNouns(nouns: string[]): void {
+    songStore.setWordLadderNouns(nouns);
+  }
+  
+  setWordLadderLocations(locations: string[]): void {
+    songStore.setWordLadderLocations(locations);
+  }
+  
+  setWordLadderAdjectives(adjectives: string[]): void {
+    songStore.setWordLadderAdjectives(adjectives);
+  }
+
+  setWordLadderLeftWords(words: string[]): void {
+    songStore.setWordLadderLeftWords(words);
+  }
+
+  setWordLadderRightWords(words: string[]): void {
+    songStore.setWordLadderRightWords(words);
+  }
+
+  setWordLadderSelection(leftIndex: number, rightIndex: number): void {
+    songStore.setWordLadderSelection(leftIndex, rightIndex);
+  }
+
+  addWordLadderSet(): void {
+    songStore.addWordLadderSet();
+  }
+
+  updateWordLadderColumnTitle(column: 'left' | 'right', title: string): void {
+    songStore.updateWordLadderColumnTitle(column, title);
   }
   
   // ===== Utility Methods =====

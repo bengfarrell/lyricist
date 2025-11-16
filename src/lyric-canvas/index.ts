@@ -1,10 +1,10 @@
 import { LitElement, html } from 'lit';
-import { SongStoreController, DEFAULT_LINE_TEXT } from '../store/index.js';
-import type { LyricLine, CanvasItem } from '../store/index.js';
-import { cursorManager } from '../cursor-manager/index.js';
+import { SongStoreController, DEFAULT_LINE_TEXT } from '../store/index';
+import type { LyricLine, CanvasItem } from '../store/index';
+import { cursorManager } from '../cursor-manager/index';
 import '../lyric-line/index.js';
 import '../lyric-group/index.js';
-import { lyricCanvasStyles } from './styles.css.js';
+import { lyricCanvasStyles } from './styles.css.ts';
 
 /**
  * Canvas component for displaying and interacting with draggable lyric lines

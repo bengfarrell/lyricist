@@ -1,7 +1,7 @@
 import { LitElement, html } from 'lit';
-import { SongStoreController, DEFAULT_LINE_TEXT } from '../store/index.js';
-import type { LyricLine } from '../store/index.js';
-import { appControlsStyles } from './styles.css.js';
+import { SongStoreController, DEFAULT_LINE_TEXT } from '../store/index';
+import type { LyricLine } from '../store/index';
+import { appControlsStyles } from './styles.css.ts';
 
 /**
  * Controls component for adding new lyric lines or creating groups
@@ -12,13 +12,50 @@ export class AppControls extends LitElement {
   private store = new SongStoreController(this);
   private _showCustomSectionInput: boolean = false;
   private _customSectionName: string = '';
-  private _inputValue: string = '';
+
+  private _getWordLadderPlaceholder(): string {
+    const currentSet = this.store.currentWordLadderSet;
+    const leftWords = currentSet.leftColumn.words;
+    const rightWords = currentSet.rightColumn.words;
+    
+    const leftIndex = this.store.wordLadderSelectedLeft;
+    const rightIndex = this.store.wordLadderSelectedRight;
+    
+    // Check if we should show word ladder text
+    // This includes: actual selections OR when both lists are empty (showing placeholders)
+    const hasLeftSelection = leftIndex !== -1 || leftWords.length === 0;
+    const hasRightSelection = rightIndex !== -1 || rightWords.length === 0;
+    
+    if (hasLeftSelection && hasRightSelection) {
+      // Get left word or placeholder
+      let leftText: string;
+      if (leftIndex !== -1 && leftWords.length > 0) {
+        leftText = leftWords[leftIndex];
+      } else {
+        // Use category title for empty lists
+        leftText = currentSet.leftColumn.title.toLowerCase();
+      }
+      
+      // Get right word or placeholder
+      let rightText: string;
+      if (rightIndex !== -1 && rightWords.length > 0) {
+        rightText = rightWords[rightIndex];
+      } else {
+        // Use category title for empty lists
+        rightText = currentSet.rightColumn.title.toLowerCase();
+      }
+      
+      return `${leftText} ${rightText}`;
+    }
+    
+    return DEFAULT_LINE_TEXT;
+  }
 
   private _addLine(e: Event): void {
     e.preventDefault();
     
-    // Use the input value or default text if empty
-    const text = this._inputValue.trim() || DEFAULT_LINE_TEXT;
+    // Use the store's input value, or if empty, use the word ladder placeholder
+    const text = this.store.newLineInputText.trim() || this._getWordLadderPlaceholder();
 
     // Generate a subtle random rotation between -5 and +5 degrees
     const rotation = (Math.random() * 10) - 5;
@@ -44,9 +81,39 @@ export class AppControls extends LitElement {
   
   private _handleInput(e: InputEvent): void {
     const target = e.target as HTMLInputElement;
-    this._inputValue = target.value;
-    // Also update the store so canvas clicks can use it
+    // Update the store directly - this will trigger reactive updates
     this.store.setNewLineInputText(target.value);
+  }
+
+  private _rollDice(): void {
+    const currentSet = this.store.currentWordLadderSet;
+    const leftWords = currentSet.leftColumn.words;
+    const rightWords = currentSet.rightColumn.words;
+    
+    // Pick random words or use -1 for placeholders
+    let leftIndex = -1;
+    let rightIndex = -1;
+    
+    if (leftWords.length > 0) {
+      leftIndex = Math.floor(Math.random() * leftWords.length);
+    }
+    
+    if (rightWords.length > 0) {
+      rightIndex = Math.floor(Math.random() * rightWords.length);
+    }
+    
+    // Store the selected indices so the left panel can show the connection
+    this.store.setWordLadderSelection(leftIndex, rightIndex);
+    
+    // If both are actual words, set the value; otherwise clear it (will use placeholder)
+    if (leftIndex !== -1 && rightIndex !== -1) {
+      const combinedText = `${leftWords[leftIndex]} ${rightWords[rightIndex]}`;
+      this.store.setNewLineInputText(combinedText);
+    } else {
+      // Clear the input value so placeholder shows
+      this.store.setNewLineInputText('');
+    }
+    
     this.requestUpdate();
   }
   
@@ -94,6 +161,9 @@ export class AppControls extends LitElement {
       return count;
     }, 0);
     
+    // Compute dynamic placeholder based on word ladder selection
+    const inputPlaceholder = this._getWordLadderPlaceholder();
+    
     return html`
       <div class="controls">
         ${hasSelection ? html`
@@ -133,18 +203,26 @@ export class AppControls extends LitElement {
             `}
           </div>
         ` : html`
-          <form class="input-container" @submit=${this._addLine}>
-            <label for="lyric-input" class="visually-hidden">Lyric line</label>
-            <input 
-              id="lyric-input"
-              type="text" 
-              class="lyric-input" 
-              placeholder=${DEFAULT_LINE_TEXT}
-              .value=${this._inputValue}
-              @input=${this._handleInput}
-            />
-            <button type="submit" class="btn btn-primary">Add Line</button>
-          </form>
+          <button class="dice-btn" @click=${this._rollDice} title="Roll the dice for random word combo!" aria-label="Roll random word combo">
+            🎲
+          </button>
+          <div class="lyric-creator">
+            <div class="lyric-header">
+              <span class="lyric-title">Enter a line of lyrics...</span>
+            </div>
+            <form class="input-container" @submit=${this._addLine}>
+              <label for="lyric-input" class="visually-hidden">Lyric line</label>
+              <input 
+                id="lyric-input"
+                type="text" 
+                class="lyric-input" 
+                placeholder=${inputPlaceholder}
+                .value=${this.store.newLineInputText}
+                @input=${this._handleInput}
+              />
+              <button type="submit" class="btn btn-primary">Add Line</button>
+            </form>
+          </div>
         `}
       </div>
     `;

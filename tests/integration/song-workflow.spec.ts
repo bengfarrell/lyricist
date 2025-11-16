@@ -1,5 +1,18 @@
 import { test, expect } from '@playwright/test';
 
+// Helper function to fill lyric input inside shadow DOM
+async function fillLyricInput(page: any, text: string) {
+  await page.evaluate((textValue: string) => {
+    const app = document.querySelector('lyricist-app');
+    const controls = app?.shadowRoot?.querySelector('app-controls');
+    const input = controls?.shadowRoot?.querySelector('.lyric-input') as HTMLInputElement;
+    if (input) {
+      input.value = textValue;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }, text);
+}
+
 test.describe('Song Creation Workflow', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -17,19 +30,18 @@ test.describe('Song Creation Workflow', () => {
   });
 
   test('should create, edit, and save a complete song', async ({ page }) => {
-    const lyricInput = page.locator('input[placeholder*="lyrics"]');
     const songNameInput = page.locator('input[placeholder="Song Name"]');
     
     // Set song name
     await songNameInput.fill('My Test Song');
     
     // Add first lyric line
-    await lyricInput.fill('First line of lyrics');
+    await fillLyricInput(page, 'First line of lyrics');
     await page.getByRole('button', { name: 'Add Line' }).click();
     await page.waitForTimeout(200);
     
     // Add second lyric line
-    await lyricInput.fill('Second line of lyrics');
+    await fillLyricInput(page, 'Second line of lyrics');
     await page.getByRole('button', { name: 'Add Line' }).click();
     await page.waitForTimeout(200);
     
@@ -53,17 +65,16 @@ test.describe('Song Creation Workflow', () => {
   });
 
   test('should save and load a song', async ({ page }) => {
-    const lyricInput = page.locator('input[placeholder*="lyrics"]');
     const songNameInput = page.locator('input[placeholder="Song Name"]');
     
     // Create and save a song
     await songNameInput.fill('Saved Song');
     
-    await lyricInput.fill('Line one');
+    await fillLyricInput(page, 'Line one');
     await page.getByRole('button', { name: 'Add Line' }).click();
     await page.waitForTimeout(200);
     
-    await lyricInput.fill('Line two');
+    await fillLyricInput(page, 'Line two');
     await page.getByRole('button', { name: 'Add Line' }).click();
     await page.waitForTimeout(200);
     
@@ -119,12 +130,11 @@ test.describe('Song Creation Workflow', () => {
   });
 
   test('should delete a saved song', async ({ page }) => {
-    const lyricInput = page.locator('input[placeholder*="lyrics"]');
     const songNameInput = page.locator('input[placeholder="Song Name"]');
     
     // Create and save a song
     await songNameInput.fill('Song to Delete');
-    await lyricInput.fill('Test line');
+    await fillLyricInput(page, 'Test line');
     await page.getByRole('button', { name: 'Add Line' }).click();
     await page.waitForTimeout(200);
     

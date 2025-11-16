@@ -1,4 +1,4 @@
-import { SavedSong } from './types.js';
+import { SavedSong } from './types';
 
 const STORAGE_KEY = 'lyricist-songs';
 

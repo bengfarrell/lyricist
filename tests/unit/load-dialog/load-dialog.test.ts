@@ -4,6 +4,12 @@ import { LoadDialog } from '../../../src/load-dialog/index.js';
 import { songStore } from '../../../src/store/song-store.js';
 import type { SavedSong } from '../../../src/store/types.js';
 
+// Mock fetch for sample content loading
+global.fetch = vi.fn().mockResolvedValue({
+  ok: true,
+  json: async () => ({ sampleSongs: [] }),
+} as Response);
+
 // Ensure the component is registered
 import '../../../src/load-dialog/index.js';
 

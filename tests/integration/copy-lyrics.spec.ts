@@ -1,5 +1,18 @@
 import { test, expect } from '@playwright/test';
 
+// Helper function to fill lyric input inside shadow DOM
+async function fillLyricInput(page: any, text: string) {
+  await page.evaluate((textValue: string) => {
+    const app = document.querySelector('lyricist-app');
+    const controls = app?.shadowRoot?.querySelector('app-controls');
+    const input = controls?.shadowRoot?.querySelector('.lyric-input') as HTMLInputElement;
+    if (input) {
+      input.value = textValue;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }, text);
+}
+
 test.describe('Copy Lyrics', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -13,14 +26,12 @@ test.describe('Copy Lyrics', () => {
   });
 
   test('should copy formatted lyrics to clipboard', async ({ page }) => {
-    const lyricInput = page.locator('input[placeholder*="lyrics"]');
-    
     // Add some lyric lines
-    await lyricInput.fill('First verse here');
+    await fillLyricInput(page, 'First verse here');
     await page.getByRole('button', { name: 'Add Line' }).click();
     await page.waitForTimeout(200);
     
-    await lyricInput.fill('Second verse here');
+    await fillLyricInput(page, 'Second verse here');
     await page.getByRole('button', { name: 'Add Line' }).click();
     await page.waitForTimeout(200);
     

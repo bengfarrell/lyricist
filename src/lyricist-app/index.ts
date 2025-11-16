@@ -1,12 +1,13 @@
 import { LitElement, html } from 'lit';
-import { SongStoreController } from '../store/index.js';
-import { cursorManager } from '../cursor-manager/index.js';
-import { lyricistAppStyles } from './styles.css.js';
-import '../app-header/index.js';
-import '../app-controls/index.js';
-import '../lyric-canvas/index.js';
-import '../lyrics-panel/index.js';
-import '../load-dialog/index.js';
+import { SongStoreController } from '../store/index';
+import { cursorManager } from '../cursor-manager/index';
+import { lyricistAppStyles } from './styles.css.ts';
+import '../app-header/index';
+import '../app-controls/index';
+import '../lyric-canvas/index';
+import '../lyrics-panel/index';
+import '../left-panel/index';
+import '../load-dialog/index';
 
 /**
  * Main application component that composes all child components
@@ -16,14 +17,12 @@ export class LyricistApp extends LitElement {
   
   private store = new SongStoreController(this);
   
-  private _isDraggingDivider: boolean = false;
+  private _draggingDivider: 'left' | 'right' | null = null;
   private _boundHandleDividerMove?: (e: MouseEvent) => void;
   private _boundHandleMouseUp?: (e: MouseEvent) => void;
 
   constructor() {
     super();
-    // Load sample song on startup for development
-    this.store.loadSampleSong();
   }
 
   connectedCallback(): void {
@@ -44,29 +43,42 @@ export class LyricistApp extends LitElement {
     }
   }
 
-  private _handleDividerMouseDown(e: MouseEvent): void {
+  private _handleLeftDividerMouseDown(e: MouseEvent): void {
     e.preventDefault();
-    this._isDraggingDivider = true;
+    e.stopPropagation();
+    this._draggingDivider = 'left';
+    cursorManager.setCursor('ew-resize');
+  }
+
+  private _handleRightDividerMouseDown(e: MouseEvent): void {
+    e.preventDefault();
+    e.stopPropagation();
+    this._draggingDivider = 'right';
     cursorManager.setCursor('ew-resize');
   }
 
   private _handleDividerMove(e: MouseEvent): void {
-    if (!this._isDraggingDivider) return;
+    if (!this._draggingDivider) return;
 
     const container = this.shadowRoot?.querySelector('.main-content');
     if (!container) return;
     
     const rect = container.getBoundingClientRect();
     
-    // Calculate new width from the right edge
-    const newWidth = rect.right - e.clientX;
-    
-    this.store.setLyricsPanelWidth(newWidth);
+    if (this._draggingDivider === 'left') {
+      // Calculate new width from the left edge
+      const newWidth = e.clientX - rect.left;
+      this.store.setLeftPanelWidth(newWidth);
+    } else if (this._draggingDivider === 'right') {
+      // Calculate new width from the right edge
+      const newWidth = rect.right - e.clientX;
+      this.store.setLyricsPanelWidth(newWidth);
+    }
   }
 
   private _handleMouseUp(): void {
-    if (this._isDraggingDivider) {
-      this._isDraggingDivider = false;
+    if (this._draggingDivider) {
+      this._draggingDivider = null;
       cursorManager.clearCursor();
     }
   }
@@ -78,9 +90,13 @@ export class LyricistApp extends LitElement {
         <app-controls></app-controls>
         
         <div class="main-content">
+          <left-panel style="width: ${this.store.leftPanelWidth}px"></left-panel>
+          
+          <div class="panel-divider left-divider" @mousedown=${this._handleLeftDividerMouseDown}></div>
+          
           <lyric-canvas></lyric-canvas>
           
-          <div class="panel-divider" @mousedown=${this._handleDividerMouseDown}></div>
+          <div class="panel-divider right-divider" @mousedown=${this._handleRightDividerMouseDown}></div>
           
           <lyrics-panel style="width: ${this.store.lyricsPanelWidth}px"></lyrics-panel>
         </div>
