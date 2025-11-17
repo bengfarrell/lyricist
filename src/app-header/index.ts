@@ -40,19 +40,20 @@ export class AppHeader extends LitElement {
       <div class="header">
         <h1>🎵 Lyricist</h1>
         <div class="header-controls">
-          <label for="song-name-input" class="visually-hidden">Song name</label>
+          <label for="song-name-input" class="visually-hidden" data-spectrum-pattern="field-label">Song name</label>
           <input 
             id="song-name-input"
             type="text" 
             class="song-name-input" 
+            data-spectrum-pattern="textfield"
             placeholder="Song Name"
             .value=${this.store.songName}
             @input=${(e: InputEvent) => this.store.setSongName((e.target as HTMLInputElement).value)}
           />
-          <button class="btn btn-primary" @click=${this._handleSave}>Save</button>
-          <button class="btn btn-secondary" @click=${() => this.store.setShowLoadDialog(true)}>Load</button>
-          <button class="btn btn-secondary" @click=${this._handleNew}>New</button>
-          <button class="btn btn-secondary" @click=${() => this.store.loadSampleSong()}>Load Sample</button>
+          <button class="btn btn-primary" data-spectrum-pattern="button-accent" @click=${this._handleSave}>Save</button>
+          <button class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${() => this.store.setShowLoadDialog(true)}>Load</button>
+          <button class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${this._handleNew}>New</button>
+          <button class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${() => this.store.loadSampleSong()}>Load Sample</button>
         </div>
       </div>
     `;

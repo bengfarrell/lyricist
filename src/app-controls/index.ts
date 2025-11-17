@@ -173,10 +173,11 @@ export class AppControls extends LitElement {
             </div>
             
             ${this._showCustomSectionInput ? html`
-              <form class="custom-section-form" @submit=${this._handleCustomSectionSubmit}>
+              <form class="custom-section-form" data-spectrum-pattern="form" @submit=${this._handleCustomSectionSubmit}>
                 <input 
                   type="text" 
                   class="custom-section-input" 
+                  data-spectrum-pattern="textfield"
                   placeholder="Enter custom section name..."
                   .value=${this._customSectionName}
                   @input=${(e: InputEvent) => {
@@ -184,18 +185,19 @@ export class AppControls extends LitElement {
                     this.requestUpdate();
                   }}
                 />
-                <button type="submit" class="btn btn-primary">Create</button>
-                <button type="button" class="btn btn-secondary" @click=${() => {
+                <button type="submit" class="btn btn-primary" data-spectrum-pattern="button-primary">Create</button>
+                <button type="button" class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${() => {
                   this._showCustomSectionInput = false;
                   this._customSectionName = '';
                   this.requestUpdate();
                 }}>Cancel</button>
               </form>
             ` : html`
-              <div class="section-buttons">
+              <div class="section-buttons" data-spectrum-pattern="action-group-horizontal">
                 ${sectionNames.map(name => html`
                   <button 
                     class="section-btn" 
+                    data-spectrum-pattern="action-button"
                     @click=${() => this._handleSectionClick(name)}
                   >${name}</button>
                 `)}
@@ -203,24 +205,25 @@ export class AppControls extends LitElement {
             `}
           </div>
         ` : html`
-          <button class="dice-btn" @click=${this._rollDice} title="Roll the dice for random word combo!" aria-label="Roll random word combo">
+          <button class="dice-btn" data-spectrum-pattern="action-button" @click=${this._rollDice} title="Roll the dice for random word combo!" aria-label="Roll random word combo">
             🎲
           </button>
           <div class="lyric-creator">
             <div class="lyric-header">
               <span class="lyric-title">Enter a line of lyrics...</span>
             </div>
-            <form class="input-container" @submit=${this._addLine}>
-              <label for="lyric-input" class="visually-hidden">Lyric line</label>
+            <form class="input-container" data-spectrum-pattern="form" @submit=${this._addLine}>
+              <label for="lyric-input" class="visually-hidden" data-spectrum-pattern="field-label">Lyric line</label>
               <input 
                 id="lyric-input"
                 type="text" 
                 class="lyric-input" 
+                data-spectrum-pattern="textfield"
                 placeholder=${inputPlaceholder}
                 .value=${this.store.newLineInputText}
                 @input=${this._handleInput}
               />
-              <button type="submit" class="btn btn-primary">Add Line</button>
+              <button type="submit" class="btn btn-primary" data-spectrum-pattern="button-primary">Add Line</button>
             </form>
           </div>
         `}

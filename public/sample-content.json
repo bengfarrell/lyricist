@@ -1,0 +1,271 @@
+{
+  "sampleSongs": [
+    {
+      "name": "Morning Coffee (Sample)",
+      "lastModified": "2024-01-01T00:00:00.000Z",
+      "wordLadderSets": [
+        {
+          "id": "verbs-nouns",
+          "leftColumn": {
+            "title": "Verbs",
+            "placeholder": "run",
+            "words": [
+              "dance",
+              "whisper",
+              "chase",
+              "fall",
+              "hold",
+              "break",
+              "rise",
+              "sing",
+              "dream",
+              "fade"
+            ]
+          },
+          "rightColumn": {
+            "title": "Nouns",
+            "placeholder": "table",
+            "words": [
+              "shadow",
+              "echo",
+              "memory",
+              "moment",
+              "star",
+              "wave",
+              "fire",
+              "storm",
+              "light",
+              "heart"
+            ]
+          }
+        },
+        {
+          "id": "emotions-textures",
+          "leftColumn": {
+            "title": "Emotions",
+            "placeholder": "happy",
+            "words": [
+              "restless",
+              "hopeful",
+              "melancholy",
+              "wild",
+              "tender",
+              "anxious",
+              "fierce",
+              "peaceful",
+              "lonely",
+              "electric",
+              "nostalgic"
+            ]
+          },
+          "rightColumn": {
+            "title": "Colors & Textures",
+            "placeholder": "smooth",
+            "words": [
+              "crimson",
+              "velvet",
+              "silver",
+              "rough",
+              "golden",
+              "smooth",
+              "faded",
+              "crystalline",
+              "weathered",
+              "shimmering"
+            ]
+          }
+        },
+        {
+          "id": "locations-times",
+          "leftColumn": {
+            "title": "Locations",
+            "placeholder": "street",
+            "words": [
+              "highway",
+              "rooftop",
+              "ocean",
+              "alley",
+              "mountain",
+              "station",
+              "bridge",
+              "garden",
+              "desert"
+            ]
+          },
+          "rightColumn": {
+            "title": "Times of Day",
+            "placeholder": "noon",
+            "words": [
+              "midnight",
+              "dawn",
+              "twilight",
+              "sunrise",
+              "dusk",
+              "morning",
+              "evening",
+              "afternoon",
+              "nightfall"
+            ]
+          }
+        },
+        {
+          "id": "nature-movements",
+          "leftColumn": {
+            "title": "Natural Elements",
+            "placeholder": "rain",
+            "words": [
+              "wind",
+              "thunder",
+              "rain",
+              "snow",
+              "fog",
+              "lightning",
+              "river",
+              "tide",
+              "flame",
+              "frost",
+              "dust"
+            ]
+          },
+          "rightColumn": {
+            "title": "Movements",
+            "placeholder": "flow",
+            "words": [
+              "rushing",
+              "drifting",
+              "crashing",
+              "swirling",
+              "falling",
+              "rolling",
+              "flowing",
+              "spinning",
+              "burning"
+            ]
+          }
+        },
+        {
+          "id": "sounds-adjectives",
+          "leftColumn": {
+            "title": "Sounds",
+            "placeholder": "hum",
+            "words": [
+              "whisper",
+              "thunder",
+              "echo",
+              "silence",
+              "rhythm",
+              "melody",
+              "crash",
+              "ringing",
+              "murmur",
+              "screaming"
+            ]
+          },
+          "rightColumn": {
+            "title": "Adjectives",
+            "placeholder": "loud",
+            "words": [
+              "endless",
+              "broken",
+              "distant",
+              "hollow",
+              "haunting",
+              "sweet",
+              "bitter",
+              "fleeting",
+              "eternal",
+              "raw"
+            ]
+          }
+        }
+      ],
+      "items": [
+        {
+          "id": "line-sample-1",
+          "type": "line",
+          "text": "Wake up to the sunrise glow",
+          "chords": [
+            { "id": "chord-1-1", "name": "C", "position": 0 },
+            { "id": "chord-1-2", "name": "G", "position": 60 }
+          ],
+          "hasChordSection": false,
+          "x": 150,
+          "y": 100,
+          "rotation": -2,
+          "zIndex": 1
+        },
+        {
+          "id": "line-sample-2",
+          "type": "line",
+          "text": "Pour a cup and take it slow",
+          "chords": [
+            { "id": "chord-2-1", "name": "Am", "position": 15 },
+            { "id": "chord-2-2", "name": "F", "position": 65 }
+          ],
+          "hasChordSection": false,
+          "x": 160,
+          "y": 180,
+          "rotation": 1,
+          "zIndex": 2
+        },
+        {
+          "id": "line-sample-3",
+          "type": "line",
+          "text": "Every morning feels brand new",
+          "chords": [
+            { "id": "chord-3-1", "name": "C", "position": 20 },
+            { "id": "chord-3-2", "name": "G", "position": 70 }
+          ],
+          "hasChordSection": false,
+          "x": 140,
+          "y": 260,
+          "rotation": -1,
+          "zIndex": 3
+        },
+        {
+          "id": "line-sample-4",
+          "type": "line",
+          "text": "Simple moments just me and you",
+          "chords": [
+            { "id": "chord-4-1", "name": "Am", "position": 25 },
+            { "id": "chord-4-2", "name": "F", "position": 55 },
+            { "id": "chord-4-3", "name": "G", "position": 85 }
+          ],
+          "hasChordSection": false,
+          "x": 155,
+          "y": 340,
+          "rotation": 2,
+          "zIndex": 4
+        },
+        {
+          "id": "line-sample-5",
+          "type": "line",
+          "text": "Morning coffee, warm and sweet",
+          "chords": [
+            { "id": "chord-5-1", "name": "F", "position": 10 },
+            { "id": "chord-5-2", "name": "C", "position": 60 }
+          ],
+          "hasChordSection": false,
+          "x": 145,
+          "y": 450,
+          "rotation": -3,
+          "zIndex": 5
+        },
+        {
+          "id": "line-sample-6",
+          "type": "line",
+          "text": "Makes my day feel complete",
+          "chords": [
+            { "id": "chord-6-1", "name": "G", "position": 15 },
+            { "id": "chord-6-2", "name": "C", "position": 70 }
+          ],
+          "hasChordSection": false,
+          "x": 170,
+          "y": 530,
+          "rotation": 1,
+          "zIndex": 6
+        }
+      ]
+    }
+  ]
+}

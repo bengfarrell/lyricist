@@ -51,25 +51,25 @@ export class LoadDialog extends LitElement {
     }
 
     return html`
-      <div class="dialog-overlay" @click=${() => this.store.setShowLoadDialog(false)}>
-        <div class="dialog" @click=${(e: MouseEvent) => e.stopPropagation()}>
-          <h2>Load Song</h2>
+      <div class="dialog-overlay" data-spectrum-pattern="modal-overlay" @click=${() => this.store.setShowLoadDialog(false)}>
+        <div class="dialog" data-spectrum-pattern="dialog" @click=${(e: MouseEvent) => e.stopPropagation()}>
+          <h2 data-spectrum-pattern="dialog-heading">Load Song</h2>
           
           ${this.store.savedSongs.length === 0 ? html`
-            <p class="empty-message">
+            <p class="empty-message" data-spectrum-pattern="dialog-content">
               No saved songs yet. Create and save your first song!
             </p>
           ` : html`
-            <div class="song-list">
+            <div class="song-list" data-spectrum-pattern="dialog-content">
               ${this.store.savedSongs.map(song => html`
-                <div class="song-item" @click=${() => this.store.loadSong(song)}>
+                <div class="song-item" data-spectrum-pattern="list-item-selectable" @click=${() => this.store.loadSong(song)}>
                   <div class="song-item-info">
                     <div class="song-item-name">${song.name}</div>
                     <div class="song-item-meta">
                       ${(song.items || song.lines || []).length} items • Last modified: ${new Date(song.lastModified).toLocaleDateString()}
                     </div>
                   </div>
-                  <button class="btn btn-danger" @click=${(e: MouseEvent) => this._deleteSong(song, e)}>Delete</button>
+                  <button class="btn btn-danger" data-spectrum-pattern="button-negative" @click=${(e: MouseEvent) => this._deleteSong(song, e)}>Delete</button>
                 </div>
               `)}
             </div>
@@ -78,14 +78,14 @@ export class LoadDialog extends LitElement {
           <div class="export-section">
             <h3>Import/Export</h3>
             <div class="export-actions">
-              <button class="btn btn-secondary" @click=${this._importFromJSON}>Import JSON</button>
-              <button class="btn btn-secondary" @click=${() => this.store.exportToJSON()}>Export JSON</button>
+              <button class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${this._importFromJSON}>Import JSON</button>
+              <button class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${() => this.store.exportToJSON()}>Export JSON</button>
             </div>
             <input type="file" class="file-input" accept=".json" @change=${this._handleFileImport} />
           </div>
 
-          <div class="dialog-actions">
-            <button class="btn btn-secondary" @click=${() => this.store.setShowLoadDialog(false)}>Close</button>
+          <div class="dialog-actions" data-spectrum-pattern="dialog-footer">
+            <button class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${() => this.store.setShowLoadDialog(false)}>Close</button>
           </div>
         </div>
       </div>
