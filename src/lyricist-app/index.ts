@@ -1,9 +1,9 @@
 import { LitElement, html } from 'lit';
 import { SongStoreController } from '../store/index';
-import { cursorManager } from '../cursor-manager/index';
 import { lyricistAppStyles } from './styles.css.ts';
-import '../app-header/index';
-import '../app-controls/index';
+import '../app-navbar/index';
+import '../floating-strip/index';
+import '../file-modal/index';
 import '../lyric-canvas/index';
 import '../lyrics-panel/index';
 import '../left-panel/index';
@@ -16,93 +16,48 @@ export class LyricistApp extends LitElement {
   static styles = lyricistAppStyles;
   
   private store = new SongStoreController(this);
-  
-  private _draggingDivider: 'left' | 'right' | null = null;
-  private _boundHandleDividerMove?: (e: MouseEvent) => void;
-  private _boundHandleMouseUp?: (e: MouseEvent) => void;
-
-  constructor() {
-    super();
-  }
-
-  connectedCallback(): void {
-    super.connectedCallback();
-    this._boundHandleDividerMove = this._handleDividerMove.bind(this);
-    this._boundHandleMouseUp = this._handleMouseUp.bind(this);
-    window.addEventListener('mousemove', this._boundHandleDividerMove);
-    window.addEventListener('mouseup', this._boundHandleMouseUp);
-  }
-
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-    if (this._boundHandleDividerMove) {
-      window.removeEventListener('mousemove', this._boundHandleDividerMove);
-    }
-    if (this._boundHandleMouseUp) {
-      window.removeEventListener('mouseup', this._boundHandleMouseUp);
-    }
-  }
-
-  private _handleLeftDividerMouseDown(e: MouseEvent): void {
-    e.preventDefault();
-    e.stopPropagation();
-    this._draggingDivider = 'left';
-    cursorManager.setCursor('ew-resize');
-  }
-
-  private _handleRightDividerMouseDown(e: MouseEvent): void {
-    e.preventDefault();
-    e.stopPropagation();
-    this._draggingDivider = 'right';
-    cursorManager.setCursor('ew-resize');
-  }
-
-  private _handleDividerMove(e: MouseEvent): void {
-    if (!this._draggingDivider) return;
-
-    const container = this.shadowRoot?.querySelector('.main-content');
-    if (!container) return;
-    
-    const rect = container.getBoundingClientRect();
-    
-    if (this._draggingDivider === 'left') {
-      // Calculate new width from the left edge
-      const newWidth = e.clientX - rect.left;
-      this.store.setLeftPanelWidth(newWidth);
-    } else if (this._draggingDivider === 'right') {
-      // Calculate new width from the right edge
-      const newWidth = rect.right - e.clientX;
-      this.store.setLyricsPanelWidth(newWidth);
-    }
-  }
-
-  private _handleMouseUp(): void {
-    if (this._draggingDivider) {
-      this._draggingDivider = null;
-      cursorManager.clearCursor();
-    }
-  }
 
   render() {
+    const currentPanel = this.store.currentPanel;
+    const isCanvasLyricsLeft = currentPanel === 'canvas-lyrics-left';
+    const isCanvasLyricsRight = currentPanel === 'canvas-lyrics-right';
+    const isCanvasLyricsTop = currentPanel === 'canvas-lyrics-top';
+    const isCanvasLyricsBottom = currentPanel === 'canvas-lyrics-bottom';
+    const isHybridMode = isCanvasLyricsLeft || isCanvasLyricsRight || isCanvasLyricsTop || isCanvasLyricsBottom;
+    
     return html`
       <div class="container">
-        <app-header></app-header>
-        <app-controls></app-controls>
+        <app-navbar></app-navbar>
         
         <div class="main-content">
-          <left-panel style="width: ${this.store.leftPanelWidth}px"></left-panel>
+          <left-panel class="panel ${currentPanel === 'word-ladder' ? 'visible' : 'hidden'}"></left-panel>
           
-          <div class="panel-divider left-divider" @mousedown=${this._handleLeftDividerMouseDown}></div>
+          <!-- Canvas visible in canvas mode and hybrid modes -->
+          <lyric-canvas class="panel ${currentPanel === 'canvas' || isHybridMode ? 'visible' : 'hidden'}"></lyric-canvas>
           
-          <lyric-canvas></lyric-canvas>
+          <!-- Lyrics as background overlay in hybrid modes -->
+          ${isCanvasLyricsLeft ? html`
+            <lyrics-panel class="panel-overlay panel-overlay-left visible" overlay></lyrics-panel>
+          ` : ''}
+          ${isCanvasLyricsRight ? html`
+            <lyrics-panel class="panel-overlay panel-overlay-right visible" overlay></lyrics-panel>
+          ` : ''}
+          ${isCanvasLyricsTop ? html`
+            <lyrics-panel class="panel-overlay panel-overlay-top visible" overlay></lyrics-panel>
+          ` : ''}
+          ${isCanvasLyricsBottom ? html`
+            <lyrics-panel class="panel-overlay panel-overlay-bottom visible" overlay></lyrics-panel>
+          ` : ''}
           
-          <div class="panel-divider right-divider" @mousedown=${this._handleRightDividerMouseDown}></div>
-          
-          <lyrics-panel style="width: ${this.store.lyricsPanelWidth}px"></lyrics-panel>
+          <!-- Lyrics full screen in lyrics-only mode -->
+          <lyrics-panel class="panel ${currentPanel === 'lyrics' ? 'visible' : 'hidden'}"></lyrics-panel>
         </div>
+
+        <floating-strip></floating-strip>
       </div>
 
       <load-dialog></load-dialog>
+      <file-modal></file-modal>
     `;
   }
 }

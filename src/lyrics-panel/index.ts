@@ -7,9 +7,29 @@ import { lyricsPanelStyles } from './styles.css.ts';
  * Panel component for displaying formatted lyrics with chords
  */
 export class LyricsPanel extends LitElement {
+  static properties = {
+    overlay: { type: Boolean, reflect: true }
+  };
+
   static styles = lyricsPanelStyles;
   
   private store = new SongStoreController(this);
+  
+  overlay = false;
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    window.addEventListener('copy-lyrics', this._handleCopyLyrics.bind(this));
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    window.removeEventListener('copy-lyrics', this._handleCopyLyrics.bind(this));
+  }
+
+  private _handleCopyLyrics(): void {
+    this._copyLyricsToClipboard();
+  }
 
   private _renderChordLine(line: LyricLine): string {
     if (!line.chords || line.chords.length === 0) {
@@ -105,14 +125,12 @@ export class LyricsPanel extends LitElement {
 
   render() {
     return html`
-      <div class="lyrics-panel-header">
-        <h2>📝 Song Lyrics</h2>
-        <button class="copy-lyrics-btn" @click=${this._copyLyricsToClipboard} title="Copy all lyrics">📋</button>
-      </div>
       <div class="lyrics-panel-content">
         ${this.store.items.length === 0 ? html`
           <div class="lyrics-text empty">
-            No lyrics yet. Add lines and arrange them on the canvas to see your song here.
+            No lyrics yet.<br>
+            Add lines and arrange them<br>
+            on the canvas to see your song here.
           </div>
         ` : html`
           <div class="lyrics-text">

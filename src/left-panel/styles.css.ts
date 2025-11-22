@@ -5,14 +5,15 @@ export const leftPanelStyles = css`
     display: flex;
     flex-direction: column;
     background: #f8f9fa;
-    border-right: 2px solid #e9ecef;
     overflow: hidden;
     flex-shrink: 0;
+    height: 100%;
+    width: 100%;
   }
 
   .left-panel-header {
     padding: 12px 16px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
     border-bottom: 2px solid #e9ecef;
     display: flex;
     justify-content: space-between;
@@ -139,7 +140,7 @@ export const leftPanelStyles = css`
     margin: 0 0 12px 0;
     font-size: 14px;
     font-weight: 600;
-    color: #667eea;
+    color: #1f2937;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     white-space: nowrap;
@@ -155,7 +156,7 @@ export const leftPanelStyles = css`
   }
 
   .column-title.editable:hover {
-    background: rgba(102, 126, 234, 0.1);
+    background: rgba(0, 0, 0, 0.05);
   }
 
   .edit-title-container {
@@ -170,11 +171,11 @@ export const leftPanelStyles = css`
   .edit-right-title {
     width: 100%;
     padding: 4px 8px;
-    border: 2px solid #667eea;
+    border: 2px solid #374151;
     border-radius: 4px;
     font-size: 14px;
     font-weight: 600;
-    color: #667eea;
+    color: #1f2937;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     background: white;
@@ -194,18 +195,18 @@ export const leftPanelStyles = css`
     border-radius: 12px;
     font-size: 11px;
     font-weight: 500;
-    color: #667eea;
+    color: #374151;
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
   }
 
   .suggestion-chip:hover {
-    background: #667eea;
+    background: #374151;
     color: white;
-    border-color: #667eea;
+    border-color: #374151;
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
 
   .suggestion-chip:active {
@@ -236,13 +237,13 @@ export const leftPanelStyles = css`
 
   .word-item:hover {
     background: #e9ecef;
-    border-color: #667eea;
+    border-color: #374151;
   }
 
   .word-item.selected {
-    background: #e0e7ff;
-    border: 2px solid #667eea;
-    box-shadow: 0 0 8px rgba(102, 126, 234, 0.3);
+    background: #e5e7eb;
+    border: 2px solid #1f2937;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
   }
 
   .word-item.placeholder {
@@ -293,51 +294,96 @@ export const leftPanelStyles = css`
     background: #fee2e2;
   }
 
-  .add-word-form {
+  .add-word-item {
     display: flex;
-    gap: 8px;
-    margin-top: auto;
+    align-items: center;
+    padding: 10px 12px;
+    background: #f9fafb;
+    border: 1px dashed #9ca3af;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    cursor: text;
   }
 
-  .word-input {
+  .add-word-item:hover {
+    background: #f3f4f6;
+    border-color: #6b7280;
+  }
+
+  .word-input-inline {
     flex: 1;
-    padding: 6px 10px;
-    border: 2px solid #e9ecef;
-    border-radius: 6px;
+    border: none;
+    background: transparent;
+    padding: 0;
     font-size: 13px;
-    transition: border-color 0.2s ease;
+    font-weight: 500;
+    color: #374151;
+    outline: none;
     min-width: 0;
   }
 
-  .word-input:focus {
-    outline: none;
-    border-color: #667eea;
+  .word-input-inline::placeholder {
+    color: #6b7280;
+    opacity: 0.6;
   }
 
-  .add-btn {
-    width: 32px;
-    height: 32px;
-    background: #667eea;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 18px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
+  .word-input-inline:focus::placeholder {
+    opacity: 0.8;
   }
 
-  .add-btn:hover {
-    background: #5568d3;
-    transform: scale(1.05);
-  }
+  /* Mobile responsive styles */
+  @media (max-width: 768px) {
+    .left-panel-content {
+      padding: 12px;
+    }
 
-  .add-btn:active {
-    transform: scale(0.95);
+    .word-ladder {
+      gap: 8px;
+    }
+
+    .column-title {
+      font-size: 12px;
+      margin-bottom: 8px;
+      padding: 3px 6px;
+    }
+
+    .word-list {
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .word-item {
+      padding: 8px 10px;
+    }
+
+    .word-text {
+      font-size: 13px;
+    }
+
+    .add-word-item {
+      padding: 8px 10px;
+    }
+
+    .word-input-inline {
+      font-size: 12px;
+    }
+
+    .suggestion-chips {
+      gap: 3px;
+    }
+
+    .suggestion-chip {
+      padding: 3px 6px;
+      font-size: 10px;
+    }
+
+    .edit-title-container {
+      margin-bottom: 8px;
+    }
+
+    .edit-title-form {
+      margin-bottom: 6px;
+    }
   }
 `;
 

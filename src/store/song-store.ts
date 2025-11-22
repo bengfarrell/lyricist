@@ -31,10 +31,13 @@ export class SongStore {
   
   // UI state
   private _showLoadDialog: boolean = false;
+  private _showFileModal: boolean = false;
   private _lyricsPanelWidth: number = 350;
   private _leftPanelWidth: number = 300;
   private _selectedLineIds: Set<string> = new Set();
   private _newLineInputText: string = '';
+  private _currentPanel: 'word-ladder' | 'canvas' | 'lyrics' | 'canvas-lyrics-left' | 'canvas-lyrics-right' | 'canvas-lyrics-top' | 'canvas-lyrics-bottom' = 'canvas';
+  private _stripRetracted: boolean = false;
   
   // Word Ladder state - part of the current song
   private _wordLadderSets: WordLadderSet[] = [{ ...DEFAULT_WORD_LADDER_SET }];
@@ -147,6 +150,10 @@ export class SongStore {
     return this._showLoadDialog;
   }
   
+  get showFileModal(): boolean {
+    return this._showFileModal;
+  }
+  
   get lyricsPanelWidth(): number {
     return this._lyricsPanelWidth;
   }
@@ -161,6 +168,14 @@ export class SongStore {
   
   get newLineInputText(): string {
     return this._newLineInputText;
+  }
+  
+  get currentPanel(): 'word-ladder' | 'canvas' | 'lyrics' | 'canvas-lyrics-left' | 'canvas-lyrics-right' | 'canvas-lyrics-top' | 'canvas-lyrics-bottom' {
+    return this._currentPanel;
+  }
+  
+  get stripRetracted(): boolean {
+    return this._stripRetracted;
   }
   
   get wordLadderSets(): WordLadderSet[] {
@@ -602,6 +617,21 @@ export class SongStore {
     this.notify();
   }
   
+  setShowFileModal(show: boolean): void {
+    this._showFileModal = show;
+    this.notify();
+  }
+  
+  setCurrentPanel(panel: 'word-ladder' | 'canvas' | 'lyrics' | 'canvas-lyrics-left' | 'canvas-lyrics-right' | 'canvas-lyrics-top' | 'canvas-lyrics-bottom'): void {
+    this._currentPanel = panel;
+    this.notify();
+  }
+  
+  setStripRetracted(retracted: boolean): void {
+    this._stripRetracted = retracted;
+    this.notify();
+  }
+  
   setLyricsPanelWidth(width: number): void {
     this._lyricsPanelWidth = Math.max(200, Math.min(600, width));
     this.notify();
@@ -765,6 +795,30 @@ export class SongStore {
   
   getMaxZIndex(): number {
     return this._items.length > 0 ? Math.max(...this._items.map(item => item.zIndex || 1)) : 0;
+  }
+  
+  // ===== Alignment Actions =====
+  
+  alignSelectedItems(alignment: 'left' | 'center' | 'right', canvasWidth: number): void {
+    const padding = 40; // Space from edges
+    
+    this._items = this._items.map(item => {
+      if (!this._selectedLineIds.has(item.id)) return item;
+      
+      let newX = item.x;
+      
+      if (alignment === 'left') {
+        newX = padding;
+      } else if (alignment === 'center') {
+        newX = canvasWidth / 2;
+      } else if (alignment === 'right') {
+        newX = canvasWidth - padding;
+      }
+      
+      return { ...item, x: newX };
+    });
+    
+    this.notify();
   }
 }
 

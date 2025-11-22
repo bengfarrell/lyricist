@@ -5,6 +5,7 @@ export const lyricGroupStyles = css`
     position: absolute;
     user-select: none;
     z-index: 1;
+    touch-action: none;
   }
 
   :host([dragging]) {
@@ -13,23 +14,23 @@ export const lyricGroupStyles = css`
   }
 
   :host([selected]) .container {
-    box-shadow: 0 0 0 3px #667eea, 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
-    border: 2px solid #667eea;
+    box-shadow: 0 0 0 3px #1f2937, 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+    border: 2px solid #1f2937;
   }
 
   :host([selected]:hover) .container {
-    box-shadow: 0 0 0 3px #667eea, 0 10px 15px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 0 3px #1f2937, 0 10px 15px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1);
   }
 
   :host([selected][dragging]) .container {
-    box-shadow: 0 0 0 3px #667eea, 0 20px 25px rgba(0, 0, 0, 0.2), 0 10px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 0 3px #1f2937, 0 20px 25px rgba(0, 0, 0, 0.2), 0 10px 10px rgba(0, 0, 0, 0.1);
   }
 
   .container {
-    background: #f0f4ff;
+    background: #f3f4f6;
     padding: 12px 20px;
     border-radius: 8px;
-    border: 2px solid #c7d2fe;
+    border: 2px solid #d1d5db;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
     transition: box-shadow 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
     display: inline-block;
@@ -53,7 +54,7 @@ export const lyricGroupStyles = css`
   
   .section-name {
     font-weight: 600;
-    color: #4f46e5;
+    color: #1f2937;
   }
   
   .line-count {
@@ -94,23 +95,66 @@ export const lyricGroupStyles = css`
 
   .duplicate-btn {
     left: -8px;
-    background: #3b82f6;
+    background: #374151;
   }
 
   .duplicate-btn:hover {
-    background: #2563eb;
+    background: #1f2937;
     transform: scale(1.1);
   }
 
   .ungroup-btn {
     left: 50%;
     transform: translateX(-50%);
-    background: #8b5cf6;
+    background: #4b5563;
   }
 
   .ungroup-btn:hover {
-    background: #7c3aed;
+    background: #374151;
     transform: translateX(-50%) scale(1.1);
+  }
+
+  /* Mobile responsive styles */
+  @media (max-width: 768px) {
+    .container {
+      padding: 10px 16px;
+    }
+
+    .section-header {
+      font-size: 16px;
+    }
+
+    .line-count {
+      font-size: 12px;
+      margin-left: 6px;
+    }
+
+    .action-btn {
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .container {
+      padding: 8px 14px;
+    }
+
+    .section-header {
+      font-size: 14px;
+    }
+
+    .line-count {
+      font-size: 11px;
+      margin-left: 4px;
+    }
+
+    .action-btn {
+      width: 36px;
+      height: 36px;
+      font-size: 18px;
+    }
   }
 `;
 

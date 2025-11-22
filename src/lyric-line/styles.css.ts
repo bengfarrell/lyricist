@@ -5,6 +5,7 @@ export const lyricLineStyles = css`
     position: absolute;
     user-select: none;
     z-index: 1;
+    touch-action: none;
   }
 
   :host([dragging]) {
@@ -13,16 +14,16 @@ export const lyricLineStyles = css`
   }
 
   :host([selected]) .lyric-line {
-    box-shadow: 0 0 0 3px #667eea, 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
-    border: 2px solid #667eea;
+    box-shadow: 0 0 0 3px #1f2937, 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+    border: 2px solid #1f2937;
   }
 
   :host([selected]:hover) .lyric-line {
-    box-shadow: 0 0 0 3px #667eea, 0 10px 15px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 0 3px #1f2937, 0 10px 15px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1);
   }
 
   :host([selected][dragging]) .lyric-line {
-    box-shadow: 0 0 0 3px #667eea, 0 20px 25px rgba(0, 0, 0, 0.2), 0 10px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 0 3px #1f2937, 0 20px 25px rgba(0, 0, 0, 0.2), 0 10px 10px rgba(0, 0, 0, 0.1);
   }
 
   .container {
@@ -91,18 +92,18 @@ export const lyricLineStyles = css`
   }
 
   .chord-marker.active {
-    background: #667eea;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3), 0 2px 4px rgba(0, 0, 0, 0.3);
+    background: #374151;
+    border-color: #374151;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3);
     animation: pulse 1.5s ease-in-out infinite;
   }
 
   @keyframes pulse {
     0%, 100% {
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3), 0 2px 4px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3);
     }
     50% {
-      box-shadow: 0 0 0 6px rgba(102, 126, 234, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.3);
     }
   }
 
@@ -235,7 +236,7 @@ export const lyricLineStyles = css`
   }
 
   .lyric-text-editable {
-    outline: 2px solid #667eea;
+    outline: 2px solid #1f2937;
     outline-offset: 2px;
     border-radius: 4px;
     padding: 2px 4px;
@@ -246,7 +247,7 @@ export const lyricLineStyles = css`
   }
 
   .lyric-text-editable:focus {
-    outline: 2px solid #667eea;
+    outline: 2px solid #1f2937;
     user-select: text;
   }
 
@@ -291,11 +292,11 @@ export const lyricLineStyles = css`
 
   .duplicate-btn {
     left: -8px;
-    background: #3b82f6;
+    background: #374151;
   }
 
   .duplicate-btn:hover {
-    background: #2563eb;
+    background: #1f2937;
     transform: scale(1.1);
   }
 
@@ -334,6 +335,111 @@ export const lyricLineStyles = css`
   .chord-toggle-btn:hover {
     background: #374151;
     transform: translateX(-50%) scale(1.1);
+  }
+
+  /* Mobile responsive styles */
+  @media (max-width: 768px) {
+    .lyric-line {
+      padding: 10px 16px;
+      font-size: 16px;
+    }
+
+    .chord-picker {
+      width: 200px;
+      max-height: 300px;
+      padding: 12px;
+    }
+
+    .chord-picker-group {
+      margin-bottom: 10px;
+    }
+
+    .chord-picker-options {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .chord-option {
+      padding: 8px 6px;
+      font-size: 12px;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chord-marker {
+      padding: 3px 8px;
+      font-size: 12px;
+    }
+
+    .chord-section {
+      margin-bottom: 6px;
+    }
+
+    .chord-markers {
+      height: 24px;
+    }
+
+    .action-btn {
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
+    }
+
+    .chord-toggle-btn {
+      width: 32px;
+      height: 32px;
+      font-size: 18px;
+    }
+
+    .chord-delete-btn {
+      width: 20px;
+      height: 20px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .lyric-line {
+      padding: 8px 14px;
+      font-size: 14px;
+    }
+
+    .chord-picker {
+      width: calc(100vw - 32px);
+      max-width: 280px;
+      max-height: 280px;
+      padding: 10px;
+    }
+
+    .chord-picker-options {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .chord-option {
+      padding: 10px 8px;
+      font-size: 11px;
+      min-height: 40px;
+    }
+
+    .chord-marker {
+      padding: 4px 10px;
+      font-size: 11px;
+    }
+
+    .action-btn,
+    .chord-toggle-btn {
+      width: 36px;
+      height: 36px;
+    }
+
+    .chord-delete-btn {
+      width: 24px;
+      height: 24px;
+      font-size: 14px;
+    }
   }
 `;
 

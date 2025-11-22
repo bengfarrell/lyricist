@@ -55,6 +55,10 @@ export class SongStoreController implements ReactiveController {
     return songStore.showLoadDialog;
   }
   
+  get showFileModal(): boolean {
+    return songStore.showFileModal;
+  }
+  
   get lyricsPanelWidth(): number {
     return songStore.lyricsPanelWidth;
   }
@@ -69,6 +73,14 @@ export class SongStoreController implements ReactiveController {
   
   get newLineInputText(): string {
     return songStore.newLineInputText;
+  }
+  
+  get currentPanel(): 'word-ladder' | 'canvas' | 'lyrics' | 'canvas-lyrics-left' | 'canvas-lyrics-right' | 'canvas-lyrics-top' | 'canvas-lyrics-bottom' {
+    return songStore.currentPanel;
+  }
+  
+  get stripRetracted(): boolean {
+    return songStore.stripRetracted;
   }
   
   get wordLadderSetIndex(): number {
@@ -225,6 +237,18 @@ export class SongStoreController implements ReactiveController {
     songStore.setShowLoadDialog(show);
   }
   
+  setShowFileModal(show: boolean): void {
+    songStore.setShowFileModal(show);
+  }
+  
+  setCurrentPanel(panel: 'word-ladder' | 'canvas' | 'lyrics' | 'canvas-lyrics-left' | 'canvas-lyrics-right' | 'canvas-lyrics-top' | 'canvas-lyrics-bottom'): void {
+    songStore.setCurrentPanel(panel);
+  }
+  
+  setStripRetracted(retracted: boolean): void {
+    songStore.setStripRetracted(retracted);
+  }
+  
   setLyricsPanelWidth(width: number): void {
     songStore.setLyricsPanelWidth(width);
   }
@@ -311,6 +335,12 @@ export class SongStoreController implements ReactiveController {
   
   getMaxZIndex(): number {
     return songStore.getMaxZIndex();
+  }
+  
+  // ===== Alignment Actions =====
+  
+  alignSelectedItems(alignment: 'left' | 'center' | 'right', canvasWidth: number): void {
+    songStore.alignSelectedItems(alignment, canvasWidth);
   }
 }
 

@@ -55,7 +55,7 @@ export class LyricGroup extends LitElement {
     this.style.zIndex = this.zIndex.toString();
   }
 
-  private _handleMouseDown(e: MouseEvent): void {
+  private _handlePointerDown(e: PointerEvent): void {
     const target = e.target as HTMLElement;
     if (target.classList.contains('action-btn')) {
       return;
@@ -126,7 +126,7 @@ export class LyricGroup extends LitElement {
     return html`
       <div 
         class="container"
-        @mousedown=${this._handleMouseDown}
+        @pointerdown=${this._handlePointerDown}
       >
         <div class="section-header">
           <span class="section-name">${this.sectionName}</span>
