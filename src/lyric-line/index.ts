@@ -170,9 +170,6 @@ export class LyricLine extends LitElement {
     const deltaY = Math.abs(e.clientY - this._pointerDownY);
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     
-    // Reset dragging state (canvas will also handle this)
-    this._isDragging = false;
-    
     // If pointer didn't move much (less than 5px), treat it as a tap
     if (distance < 5) {
       // Check if the pointer is over this line's text area
@@ -185,11 +182,23 @@ export class LyricLine extends LitElement {
       // Don't activate editing if clicking on buttons
       if (target.classList.contains('action-btn') || 
           target.classList.contains('chord-toggle-btn')) {
+        this._isDragging = false;
         return;
       }
       
       // On touch devices (pointerType === 'touch'), activate editing with a tap
       if (e.pointerType === 'touch') {
+        // Cancel the drag before entering edit mode
+        this._isDragging = false;
+        this.removeAttribute('dragging');
+        
+        // Dispatch a custom event to tell canvas to cancel the drag
+        this.dispatchEvent(new CustomEvent('cancel-drag', {
+          detail: { id: this.id },
+          bubbles: true,
+          composed: true
+        }));
+        
         this._isEditingText = true;
         this.setAttribute('editing-text', '');
         
@@ -208,8 +217,12 @@ export class LyricLine extends LitElement {
             }
           }
         });
+        return;
       }
     }
+    
+    // Reset dragging state (canvas will also handle this)
+    this._isDragging = false;
   }
 
   private _handleDoubleClick(e: MouseEvent): void {

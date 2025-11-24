@@ -63,6 +63,19 @@ export class LyricCanvas extends LitElement {
     this.store.bringLineToFront(clickedId);
   }
 
+  private _handleCancelDrag(e: CustomEvent): void {
+    // Cancel any active drag operation
+    if (this._draggedItem) {
+      const elementSelector = this._draggedItem.type === 'line' ? 'lyric-line' : 'lyric-group';
+      const itemElement = this.shadowRoot?.querySelector(`${elementSelector}[id="${this._draggedItem.id}"]`);
+      if (itemElement) {
+        itemElement.removeAttribute('dragging');
+      }
+      this._draggedItem = null;
+      cursorManager.clearCursor();
+    }
+  }
+
   private _handlePointerMove(e: PointerEvent): void {
     // Handle item dragging
     if (this._draggedItem) {
@@ -350,7 +363,8 @@ export class LyricCanvas extends LitElement {
     
     return html`
       <div class="canvas" 
-        @drag-start=${this._handleDragStart} 
+        @drag-start=${this._handleDragStart}
+        @cancel-drag=${this._handleCancelDrag}
         @delete-line=${this._handleDeleteLine} 
         @duplicate-line=${this._handleDuplicateLine}
         @delete-group=${this._handleDeleteGroup}
