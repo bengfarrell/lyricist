@@ -34,3 +34,4 @@ writeFileSync(resolve(publicDir, 'icon-512.svg'), icon512);
 console.log('✅ PWA icons generated in public/ folder');
 console.log('💡 These are placeholder SVG icons. Replace with PNG for better compatibility!');
 
+

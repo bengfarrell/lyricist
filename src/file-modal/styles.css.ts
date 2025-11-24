@@ -96,6 +96,20 @@ export const fileModalStyles = css`
     min-height: 0;
   }
 
+  .modal-footer {
+    padding: 12px 24px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .version-text {
+    font-size: 12px;
+    color: #9ca3af;
+  }
+
   .section {
     flex-shrink: 0;
   }

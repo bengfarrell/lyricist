@@ -1,10 +1,20 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJson = JSON.parse(readFileSync(join(__dirname, 'package.json'), 'utf-8'));
 
 export default defineConfig({
   root: './src',
   publicDir: '../public',
   envDir: '../', // Look for .env files in project root
+  define: {
+    __APP_VERSION__: JSON.stringify(packageJson.version),
+  },
   resolve: {
     extensions: ['.ts', '.js', '.tsx', '.jsx'],
   },

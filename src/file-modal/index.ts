@@ -4,6 +4,9 @@ import { SongStoreController } from '../store/index';
 import { fileModalStyles } from './styles.css.ts';
 import '../lyrics-panel/index';
 
+// @ts-ignore - vite will resolve this
+const APP_VERSION = __APP_VERSION__;
+
 /**
  * Full-screen modal for file management
  */
@@ -207,6 +210,10 @@ export class FileModal extends LitElement {
                 </div>
               </div>
             </div>
+          </div>
+          
+          <div class="modal-footer">
+            <span class="version-text">Version ${APP_VERSION}</span>
           </div>
         </div>
       </div>
