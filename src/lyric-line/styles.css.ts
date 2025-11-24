@@ -253,7 +253,7 @@ export const lyricLineStyles = css`
 
   .action-btn {
     position: absolute;
-    bottom: -8px;
+    bottom: -20px;
     width: 24px;
     height: 24px;
     border-radius: 50%;
@@ -302,7 +302,7 @@ export const lyricLineStyles = css`
 
   .chord-toggle-btn {
     position: absolute;
-    bottom: -8px;
+    bottom: -20px;
     left: 50%;
     transform: translateX(-50%);
     background: #000;

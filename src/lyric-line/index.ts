@@ -44,6 +44,9 @@ export class LyricLine extends LitElement {
   private _startY: number = 0;
   _offsetX: number = 0;
   _offsetY: number = 0;
+  private _pointerDownX: number = 0;
+  private _pointerDownY: number = 0;
+  private _hasMoved: boolean = false;
   private _showChordPicker: boolean = false;
   private _pickerPosition: number = 0;
   private _editingChordId: string | null = null;
@@ -65,6 +68,7 @@ export class LyricLine extends LitElement {
   private _boundHandleChordDragMove?: (e: PointerEvent) => void;
   private _boundHandleChordDragEnd?: (e: PointerEvent) => void;
   private _boundHandleKeyDown?: (e: KeyboardEvent) => void;
+  private _boundHandlePointerUp?: (e: PointerEvent) => void;
 
   constructor() {
     super();
@@ -112,9 +116,15 @@ export class LyricLine extends LitElement {
     const target = e.target as HTMLElement;
     if (target.classList.contains('action-btn') || 
         target.classList.contains('lyric-text-editable') ||
+        target.classList.contains('chord-toggle-btn') ||
         this._isEditingText) {
       return;
     }
+
+    // Track initial pointer position for tap detection
+    this._pointerDownX = e.clientX;
+    this._pointerDownY = e.clientY;
+    this._hasMoved = false;
 
     // Select this line
     this.dispatchEvent(new CustomEvent('line-selected', {
@@ -143,6 +153,56 @@ export class LyricLine extends LitElement {
       bubbles: true,
       composed: true
     }));
+  }
+
+  private _handlePointerUp(e: PointerEvent): void {
+    // Only handle if this line was being interacted with
+    if (!this._isDragging) return;
+    
+    // Calculate how much the pointer moved
+    const deltaX = Math.abs(e.clientX - this._pointerDownX);
+    const deltaY = Math.abs(e.clientY - this._pointerDownY);
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    // Reset dragging state (canvas will also handle this)
+    this._isDragging = false;
+    
+    // If pointer didn't move much (less than 5px), treat it as a tap
+    if (distance < 5) {
+      // Check if the pointer is over this line's text area
+      const composedPath = e.composedPath();
+      const isOverThisLine = composedPath.includes(this);
+      
+      if (!isOverThisLine) return;
+      
+      const target = e.target as HTMLElement;
+      // Don't activate editing if clicking on buttons
+      if (target.classList.contains('action-btn') || 
+          target.classList.contains('chord-toggle-btn')) {
+        return;
+      }
+      
+      // On touch devices (pointerType === 'touch'), activate editing with a tap
+      if (e.pointerType === 'touch') {
+        this._isEditingText = true;
+        
+        // Focus the editable span after render
+        this.updateComplete.then(() => {
+          const editableSpan = this.shadowRoot?.querySelector('.lyric-text-editable') as HTMLElement;
+          if (editableSpan) {
+            editableSpan.focus();
+            // Select all text
+            const range = document.createRange();
+            range.selectNodeContents(editableSpan);
+            const selection = window.getSelection();
+            if (selection) {
+              selection.removeAllRanges();
+              selection.addRange(range);
+            }
+          }
+        });
+      }
+    }
   }
 
   private _handleDoubleClick(e: MouseEvent): void {
@@ -498,11 +558,13 @@ export class LyricLine extends LitElement {
     this._boundHandleChordDragMove = this._handleChordDragMove.bind(this);
     this._boundHandleChordDragEnd = this._handleChordDragEnd.bind(this);
     this._boundHandleKeyDown = this._handleKeyDown.bind(this);
+    this._boundHandlePointerUp = this._handlePointerUp.bind(this);
     document.addEventListener('click', this._boundHandleClickOutside);
     document.addEventListener('close-chord-picker', this._boundHandleClosePickerEvent);
     document.addEventListener('pointermove', this._boundHandleChordDragMove);
     document.addEventListener('pointerup', this._boundHandleChordDragEnd);
     document.addEventListener('keydown', this._boundHandleKeyDown);
+    window.addEventListener('pointerup', this._boundHandlePointerUp);
   }
 
   disconnectedCallback(): void {
@@ -521,6 +583,9 @@ export class LyricLine extends LitElement {
     }
     if (this._boundHandleKeyDown) {
       document.removeEventListener('keydown', this._boundHandleKeyDown);
+    }
+    if (this._boundHandlePointerUp) {
+      window.removeEventListener('pointerup', this._boundHandlePointerUp);
     }
     
     // Clean up cursor if we were dragging
