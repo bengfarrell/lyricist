@@ -31,3 +31,13 @@ coverage/
 test-results/
 playwright-report/
 playwright/.cache/
+
+# Documentation with sensitive API endpoints
+ANDROID_MOBILE_FIX.md
+CLOUD_SYNC_README.md
+EMAIL_SYNC_GUIDE.md
+EMAIL_SYNC_SUMMARY.md
+ENV_SETUP.md
+SECURITY_IMPROVEMENTS.md
+aws-lambda/ENABLE_WHITELISTING.md
+aws-lambda/SETUP_GUIDE.md
