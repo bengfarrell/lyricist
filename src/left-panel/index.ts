@@ -389,11 +389,10 @@ export class LeftPanel extends LitElement {
                     type="text"
                     class="edit-left-title"
                     data-spectrum-pattern="textfield"
-                    .value=${this._editLeftTitleValue}
-                    @input=${(e: InputEvent) => {
-                      this._editLeftTitleValue = (e.target as HTMLInputElement).value;
-                      this.requestUpdate();
-                    }}
+                  .value=${this._editLeftTitleValue}
+                  @input=${(e: InputEvent) => {
+                    this._editLeftTitleValue = (e.target as HTMLInputElement).value;
+                  }}
                     @blur=${this._saveLeftTitle}
                     @keydown=${(e: KeyboardEvent) => {
                       if (e.key === 'Escape') this._cancelEditLeftTitle();
@@ -425,11 +424,10 @@ export class LeftPanel extends LitElement {
                   class="word-input-inline"
                   data-spectrum-pattern="textfield"
                   placeholder="+ Add word..."
-                  .value=${this._newLeftWord}
-                  @input=${(e: InputEvent) => {
-                    this._newLeftWord = (e.target as HTMLInputElement).value;
-                    this.requestUpdate();
-                  }}
+                .value=${this._newLeftWord}
+                @input=${(e: InputEvent) => {
+                  this._newLeftWord = (e.target as HTMLInputElement).value;
+                }}
                   @blur=${this._handleLeftInputBlur}
                   @keydown=${this._handleLeftInputKeyDown}
                 />
@@ -452,11 +450,10 @@ export class LeftPanel extends LitElement {
                     type="text"
                     class="edit-right-title"
                     data-spectrum-pattern="textfield"
-                    .value=${this._editRightTitleValue}
-                    @input=${(e: InputEvent) => {
-                      this._editRightTitleValue = (e.target as HTMLInputElement).value;
-                      this.requestUpdate();
-                    }}
+                  .value=${this._editRightTitleValue}
+                  @input=${(e: InputEvent) => {
+                    this._editRightTitleValue = (e.target as HTMLInputElement).value;
+                  }}
                     @blur=${this._saveRightTitle}
                     @keydown=${(e: KeyboardEvent) => {
                       if (e.key === 'Escape') this._cancelEditRightTitle();
@@ -488,11 +485,10 @@ export class LeftPanel extends LitElement {
                   class="word-input-inline"
                   data-spectrum-pattern="textfield"
                   placeholder="+ Add word..."
-                  .value=${this._newRightWord}
-                  @input=${(e: InputEvent) => {
-                    this._newRightWord = (e.target as HTMLInputElement).value;
-                    this.requestUpdate();
-                  }}
+                .value=${this._newRightWord}
+                @input=${(e: InputEvent) => {
+                  this._newRightWord = (e.target as HTMLInputElement).value;
+                }}
                   @blur=${this._handleRightInputBlur}
                   @keydown=${this._handleRightInputKeyDown}
                 />

@@ -11,9 +11,12 @@ const docClient = DynamoDBDocumentClient.from(client);
 
 // Whitelist of allowed origins
 const ALLOWED_ORIGINS = [
-  'http://localhost:5173',           // Vite dev server
-  'http://localhost:4173',           // Vite preview
-  'https://your-app.netlify.app'     // Replace with your actual Netlify URL
+  'http://localhost:5173',
+  'http://localhost:4173',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'https://tweedytornado.netlify.app'
 ];
 
 /**

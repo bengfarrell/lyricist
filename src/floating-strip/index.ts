@@ -191,22 +191,13 @@ export class FloatingStrip extends LitElement {
     return html`
       ${hasSelection ? html`
         <div class="group-creator">
-          <div class="group-header">
-            <span class="group-title">Create Section (${this.store.selectedLineIds.size} item${this.store.selectedLineIds.size !== 1 ? 's' : ''}, ${totalLines} line${totalLines !== 1 ? 's' : ''})</span>
-            <div class="alignment-buttons" data-spectrum-pattern="action-group-horizontal">
-              <button class="align-btn" data-spectrum-pattern="action-button" @click=${() => this._alignItems('left')} title="Align left">◧</button>
-              <button class="align-btn" data-spectrum-pattern="action-button" @click=${() => this._alignItems('center')} title="Align center">◫</button>
-              <button class="align-btn" data-spectrum-pattern="action-button" @click=${() => this._alignItems('right')} title="Align right">◨</button>
-            </div>
-          </div>
-          
           ${this._showCustomSectionInput ? html`
             <form class="custom-section-form" data-spectrum-pattern="form" @submit=${this._handleCustomSectionSubmit}>
               <input 
                 type="text" 
                 class="custom-section-input" 
                 data-spectrum-pattern="textfield"
-                placeholder="Enter custom section name..."
+                placeholder="Enter section name..."
                 .value=${this._customSectionName}
                 @input=${(e: InputEvent) => {
                   this._customSectionName = (e.target as HTMLInputElement).value;
@@ -221,28 +212,35 @@ export class FloatingStrip extends LitElement {
               }}>Cancel</button>
             </form>
           ` : html`
-            <div class="section-picker-wrapper">
-              <button 
-                class="section-picker-btn" 
-                @click=${this._toggleSectionPicker}
-                data-spectrum-pattern="picker"
-              >
-                Choose section type...
-              </button>
-              ${this._showSectionPicker ? html`
-                <div class="section-picker-overlay" @click=${() => { this._showSectionPicker = false; this.requestUpdate(); }}>
-                  <div class="section-picker-panel" @click=${(e: Event) => e.stopPropagation()}>
-                    <button class="section-bubble" @click=${() => this._handleSectionClick('Verse')}>Verse</button>
-                    <button class="section-bubble" @click=${() => this._handleSectionClick('Chorus')}>Chorus</button>
-                    <button class="section-bubble" @click=${() => this._handleSectionClick('Bridge')}>Bridge</button>
-                    <button class="section-bubble" @click=${() => this._handleSectionClick('Intro')}>Intro</button>
-                    <button class="section-bubble" @click=${() => this._handleSectionClick('Outro')}>Outro</button>
-                    <button class="section-bubble" @click=${() => this._handleSectionClick('Pre-Chorus')}>Pre-Chorus</button>
-                    <button class="section-bubble" @click=${() => this._handleSectionClick('Hook')}>Hook</button>
-                    <button class="section-bubble" @click=${() => this._handleSectionClick('Custom')}>Custom...</button>
+            <div class="group-controls">
+              <div class="alignment-buttons" data-spectrum-pattern="action-group-horizontal">
+                <button class="align-btn" data-spectrum-pattern="action-button" @click=${() => this._alignItems('left')} title="Align left">◧</button>
+                <button class="align-btn" data-spectrum-pattern="action-button" @click=${() => this._alignItems('center')} title="Align center">◫</button>
+                <button class="align-btn" data-spectrum-pattern="action-button" @click=${() => this._alignItems('right')} title="Align right">◨</button>
+              </div>
+              <div class="section-picker-wrapper">
+                <button 
+                  class="section-picker-btn" 
+                  @click=${this._toggleSectionPicker}
+                  data-spectrum-pattern="picker"
+                >
+                  Section...
+                </button>
+                ${this._showSectionPicker ? html`
+                  <div class="section-picker-overlay" @click=${() => { this._showSectionPicker = false; this.requestUpdate(); }}>
+                    <div class="section-picker-panel" @click=${(e: Event) => e.stopPropagation()}>
+                      <button class="section-bubble" @click=${() => this._handleSectionClick('Verse')}>Verse</button>
+                      <button class="section-bubble" @click=${() => this._handleSectionClick('Chorus')}>Chorus</button>
+                      <button class="section-bubble" @click=${() => this._handleSectionClick('Bridge')}>Bridge</button>
+                      <button class="section-bubble" @click=${() => this._handleSectionClick('Intro')}>Intro</button>
+                      <button class="section-bubble" @click=${() => this._handleSectionClick('Outro')}>Outro</button>
+                      <button class="section-bubble" @click=${() => this._handleSectionClick('Pre-Chorus')}>Pre-Chorus</button>
+                      <button class="section-bubble" @click=${() => this._handleSectionClick('Hook')}>Hook</button>
+                      <button class="section-bubble" @click=${() => this._handleSectionClick('Custom')}>Custom...</button>
+                    </div>
                   </div>
-                </div>
-              ` : ''}
+                ` : ''}
+              </div>
             </div>
           `}
         </div>

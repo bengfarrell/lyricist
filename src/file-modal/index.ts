@@ -67,7 +67,14 @@ export class FileModal extends LitElement {
   }
   
   private _handleDocumentSelect(songName: string): void {
-    const song = this.store.savedSongs.find(s => s.name === songName);
+    // Check saved songs first
+    let song = this.store.savedSongs.find(s => s.name === songName);
+    
+    // If not found, check sample songs
+    if (!song) {
+      song = this.store.sampleContent?.sampleSongs?.find(s => s.name === songName);
+    }
+    
     if (song) {
       this.store.loadSong(song);
       this.showDocumentPicker = false;

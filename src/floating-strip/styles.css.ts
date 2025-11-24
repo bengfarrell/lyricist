@@ -206,25 +206,17 @@ export const floatingStripStyles = css`
   .group-creator {
     flex: 1;
     display: flex;
-    flex-direction: column;
-    gap: 6px;
+    align-items: center;
+    gap: 12px;
     min-width: 0;
   }
 
-  .group-header {
+  .group-controls {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 12px;
-    width: 100%;
-    flex-wrap: wrap;
-  }
-
-  .group-title {
-    font-size: 13px;
-    font-weight: 500;
-    opacity: 0.9;
-    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
   }
 
   .alignment-buttons {
@@ -254,24 +246,22 @@ export const floatingStripStyles = css`
 
   .section-picker-wrapper {
     position: relative;
-    flex: 1;
-    min-width: 0;
+    flex-shrink: 0;
   }
 
   .section-picker-btn {
-    width: 100%;
-    padding: 10px 16px;
+    padding: 8px 14px;
     border: 2px solid #d1d5db;
     border-radius: 8px;
     background: #f9fafb;
     color: #6b7280;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
     min-height: 40px;
     box-sizing: border-box;
-    text-align: left;
+    white-space: nowrap;
   }
 
   .section-picker-btn:hover {
@@ -508,13 +498,9 @@ export const floatingStripStyles = css`
       flex-wrap: wrap;
     }
 
-    .group-header {
+    .group-controls {
       gap: 8px;
       flex-wrap: wrap;
-    }
-
-    .group-title {
-      font-size: 13px;
     }
 
     .alignment-buttons {
@@ -527,8 +513,8 @@ export const floatingStripStyles = css`
     }
 
     .section-picker-btn {
-      padding: 8px 12px;
-      font-size: 13px;
+      padding: 6px 10px;
+      font-size: 12px;
     }
 
     .section-picker-panel {
@@ -620,14 +606,9 @@ export const floatingStripStyles = css`
       font-size: 12px;
     }
 
-    .group-title {
-      font-size: 12px;
-      width: 100%;
-    }
-
     .section-picker-btn {
-      padding: 6px 10px;
-      font-size: 12px;
+      padding: 5px 8px;
+      font-size: 11px;
     }
 
     .section-picker-panel {
