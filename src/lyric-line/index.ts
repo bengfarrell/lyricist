@@ -122,7 +122,7 @@ export class LyricLine extends LitElement {
     }
     
     if (target.classList.contains('action-btn') || 
-        target.classList.contains('lyric-text-editable') ||
+        target.classList.contains('lyric-text-input') ||
         target.classList.contains('chord-toggle-btn')) {
       return;
     }
@@ -192,28 +192,18 @@ export class LyricLine extends LitElement {
         this._isEditingText = true;
         this.setAttribute('editing-text', '');
         
-        // Focus the editable span after render
+        // Focus the input after render
         this.updateComplete.then(() => {
-          const editableSpan = this.shadowRoot?.querySelector('.lyric-text-editable') as HTMLElement;
-          if (editableSpan) {
+          const input = this.shadowRoot?.querySelector('.lyric-text-input') as HTMLInputElement;
+          if (input) {
             // Use requestAnimationFrame to ensure DOM is ready
             requestAnimationFrame(() => {
-              editableSpan.focus();
+              input.focus();
               
-              // Try to select text after a small delay
+              // Select all text after a small delay
               setTimeout(() => {
-                if (this._isEditingText && document.activeElement === editableSpan) {
-                  try {
-                    const range = document.createRange();
-                    range.selectNodeContents(editableSpan);
-                    const selection = window.getSelection();
-                    if (selection) {
-                      selection.removeAllRanges();
-                      selection.addRange(range);
-                    }
-                  } catch (err) {
-                    // Selection failed, but focus should still work
-                  }
+                if (this._isEditingText && input) {
+                  input.select();
                 }
               }, 100);
             });
@@ -235,19 +225,12 @@ export class LyricLine extends LitElement {
     this._isEditingText = true;
     this.setAttribute('editing-text', '');
     
-    // Focus the editable span after render
+    // Focus the input after render
     this.updateComplete.then(() => {
-      const editableSpan = this.shadowRoot?.querySelector('.lyric-text-editable') as HTMLElement;
-      if (editableSpan) {
-        editableSpan.focus();
-        // Select all text
-        const range = document.createRange();
-        range.selectNodeContents(editableSpan);
-        const selection = window.getSelection();
-        if (selection) {
-          selection.removeAllRanges();
-          selection.addRange(range);
-        }
+      const input = this.shadowRoot?.querySelector('.lyric-text-input') as HTMLInputElement;
+      if (input) {
+        input.focus();
+        input.select();
       }
     });
   }
@@ -257,28 +240,21 @@ export class LyricLine extends LitElement {
     this._isEditingText = true;
     this.setAttribute('editing-text', '');
     
-    // Focus the editable span after render
+    // Focus the input after render
     this.updateComplete.then(() => {
-      const editableSpan = this.shadowRoot?.querySelector('.lyric-text-editable') as HTMLElement;
-      if (editableSpan) {
-        editableSpan.focus();
-        // Select all text if there is any
+      const input = this.shadowRoot?.querySelector('.lyric-text-input') as HTMLInputElement;
+      if (input) {
+        input.focus();
         if (this.text) {
-          const range = document.createRange();
-          range.selectNodeContents(editableSpan);
-          const selection = window.getSelection();
-          if (selection) {
-            selection.removeAllRanges();
-            selection.addRange(range);
-          }
+          input.select();
         }
       }
     });
   }
 
   private _handleTextBlur(e: FocusEvent): void {
-    const target = e.target as HTMLElement;
-    const newText = target.textContent?.trim();
+    const target = e.target as HTMLInputElement;
+    const newText = target.value?.trim();
     if (newText && newText !== this.text) {
       this.dispatchEvent(new CustomEvent('text-changed', {
         detail: { id: this.id, text: newText },
@@ -681,14 +657,15 @@ export class LyricLine extends LitElement {
         
         <div class="lyric-line">
           ${this._isEditingText ? html`
-            <span 
-              class="lyric-text-editable"
-              contenteditable="true"
+            <input 
+              type="text"
+              class="lyric-text-input"
               inputmode="text"
               spellcheck="true"
+              .value=${this.text}
               @blur=${this._handleTextBlur}
               @keydown=${this._handleTextKeyDown}
-            >${this.text}</span>
+            />
           ` : this.text}
           <button class="action-btn duplicate-btn" @click=${this._handleDuplicate}>⊕</button>
           <button class="chord-toggle-btn" @click=${this._handleToggleChordSection}>

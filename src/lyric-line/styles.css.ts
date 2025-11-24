@@ -241,25 +241,39 @@ export const lyricLineStyles = css`
     box-shadow: 0 20px 25px rgba(0, 0, 0, 0.2), 0 10px 10px rgba(0, 0, 0, 0.1);
   }
 
-  .lyric-text-editable {
+  .lyric-text-input {
+    border: none;
     outline: 2px solid #1f2937;
     outline-offset: 2px;
     border-radius: 4px;
     padding: 2px 4px;
-    margin: -2px -4px;
-    display: inline-block;
-    min-width: 100px;
-    user-select: text;
+    background: white;
+    font-size: 18px;
+    font-weight: 500;
+    font-family: inherit;
+    color: #333;
+    min-width: 200px;
+    width: auto;
     touch-action: manipulation;
     -webkit-user-select: text;
     -webkit-touch-callout: default;
   }
 
-  .lyric-text-editable:focus {
+  .lyric-text-input:focus {
     outline: 2px solid #1f2937;
-    user-select: text;
-    touch-action: manipulation;
-    -webkit-user-select: text;
+    outline-offset: 2px;
+  }
+  
+  @media (max-width: 768px) {
+    .lyric-text-input {
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .lyric-text-input {
+      font-size: 14px;
+    }
   }
 
   .action-btn {
