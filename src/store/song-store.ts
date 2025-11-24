@@ -34,6 +34,7 @@ export class SongStore {
   private _showLoadDialog: boolean = false;
   private _showFileModal: boolean = false;
   private _showEmailPrompt: boolean = false;
+  private _editingLineId: string | null = null;
   private _lyricsPanelWidth: number = 350;
   private _leftPanelWidth: number = 300;
   private _selectedLineIds: Set<string> = new Set();
@@ -239,6 +240,10 @@ export class SongStore {
   
   get showFileModal(): boolean {
     return this._showFileModal;
+  }
+
+  get editingLineId(): string | null {
+    return this._editingLineId;
   }
   
   get showEmailPrompt(): boolean {
@@ -789,6 +794,11 @@ export class SongStore {
   
   setShowFileModal(show: boolean): void {
     this._showFileModal = show;
+    this.notify();
+  }
+
+  setEditingLineId(id: string | null): void {
+    this._editingLineId = id;
     this.notify();
   }
   

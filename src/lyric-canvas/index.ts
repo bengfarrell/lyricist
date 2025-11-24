@@ -65,6 +65,11 @@ export class LyricCanvas extends LitElement {
     // Taps never enter drag mode
   }
 
+  private _handleOpenEditModal(e: CustomEvent): void {
+    console.log('Canvas received open-edit-modal event for:', e.detail.id);
+    this.store.setEditingLineId(e.detail.id);
+  }
+
   private _handlePointerMove(e: PointerEvent): void {
     // Check if any line is potentially being dragged and start drag if movement detected
     if (!this._draggedItem) {
@@ -381,6 +386,7 @@ export class LyricCanvas extends LitElement {
       <div class="canvas" 
         @drag-start=${this._handleDragStart}
         @cancel-drag=${this._handleCancelDrag}
+        @open-edit-modal=${this._handleOpenEditModal}
         @delete-line=${this._handleDeleteLine} 
         @duplicate-line=${this._handleDuplicateLine}
         @delete-group=${this._handleDeleteGroup}

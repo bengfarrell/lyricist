@@ -184,14 +184,30 @@ export class LyricLine extends LitElement {
         return;
       }
       
-      // On touch devices (pointerType === 'touch'), activate editing with a tap
+      // TODO: Inline editing on Android/mobile was extremely problematic
+      // Issues encountered:
+      // 1. Contenteditable in Shadow DOM didn't receive input events from Android IME
+      // 2. Native <input> elements caused Chrome crashes when combined with touch drag system
+      // 3. Race conditions between drag detection and focus caused "Aw Snap" crashes
+      // 4. Touch-action CSS property conflicts prevented keyboard input
+      // 5. Event propagation issues with pointer/touch events in nested Shadow DOM
+      // 
+      // Solution: Use a modal dialog for mobile editing (standard mobile UX pattern)
+      // - Completely separates editing from drag system
+      // - Input is in a separate DOM context (no Shadow DOM issues)
+      // - Android IME works reliably with standard form input
+      // - No touch-action conflicts
+      // 
+      // Desktop double-click inline editing still works normally
+      
+      // On touch devices (pointerType === 'touch'), open the edit modal
       if (e.pointerType === 'touch') {
-        this._isEditingText = true;
-        this.setAttribute('editing-text', '');
-        
-        // Let the browser handle focus naturally - don't force it
-        // The input will appear and user can tap it again if needed
-        this.requestUpdate();
+        console.log('Opening edit modal for touch tap on line:', this.id);
+        this.dispatchEvent(new CustomEvent('open-edit-modal', {
+          detail: { id: this.id },
+          bubbles: true,
+          composed: true
+        }));
         return;
       }
     }

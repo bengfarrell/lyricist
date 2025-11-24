@@ -63,6 +63,10 @@ export class SongStoreController implements ReactiveController {
     return songStore.showFileModal;
   }
 
+  get editingLineId(): string | null {
+    return songStore.editingLineId;
+  }
+
   get showEmailPrompt(): boolean {
     return songStore.showEmailPrompt;
   }
@@ -255,6 +259,10 @@ export class SongStoreController implements ReactiveController {
   
   setShowFileModal(show: boolean): void {
     songStore.setShowFileModal(show);
+  }
+
+  setEditingLineId(id: string | null): void {
+    songStore.setEditingLineId(id);
   }
   
   setShowEmailPrompt(show: boolean): void {
