@@ -8,6 +8,11 @@ export const lyricLineStyles = css`
     touch-action: none;
   }
 
+  /* Allow touch interactions when editing text */
+  :host([editing-text]) {
+    touch-action: auto;
+  }
+
   :host([dragging]) {
     z-index: 1000;
     opacity: 0.8;
@@ -244,11 +249,13 @@ export const lyricLineStyles = css`
     display: inline-block;
     min-width: 100px;
     user-select: text;
+    touch-action: auto;
   }
 
   .lyric-text-editable:focus {
     outline: 2px solid #1f2937;
     user-select: text;
+    touch-action: auto;
   }
 
   .action-btn {

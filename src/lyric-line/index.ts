@@ -185,6 +185,7 @@ export class LyricLine extends LitElement {
       // On touch devices (pointerType === 'touch'), activate editing with a tap
       if (e.pointerType === 'touch') {
         this._isEditingText = true;
+        this.setAttribute('editing-text', '');
         
         // Focus the editable span after render
         this.updateComplete.then(() => {
@@ -214,6 +215,7 @@ export class LyricLine extends LitElement {
 
     e.stopPropagation();
     this._isEditingText = true;
+    this.setAttribute('editing-text', '');
     
     // Focus the editable span after render
     this.updateComplete.then(() => {
@@ -235,6 +237,7 @@ export class LyricLine extends LitElement {
   // Public method to programmatically start editing
   focusTextarea(): void {
     this._isEditingText = true;
+    this.setAttribute('editing-text', '');
     
     // Focus the editable span after render
     this.updateComplete.then(() => {
@@ -266,6 +269,7 @@ export class LyricLine extends LitElement {
       }));
     }
     this._isEditingText = false;
+    this.removeAttribute('editing-text');
   }
 
   private _handleTextKeyDown(e: KeyboardEvent): void {
@@ -275,6 +279,7 @@ export class LyricLine extends LitElement {
     } else if (e.key === 'Escape') {
       e.preventDefault();
       this._isEditingText = false;
+      this.removeAttribute('editing-text');
     }
   }
 
