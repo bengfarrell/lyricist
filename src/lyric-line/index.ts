@@ -672,11 +672,15 @@ export class LyricLine extends LitElement {
             <span 
               class="lyric-text-editable"
               contenteditable="true"
+              inputmode="text"
               @blur=${this._handleTextBlur}
               @keydown=${this._handleTextKeyDown}
               @pointerdown=${(e: PointerEvent) => e.stopPropagation()}
               @pointermove=${(e: PointerEvent) => e.stopPropagation()}
               @pointerup=${(e: PointerEvent) => e.stopPropagation()}
+              @touchstart=${(e: TouchEvent) => e.stopPropagation()}
+              @touchmove=${(e: TouchEvent) => e.stopPropagation()}
+              @touchend=${(e: TouchEvent) => e.stopPropagation()}
             >${this.text}</span>
           ` : this.text}
           <button class="action-btn duplicate-btn" @click=${this._handleDuplicate}>⊕</button>
