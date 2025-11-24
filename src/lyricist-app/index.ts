@@ -9,7 +9,7 @@ import '../lyrics-panel/index';
 import '../left-panel/index';
 import '../load-dialog/index';
 import '../email-prompt/index';
-import '../edit-modal/index';
+import '../edit-modal/index.ts';
 
 /**
  * Main application component that composes all child components
