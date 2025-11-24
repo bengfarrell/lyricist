@@ -114,10 +114,16 @@ export class LyricLine extends LitElement {
   private _handlePointerDown(e: PointerEvent): void {
     // Don't start dragging if editing text, clicking buttons, or clicking on editable text
     const target = e.target as HTMLElement;
+    
+    // If we're already editing text, completely ignore pointer events
+    if (this._isEditingText) {
+      e.stopPropagation();
+      return;
+    }
+    
     if (target.classList.contains('action-btn') || 
         target.classList.contains('lyric-text-editable') ||
-        target.classList.contains('chord-toggle-btn') ||
-        this._isEditingText) {
+        target.classList.contains('chord-toggle-btn')) {
       return;
     }
 
@@ -668,6 +674,9 @@ export class LyricLine extends LitElement {
               contenteditable="true"
               @blur=${this._handleTextBlur}
               @keydown=${this._handleTextKeyDown}
+              @pointerdown=${(e: PointerEvent) => e.stopPropagation()}
+              @pointermove=${(e: PointerEvent) => e.stopPropagation()}
+              @pointerup=${(e: PointerEvent) => e.stopPropagation()}
             >${this.text}</span>
           ` : this.text}
           <button class="action-btn duplicate-btn" @click=${this._handleDuplicate}>⊕</button>

@@ -12,6 +12,16 @@ export const lyricLineStyles = css`
   :host([editing-text]) {
     touch-action: auto;
   }
+  
+  /* Prevent container from capturing events when editing */
+  :host([editing-text]) .container {
+    pointer-events: none;
+  }
+  
+  /* But allow pointer events on the editable text itself */
+  :host([editing-text]) .lyric-text-editable {
+    pointer-events: auto;
+  }
 
   :host([dragging]) {
     z-index: 1000;
