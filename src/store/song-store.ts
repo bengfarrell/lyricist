@@ -1,6 +1,7 @@
 import { ReactiveControllerHost } from 'lit';
 import { LyricLine, LyricGroup, CanvasItem, SavedSong, Chord, WordLadderSet, SampleContent } from './types';
 import { storageService } from './storage-service';
+import { cloudSyncService } from './cloud-sync-service';
 
 /**
  * Central store for song data and application state
@@ -32,6 +33,7 @@ export class SongStore {
   // UI state
   private _showLoadDialog: boolean = false;
   private _showFileModal: boolean = false;
+  private _showEmailPrompt: boolean = false;
   private _lyricsPanelWidth: number = 350;
   private _leftPanelWidth: number = 300;
   private _selectedLineIds: Set<string> = new Set();
@@ -52,11 +54,56 @@ export class SongStore {
   private _hosts = new Set<ReactiveControllerHost>();
   
   constructor() {
-    // Load saved songs on initialization
+    // Load saved songs from localStorage first (immediate)
     this._savedSongs = storageService.loadSongs();
+    
+    // Check if user has set their email for cross-device sync
+    if (!storageService.hasEmail()) {
+      this._showEmailPrompt = true;
+    }
+    
+    // Try to load from cloud and merge with local (async, non-blocking)
+    this._loadFromCloud();
     
     // Load sample content asynchronously
     this._loadSampleContent();
+  }
+  
+  private async _loadFromCloud(): Promise<void> {
+    try {
+      const userId = storageService.getUserId();
+      const cloudSongs = await cloudSyncService.getSongs(userId);
+      
+      if (cloudSongs.length > 0) {
+        // Merge cloud songs with local songs
+        // Use songId as the unique identifier and keep the most recent version
+        const mergedMap = new Map<string, SavedSong>();
+        
+        // Add local songs first
+        this._savedSongs.forEach(song => {
+          mergedMap.set(song.songId, song);
+        });
+        
+        // Add/update with cloud songs, keeping whichever is more recent
+        cloudSongs.forEach(cloudSong => {
+          const existing = mergedMap.get(cloudSong.songId);
+          if (!existing || new Date(cloudSong.lastModified) > new Date(existing.lastModified)) {
+            mergedMap.set(cloudSong.songId, cloudSong);
+          }
+        });
+        
+        this._savedSongs = Array.from(mergedMap.values());
+        
+        // Update localStorage with merged data
+        storageService.saveSongs(this._savedSongs);
+        
+        console.log(`📥 Loaded ${cloudSongs.length} songs from cloud, ${this._savedSongs.length} total after merge`);
+        this.notify();
+      }
+    } catch (error) {
+      console.warn('Could not load from cloud, using local songs only:', error);
+      // Continue with local songs - no error thrown
+    }
   }
 
   private async _loadSampleContent(): Promise<void> {
@@ -124,6 +171,42 @@ export class SongStore {
     this._hosts.forEach(host => host.requestUpdate());
   }
   
+  /**
+   * Auto-save current song to localStorage
+   * This happens on every content change for local persistence
+   */
+  private autoSave(): void {
+    // Only auto-save if there's a song name
+    if (!this._songName.trim()) {
+      return;
+    }
+    
+    // Get existing song to preserve IDs
+    const existingSong = this._savedSongs.find(s => s.name === this._songName);
+    const songId = existingSong?.songId || crypto.randomUUID();
+    const userId = existingSong?.userId || storageService.getUserId();
+    
+    const song: SavedSong = {
+      name: this._songName,
+      songId: songId,
+      userId: userId,
+      items: this._items,
+      wordLadderSets: this._wordLadderSets,
+      lastModified: new Date().toISOString()
+    };
+    
+    this._savedSongs = storageService.saveSong(song);
+  }
+  
+  /**
+   * Notify hosts and auto-save
+   * Use this for song content changes
+   */
+  private notifyAndAutoSave(): void {
+    this.notify();
+    this.autoSave();
+  }
+  
   // ===== Getters =====
   
   get items(): CanvasItem[] {
@@ -146,12 +229,24 @@ export class SongStore {
     return this._savedSongs;
   }
   
+  get sampleContent(): SampleContent | null {
+    return this._sampleContent;
+  }
+  
   get showLoadDialog(): boolean {
     return this._showLoadDialog;
   }
   
   get showFileModal(): boolean {
     return this._showFileModal;
+  }
+  
+  get showEmailPrompt(): boolean {
+    return this._showEmailPrompt;
+  }
+  
+  get userEmail(): string | null {
+    return storageService.getEmail();
   }
   
   get lyricsPanelWidth(): number {
@@ -223,21 +318,21 @@ export class SongStore {
   
   setSongName(name: string): void {
     this._songName = name;
-    this.notify();
+    this.notifyAndAutoSave();
   }
   
   // ===== Line Management Actions =====
   
   addLine(line: LyricLine): void {
     this._items = [...this._items, { ...line, type: 'line' as const }];
-    this.notify();
+    this.notifyAndAutoSave();
   }
   
   updateLine(id: string, updates: Partial<LyricLine>): void {
     this._items = this._items.map(item => 
       item.id === id && item.type === 'line' ? { ...item, ...updates } : item
     );
-    this.notify();
+    this.notifyAndAutoSave();
   }
   
   deleteLine(id: string): void {
@@ -246,7 +341,7 @@ export class SongStore {
       this._selectedLineIds.delete(id);
     }
     this._items = this._items.filter(item => item.id !== id);
-    this.notify();
+    this.notifyAndAutoSave();
   }
   
   duplicateLine(id: string): void {
@@ -296,7 +391,7 @@ export class SongStore {
         return { ...item, ...updates, type: 'group' as const };
       }
     });
-    this.notify();
+    this.notifyAndAutoSave();
   }
   
   updateLinePosition(id: string, x: number, y: number): void {
@@ -311,14 +406,14 @@ export class SongStore {
   
   addGroup(group: LyricGroup): void {
     this._items = [...this._items, { ...group, type: 'group' as const }];
-    this.notify();
+    this.notifyAndAutoSave();
   }
   
   updateGroup(id: string, updates: Partial<LyricGroup>): void {
     this._items = this._items.map(item => 
       item.id === id && item.type === 'group' ? { ...item, ...updates } : item
     );
-    this.notify();
+    this.notifyAndAutoSave();
   }
   
   deleteGroup(id: string): void {
@@ -327,7 +422,7 @@ export class SongStore {
       this._selectedLineIds.delete(id);
     }
     this._items = this._items.filter(item => item.id !== id);
-    this.notify();
+    this.notifyAndAutoSave();
   }
 
   ungroupGroup(id: string): void {
@@ -364,7 +459,7 @@ export class SongStore {
       this._selectedLineIds.add(line.id);
     });
 
-    this.notify();
+    this.notifyAndAutoSave();
   }
   
   createGroup(sectionName: string): void {
@@ -435,10 +530,11 @@ export class SongStore {
     this._selectedLineIds.clear();
     this._selectedLineIds.add(newGroup.id);
     
-    this.notify();
+    this.notifyAndAutoSave();
   }
   
   // ===== Chord Management Actions =====
+  // Note: These all call updateLine which already does notifyAndAutoSave
   
   toggleChordSection(id: string, hasChordSection: boolean): void {
     this.updateLine(id, { hasChordSection });
@@ -482,20 +578,38 @@ export class SongStore {
   
   // ===== Song Management Actions =====
   
-  saveSong(): boolean {
+  async saveSong(): Promise<boolean> {
     if (!this._songName.trim()) {
       return false;
     }
     
+    // Get existing song to preserve IDs, or generate new ones
+    const existingSong = this._savedSongs.find(s => s.name === this._songName);
+    const songId = existingSong?.songId || crypto.randomUUID();
+    const userId = existingSong?.userId || storageService.getUserId();
+    
     const song: SavedSong = {
       name: this._songName,
+      songId: songId,
+      userId: userId,
       items: this._items,
       wordLadderSets: this._wordLadderSets,
       lastModified: new Date().toISOString()
     };
     
+    // Save to localStorage (immediate)
     this._savedSongs = storageService.saveSong(song);
     this.notify();
+    
+    // Save to cloud (async, non-blocking)
+    try {
+      await cloudSyncService.saveSong(song);
+      console.log('☁️ Song synced to cloud:', song.name);
+    } catch (error) {
+      console.error('Failed to sync to cloud (saved locally):', error);
+      // Don't fail the save - local storage succeeded
+    }
+    
     return true;
   }
   
@@ -540,9 +654,24 @@ export class SongStore {
     this.notify();
   }
   
-  deleteSong(songName: string): void {
+  async deleteSong(songName: string): Promise<void> {
+    // Find the song to get its IDs for cloud deletion
+    const songToDelete = this._savedSongs.find(s => s.name === songName);
+    
+    // Delete from localStorage
     this._savedSongs = storageService.deleteSong(songName);
     this.notify();
+    
+    // Delete from cloud if it exists
+    if (songToDelete?.userId && songToDelete?.songId) {
+      try {
+        await cloudSyncService.deleteSong(songToDelete.userId, songToDelete.songId);
+        console.log('☁️ Song deleted from cloud:', songName);
+      } catch (error) {
+        console.error('Failed to delete from cloud (deleted locally):', error);
+        // Don't fail the delete - local deletion succeeded
+      }
+    }
   }
   
   newSong(): void {
@@ -559,8 +688,15 @@ export class SongStore {
   // ===== Import/Export Actions =====
   
   exportToJSON(): void {
+    // Get IDs - either from existing song or generate new ones
+    const existingSong = this._savedSongs.find(s => s.name === this._songName);
+    const songId = existingSong?.songId || crypto.randomUUID();
+    const userId = existingSong?.userId || storageService.getUserId();
+    
     const song: SavedSong = {
       name: this._songName || 'Untitled Song',
+      songId: songId,
+      userId: userId,
       items: this._items,
       lastModified: new Date().toISOString(),
       exportedAt: new Date().toISOString()
@@ -598,6 +734,22 @@ export class SongStore {
       this._items = [];
     }
     
+    // Preserve IDs if present, otherwise generate new ones
+    const songId = song.songId || crypto.randomUUID();
+    const userId = song.userId || storageService.getUserId();
+    
+    // Save the imported song with IDs
+    const importedSong: SavedSong = {
+      ...song,
+      name: this._songName,
+      songId: songId,
+      userId: userId,
+      items: this._items,
+      lastModified: new Date().toISOString()
+    };
+    
+    this._savedSongs = storageService.saveSong(importedSong);
+    
     this._selectedLineIds.clear();
     this.notify();
   }
@@ -612,13 +764,48 @@ export class SongStore {
   
   // ===== UI State Actions =====
   
-  setShowLoadDialog(show: boolean): void {
+  async setShowLoadDialog(show: boolean): Promise<void> {
     this._showLoadDialog = show;
+    
+    // When opening the dialog, refresh songs from cloud
+    if (show) {
+      await this.refreshSongsFromCloud();
+    }
+    
     this.notify();
+  }
+  
+  /**
+   * Refresh songs list from cloud and merge with local
+   * Call this when opening the load dialog to get latest songs
+   */
+  async refreshSongsFromCloud(): Promise<void> {
+    // Reload from localStorage first
+    this._savedSongs = storageService.loadSongs();
+    
+    // Then load and merge from cloud
+    await this._loadFromCloud();
   }
   
   setShowFileModal(show: boolean): void {
     this._showFileModal = show;
+    this.notify();
+  }
+  
+  setShowEmailPrompt(show: boolean): void {
+    this._showEmailPrompt = show;
+    this.notify();
+  }
+  
+  async setUserEmail(email: string): Promise<void> {
+    // Set email and get the hashed userId
+    const userId = await storageService.setEmail(email);
+    console.log('✅ Email set:', email);
+    console.log('🔑 User ID:', userId);
+    
+    // Reload songs from cloud with new userId
+    await this._loadFromCloud();
+    
     this.notify();
   }
   
@@ -694,14 +881,14 @@ export class SongStore {
   setWordLadderLeftWords(words: string[]): void {
     if (this._wordLadderSets[this._wordLadderSetIndex]) {
       this._wordLadderSets[this._wordLadderSetIndex].leftColumn.words = words;
-      this.notify();
+      this.notifyAndAutoSave();
     }
   }
 
   setWordLadderRightWords(words: string[]): void {
     if (this._wordLadderSets[this._wordLadderSetIndex]) {
       this._wordLadderSets[this._wordLadderSetIndex].rightColumn.words = words;
-      this.notify();
+      this.notifyAndAutoSave();
     }
   }
 
@@ -724,7 +911,7 @@ export class SongStore {
     this._wordLadderSetIndex = this._wordLadderSets.length - 1;
     this._wordLadderSelectedLeft = -1;
     this._wordLadderSelectedRight = -1;
-    this.notify();
+    this.notifyAndAutoSave();
   }
 
   // Method to update column titles
@@ -736,7 +923,7 @@ export class SongStore {
       } else {
         currentSet.rightColumn.title = title;
       }
-      this.notify();
+      this.notifyAndAutoSave();
     }
   }
   
@@ -744,28 +931,28 @@ export class SongStore {
   setWordLadderVerbs(verbs: string[]): void {
     if (this._wordLadderSets[0]) {
       this._wordLadderSets[0].leftColumn.words = verbs;
-      this.notify();
+      this.notifyAndAutoSave();
     }
   }
   
   setWordLadderNouns(nouns: string[]): void {
     if (this._wordLadderSets[0]) {
       this._wordLadderSets[0].rightColumn.words = nouns;
-      this.notify();
+      this.notifyAndAutoSave();
     }
   }
   
   setWordLadderLocations(locations: string[]): void {
     if (this._wordLadderSets[1]) {
       this._wordLadderSets[1].leftColumn.words = locations;
-      this.notify();
+      this.notifyAndAutoSave();
     }
   }
   
   setWordLadderAdjectives(adjectives: string[]): void {
     if (this._wordLadderSets[1]) {
       this._wordLadderSets[1].rightColumn.words = adjectives;
-      this.notify();
+      this.notifyAndAutoSave();
     }
   }
   
@@ -818,7 +1005,7 @@ export class SongStore {
       return { ...item, x: newX };
     });
     
-    this.notify();
+    this.notifyAndAutoSave();
   }
 }
 

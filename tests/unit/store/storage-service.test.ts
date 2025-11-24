@@ -17,6 +17,8 @@ describe('StorageService', () => {
       const mockSongs: SavedSong[] = [
         {
           name: 'Test Song',
+          songId: 'test-song-id',
+          userId: 'test-user-id',
           lines: [],
           lastModified: '2025-01-01T00:00:00.000Z',
         },
@@ -50,6 +52,8 @@ describe('StorageService', () => {
       const mockSongs: SavedSong[] = [
         {
           name: 'Test Song',
+          songId: 'test-song-id',
+          userId: 'test-user-id',
           lines: [],
           lastModified: '2025-01-01T00:00:00.000Z',
         },
@@ -67,6 +71,8 @@ describe('StorageService', () => {
     it('should add a new song', () => {
       const newSong: SavedSong = {
         name: 'New Song',
+        songId: 'test-song-id',
+        userId: 'test-user-id',
         lines: [],
         lastModified: '2025-01-01T00:00:00.000Z',
       };
@@ -80,6 +86,8 @@ describe('StorageService', () => {
     it('should update an existing song', () => {
       const originalSong: SavedSong = {
         name: 'Test Song',
+        songId: 'test-song-id',
+        userId: 'test-user-id',
         lines: [],
         lastModified: '2025-01-01T00:00:00.000Z',
       };
@@ -87,6 +95,8 @@ describe('StorageService', () => {
 
       const updatedSong: SavedSong = {
         name: 'Test Song',
+        songId: 'test-song-id',
+        userId: 'test-user-id',
         lines: [{ id: '1', type: 'line' as const, text: 'Updated', chords: [], hasChordSection: false, x: 0, y: 0, rotation: 0, zIndex: 1 }],
         lastModified: '2025-01-02T00:00:00.000Z',
       };
@@ -100,11 +110,15 @@ describe('StorageService', () => {
     it('should maintain multiple songs', () => {
       const song1: SavedSong = {
         name: 'Song 1',
+        songId: 'test-song-id-1',
+        userId: 'test-user-id',
         lines: [],
         lastModified: '2025-01-01T00:00:00.000Z',
       };
       const song2: SavedSong = {
         name: 'Song 2',
+        songId: 'test-song-id-2',
+        userId: 'test-user-id',
         lines: [],
         lastModified: '2025-01-01T00:00:00.000Z',
       };
@@ -119,8 +133,8 @@ describe('StorageService', () => {
   describe('deleteSong', () => {
     it('should delete a song by name', () => {
       const songs: SavedSong[] = [
-        { name: 'Song 1', lines: [], lastModified: '2025-01-01' },
-        { name: 'Song 2', lines: [], lastModified: '2025-01-01' },
+        { name: 'Song 1', songId: 'song-id-1', userId: 'test-user-id', lines: [], lastModified: '2025-01-01' },
+        { name: 'Song 2', songId: 'song-id-2', userId: 'test-user-id', lines: [], lastModified: '2025-01-01' },
       ];
       storageService.saveSongs(songs);
 
@@ -132,7 +146,7 @@ describe('StorageService', () => {
 
     it('should handle deleting non-existent song', () => {
       const songs: SavedSong[] = [
-        { name: 'Song 1', lines: [], lastModified: '2025-01-01' },
+        { name: 'Song 1', songId: 'song-id-1', userId: 'test-user-id', lines: [], lastModified: '2025-01-01' },
       ];
       storageService.saveSongs(songs);
 
@@ -146,13 +160,42 @@ describe('StorageService', () => {
   describe('clearAll', () => {
     it('should clear all saved songs', () => {
       const songs: SavedSong[] = [
-        { name: 'Song 1', lines: [], lastModified: '2025-01-01' },
+        { name: 'Song 1', songId: 'song-id-1', userId: 'test-user-id', lines: [], lastModified: '2025-01-01' },
       ];
       storageService.saveSongs(songs);
 
       storageService.clearAll();
 
       expect(localStorage.getItem('lyricist-songs')).toBeNull();
+    });
+  });
+
+  describe('getUserId', () => {
+    it('should generate and store a new user ID if none exists', () => {
+      const userId = storageService.getUserId();
+      
+      expect(userId).toBeTruthy();
+      expect(userId.length).toBeGreaterThan(0);
+      
+      // Verify it's stored in localStorage
+      const storedId = localStorage.getItem('lyricist-user-id');
+      expect(storedId).toBe(userId);
+    });
+
+    it('should return the same user ID on subsequent calls', () => {
+      const userId1 = storageService.getUserId();
+      const userId2 = storageService.getUserId();
+      
+      expect(userId1).toBe(userId2);
+    });
+
+    it('should use existing user ID from localStorage', () => {
+      const existingId = 'existing-user-id-123';
+      localStorage.setItem('lyricist-user-id', existingId);
+      
+      const userId = storageService.getUserId();
+      
+      expect(userId).toBe(existingId);
     });
   });
 });

@@ -15,6 +15,10 @@ export class AppNavbar extends LitElement {
     this.store.setShowFileModal(true);
   }
 
+  private _handleSettingsClick(): void {
+    this.store.setShowEmailPrompt(true);
+  }
+
   private _switchPanel(panel: 'word-ladder' | 'canvas' | 'lyrics' | 'canvas-lyrics-left' | 'canvas-lyrics-right' | 'canvas-lyrics-top' | 'canvas-lyrics-bottom'): void {
     this.store.setCurrentPanel(panel);
   }
@@ -97,6 +101,13 @@ export class AppNavbar extends LitElement {
             title="Lyrics on bottom (click again to hide)"
             aria-label="Toggle lyrics on bottom"
           >◪</button>
+          
+          <button 
+            class="settings-btn"
+            @click=${this._handleSettingsClick}
+            title="${this.store.userEmail ? `Syncing as: ${this.store.userEmail}` : 'Set up cloud sync'}"
+            aria-label="Settings"
+          >⚙️</button>
         </div>
       </div>
     `;

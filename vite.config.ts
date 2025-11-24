@@ -3,6 +3,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   root: './src',
   publicDir: '../public',
+  envDir: '../', // Look for .env files in project root
   resolve: {
     extensions: ['.ts', '.js', '.tsx', '.jsx'],
   },

@@ -15,7 +15,7 @@ export const floatingStripStyles = css`
     color: #1f2937;
     padding: 8px 20px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.15);
-    border: 2px solid #1f2937;
+    border: 1px solid rgba(0, 0, 0, 0.5);
     border-left: none;
     display: flex;
     align-items: center;
@@ -39,7 +39,7 @@ export const floatingStripStyles = css`
 
   .expand-btn {
     background: white;
-    border: 2px solid #1f2937;
+    border: 1px solid rgba(0, 0, 0, 0.5);
     border-left: none;
     color: #1f2937;
     padding: 8px 12px;
@@ -109,10 +109,11 @@ export const floatingStripStyles = css`
     padding: 8px 12px;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     font-size: 20px;
     flex-shrink: 0;
     min-height: 40px;
+    transform: rotate(0deg);
   }
 
   .dice-btn-icon:hover {
@@ -206,26 +207,30 @@ export const floatingStripStyles = css`
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
+    min-width: 0;
   }
 
   .group-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: 12px;
     width: 100%;
+    flex-wrap: wrap;
   }
 
   .group-title {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     opacity: 0.9;
+    white-space: nowrap;
   }
 
   .alignment-buttons {
     display: flex;
     gap: 4px;
+    flex-shrink: 0;
   }
 
   .align-btn {
@@ -237,6 +242,8 @@ export const floatingStripStyles = css`
     cursor: pointer;
     transition: all 0.2s ease;
     font-size: 16px;
+    flex-shrink: 0;
+    min-width: 36px;
   }
 
   .align-btn:hover {
@@ -245,28 +252,109 @@ export const floatingStripStyles = css`
     transform: translateY(-1px);
   }
 
-  .section-buttons {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+  .section-picker-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 0;
   }
 
-  .section-btn {
-    background: #f3f4f6;
+  .section-picker-btn {
+    width: 100%;
+    padding: 10px 16px;
     border: 2px solid #d1d5db;
-    color: #1f2937;
-    padding: 8px 16px;
-    border-radius: 6px;
+    border-radius: 8px;
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 13px;
-    font-weight: 600;
+    min-height: 40px;
+    box-sizing: border-box;
+    text-align: left;
   }
 
-  .section-btn:hover {
-    background: #e5e7eb;
+  .section-picker-btn:hover {
+    background: #f3f4f6;
     border-color: #9ca3af;
+  }
+
+  .section-picker-btn:focus {
+    outline: none;
+    background: white;
+    border-color: #1f2937;
+  }
+
+  .section-picker-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(2px);
+    animation: fadeIn 0.15s ease;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .section-picker-panel {
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    background: white;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-width: 400px;
+    animation: slideUp 0.2s ease;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(10px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .section-bubble {
+    padding: 6px 12px;
+    background: #f0f0f0;
+    border: 1px solid #d0d0d0;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .section-bubble:hover {
+    background: #374151;
+    color: white;
+    border-color: #374151;
     transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .section-bubble:active {
+    transform: translateY(0);
   }
 
   .custom-section-form {
@@ -310,6 +398,17 @@ export const floatingStripStyles = css`
     display: flex;
     align-items: center;
     gap: 12px;
+  }
+
+  .set-index {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+    white-space: nowrap;
+    padding: 0 4px;
+    min-width: 90px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
   }
 
   .carousel-btn {
@@ -427,13 +526,18 @@ export const floatingStripStyles = css`
       font-size: 14px;
     }
 
-    .section-buttons {
-      gap: 6px;
+    .section-picker-btn {
+      padding: 8px 12px;
+      font-size: 13px;
     }
 
-    .section-btn {
-      padding: 6px 12px;
-      font-size: 12px;
+    .section-picker-panel {
+      max-width: 320px;
+    }
+
+    .section-bubble {
+      padding: 5px 10px;
+      font-size: 11px;
     }
 
     .word-ladder-controls {
@@ -442,6 +546,11 @@ export const floatingStripStyles = css`
 
     .word-ladder-nav {
       gap: 8px;
+    }
+
+    .set-index {
+      font-size: 12px;
+      min-width: 80px;
     }
 
     .carousel-btn {
@@ -516,13 +625,29 @@ export const floatingStripStyles = css`
       width: 100%;
     }
 
-    .section-btn {
-      padding: 5px 10px;
-      font-size: 11px;
+    .section-picker-btn {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+
+    .section-picker-panel {
+      max-width: 280px;
+      bottom: 60px;
+      left: 10px;
+    }
+
+    .section-bubble {
+      padding: 4px 8px;
+      font-size: 10px;
     }
 
     .lyrics-info {
       font-size: 13px;
+    }
+
+    .set-index {
+      font-size: 11px;
+      min-width: 70px;
     }
   }
 `;

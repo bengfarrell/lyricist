@@ -11,10 +11,10 @@ export class LoadDialog extends LitElement {
   
   private store = new SongStoreController(this);
 
-  private _deleteSong(song: SavedSong, e: MouseEvent): void {
+  private async _deleteSong(song: SavedSong, e: MouseEvent): Promise<void> {
     e.stopPropagation();
     if (confirm(`Delete "${song.name}"?`)) {
-      this.store.deleteSong(song.name);
+      await this.store.deleteSong(song.name);
     }
   }
 
@@ -50,29 +50,56 @@ export class LoadDialog extends LitElement {
       return html``;
     }
 
+    const hasSavedSongs = this.store.savedSongs.length > 0;
+    const sampleSongs = this.store.sampleContent?.sampleSongs ?? [];
+    const hasSampleSongs = sampleSongs.length > 0;
+
     return html`
       <div class="dialog-overlay" data-spectrum-pattern="modal-overlay" @click=${() => this.store.setShowLoadDialog(false)}>
         <div class="dialog" data-spectrum-pattern="dialog" @click=${(e: MouseEvent) => e.stopPropagation()}>
           <h2 data-spectrum-pattern="dialog-heading">Load Song</h2>
           
-          ${this.store.savedSongs.length === 0 ? html`
+          ${!hasSavedSongs && !hasSampleSongs ? html`
             <p class="empty-message" data-spectrum-pattern="dialog-content">
               No saved songs yet. Create and save your first song!
             </p>
           ` : html`
-            <div class="song-list" data-spectrum-pattern="dialog-content">
-              ${this.store.savedSongs.map(song => html`
-                <div class="song-item" data-spectrum-pattern="list-item-selectable" @click=${() => this.store.loadSong(song)}>
-                  <div class="song-item-info">
-                    <div class="song-item-name">${song.name}</div>
-                    <div class="song-item-meta">
-                      ${(song.items || song.lines || []).length} items • Last modified: ${new Date(song.lastModified).toLocaleDateString()}
+            ${hasSavedSongs ? html`
+              <div class="song-section">
+                <h3 class="section-heading">Your Songs</h3>
+                <div class="song-list" data-spectrum-pattern="dialog-content">
+                  ${this.store.savedSongs.map(song => html`
+                    <div class="song-item" data-spectrum-pattern="list-item-selectable" @click=${() => this.store.loadSong(song)}>
+                      <div class="song-item-info">
+                        <div class="song-item-name">${song.name}</div>
+                        <div class="song-item-meta">
+                          ${(song.items || song.lines || []).length} items • Last modified: ${new Date(song.lastModified).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <button class="btn btn-danger" data-spectrum-pattern="button-negative" @click=${(e: MouseEvent) => this._deleteSong(song, e)}>Delete</button>
                     </div>
-                  </div>
-                  <button class="btn btn-danger" data-spectrum-pattern="button-negative" @click=${(e: MouseEvent) => this._deleteSong(song, e)}>Delete</button>
+                  `)}
                 </div>
-              `)}
-            </div>
+              </div>
+            ` : ''}
+            
+            ${hasSampleSongs ? html`
+              <div class="song-section">
+                <h3 class="section-heading">Sample Songs</h3>
+                <div class="song-list" data-spectrum-pattern="dialog-content">
+                  ${sampleSongs.map(song => html`
+                    <div class="song-item sample-item" data-spectrum-pattern="list-item-selectable" @click=${() => this.store.loadSong(song)}>
+                      <div class="song-item-info">
+                        <div class="song-item-name">${song.name}</div>
+                        <div class="song-item-meta">
+                          ${(song.items || song.lines || []).length} items • Sample content
+                        </div>
+                      </div>
+                    </div>
+                  `)}
+                </div>
+              </div>
+            ` : ''}
           `}
 
           <div class="export-section">

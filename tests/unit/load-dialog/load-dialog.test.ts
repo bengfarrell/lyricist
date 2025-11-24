@@ -81,6 +81,8 @@ describe('LoadDialog', () => {
     it('should display saved songs', async () => {
       const song: SavedSong = {
         name: 'Test Song',
+        songId: 'test-song-id',
+        userId: 'test-user-id',
         lines: [
           {
             id: 'line-1',
@@ -98,7 +100,7 @@ describe('LoadDialog', () => {
       };
       songStore.setSongName('Test Song');
       songStore.addLine(song.lines![0]);
-      songStore.saveSong();
+      await songStore.saveSong();
       songStore.setShowLoadDialog(true);
 
       const el = await fixture<LoadDialog>(html`<load-dialog></load-dialog>`);
@@ -116,6 +118,8 @@ describe('LoadDialog', () => {
     it('should load song when song item is clicked', async () => {
       const song: SavedSong = {
         name: 'Test Song',
+        songId: 'test-song-id',
+        userId: 'test-user-id',
         lines: [
           {
             id: 'line-1',
@@ -133,7 +137,7 @@ describe('LoadDialog', () => {
       };
       songStore.setSongName('Test Song');
       songStore.addLine(song.lines![0]);
-      songStore.saveSong();
+      await songStore.saveSong();
       
       // Clear current state
       songStore.newSong();
@@ -158,11 +162,13 @@ describe('LoadDialog', () => {
 
       const song: SavedSong = {
         name: 'To Delete',
+        songId: 'test-song-id',
+        userId: 'test-user-id',
         lines: [],
         lastModified: '2025-01-15T00:00:00.000Z',
       };
       songStore.setSongName('To Delete');
-      songStore.saveSong();
+      await songStore.saveSong();
       songStore.setShowLoadDialog(true);
 
       const el = await fixture<LoadDialog>(html`<load-dialog></load-dialog>`);
@@ -185,11 +191,13 @@ describe('LoadDialog', () => {
 
       const song: SavedSong = {
         name: 'To Keep',
+        songId: 'test-song-id',
+        userId: 'test-user-id',
         lines: [],
         lastModified: '2025-01-15T00:00:00.000Z',
       };
       songStore.setSongName('To Keep');
-      songStore.saveSong();
+      await songStore.saveSong();
       songStore.setShowLoadDialog(true);
 
       const el = await fixture<LoadDialog>(html`<load-dialog></load-dialog>`);
@@ -296,7 +304,7 @@ describe('LoadDialog', () => {
 
     // Add a saved song
     songStore.setSongName('New Song');
-    songStore.saveSong();
+    await songStore.saveSong();
     await el.updateComplete;
 
     // Should now show song list

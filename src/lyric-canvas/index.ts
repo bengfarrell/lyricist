@@ -245,8 +245,7 @@ export class LyricCanvas extends LitElement {
   private _handleTextChanged(e: CustomEvent): void {
     const { id, text } = e.detail;
     this.store.updateLineText(id, text);
-    // Auto-save on text change
-    this.store.saveSong();
+    // Note: Auto-save to localStorage happens automatically via store
   }
 
   private _handleLineSelected(e: CustomEvent): void {

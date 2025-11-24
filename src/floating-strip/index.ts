@@ -12,6 +12,7 @@ export class FloatingStrip extends LitElement {
   private store = new SongStoreController(this);
   private _showCustomSectionInput: boolean = false;
   private _customSectionName: string = '';
+  private _showSectionPicker: boolean = false;
 
   private _getWordLadderPlaceholder(): string {
     const currentSet = this.store.currentWordLadderSet;
@@ -106,6 +107,7 @@ export class FloatingStrip extends LitElement {
   }
   
   private _handleSectionClick(sectionName: string): void {
+    this._showSectionPicker = false;
     if (sectionName === 'Custom') {
       this._showCustomSectionInput = true;
       this.requestUpdate();
@@ -116,6 +118,11 @@ export class FloatingStrip extends LitElement {
     } else {
       this._createGroup(sectionName);
     }
+  }
+
+  private _toggleSectionPicker(): void {
+    this._showSectionPicker = !this._showSectionPicker;
+    this.requestUpdate();
   }
   
   private _handleCustomSectionSubmit(e: Event): void {
@@ -171,7 +178,6 @@ export class FloatingStrip extends LitElement {
 
   private _renderCanvasControls() {
     const hasSelection = this.store.selectedLineIds.size > 0;
-    const sectionNames = ['Verse', 'Chorus', 'Bridge', 'Intro', 'Outro', 'Pre-Chorus', 'Hook', 'Custom'];
     
     const selectedItems = this.store.items.filter(item => this.store.selectedLineIds.has(item.id));
     const totalLines = selectedItems.reduce((count, item) => {
@@ -188,9 +194,9 @@ export class FloatingStrip extends LitElement {
           <div class="group-header">
             <span class="group-title">Create Section (${this.store.selectedLineIds.size} item${this.store.selectedLineIds.size !== 1 ? 's' : ''}, ${totalLines} line${totalLines !== 1 ? 's' : ''})</span>
             <div class="alignment-buttons" data-spectrum-pattern="action-group-horizontal">
-              <button class="align-btn" data-spectrum-pattern="action-button" @click=${() => this._alignItems('left')} title="Align left">⬅️</button>
-              <button class="align-btn" data-spectrum-pattern="action-button" @click=${() => this._alignItems('center')} title="Align center">↔️</button>
-              <button class="align-btn" data-spectrum-pattern="action-button" @click=${() => this._alignItems('right')} title="Align right">➡️</button>
+              <button class="align-btn" data-spectrum-pattern="action-button" @click=${() => this._alignItems('left')} title="Align left">◧</button>
+              <button class="align-btn" data-spectrum-pattern="action-button" @click=${() => this._alignItems('center')} title="Align center">◫</button>
+              <button class="align-btn" data-spectrum-pattern="action-button" @click=${() => this._alignItems('right')} title="Align right">◨</button>
             </div>
           </div>
           
@@ -215,14 +221,28 @@ export class FloatingStrip extends LitElement {
               }}>Cancel</button>
             </form>
           ` : html`
-            <div class="section-buttons" data-spectrum-pattern="action-group-horizontal">
-              ${sectionNames.map(name => html`
-                <button 
-                  class="section-btn" 
-                  data-spectrum-pattern="action-button"
-                  @click=${() => this._handleSectionClick(name)}
-                >${name}</button>
-              `)}
+            <div class="section-picker-wrapper">
+              <button 
+                class="section-picker-btn" 
+                @click=${this._toggleSectionPicker}
+                data-spectrum-pattern="picker"
+              >
+                Choose section type...
+              </button>
+              ${this._showSectionPicker ? html`
+                <div class="section-picker-overlay" @click=${() => { this._showSectionPicker = false; this.requestUpdate(); }}>
+                  <div class="section-picker-panel" @click=${(e: Event) => e.stopPropagation()}>
+                    <button class="section-bubble" @click=${() => this._handleSectionClick('Verse')}>Verse</button>
+                    <button class="section-bubble" @click=${() => this._handleSectionClick('Chorus')}>Chorus</button>
+                    <button class="section-bubble" @click=${() => this._handleSectionClick('Bridge')}>Bridge</button>
+                    <button class="section-bubble" @click=${() => this._handleSectionClick('Intro')}>Intro</button>
+                    <button class="section-bubble" @click=${() => this._handleSectionClick('Outro')}>Outro</button>
+                    <button class="section-bubble" @click=${() => this._handleSectionClick('Pre-Chorus')}>Pre-Chorus</button>
+                    <button class="section-bubble" @click=${() => this._handleSectionClick('Hook')}>Hook</button>
+                    <button class="section-bubble" @click=${() => this._handleSectionClick('Custom')}>Custom...</button>
+                  </div>
+                </div>
+              ` : ''}
             </div>
           `}
         </div>
@@ -271,6 +291,8 @@ export class FloatingStrip extends LitElement {
 
   private _renderWordLadderControls() {
     const hasMultipleSets = this.store.wordLadderSets.length > 1;
+    const currentIndex = this.store.wordLadderSetIndex + 1; // Convert to 1-based for humans
+    const totalSets = this.store.wordLadderSets.length;
     
     return html`
       <div class="word-ladder-controls">
@@ -279,6 +301,7 @@ export class FloatingStrip extends LitElement {
         </button>
         <div class="word-ladder-nav">
           <button class="carousel-btn" @click=${this._prevSet} ?disabled=${!hasMultipleSets} title="Previous set">‹</button>
+          <span class="set-index">${currentIndex} of ${totalSets}</span>
           <button class="carousel-btn" @click=${this._nextSet} ?disabled=${!hasMultipleSets} title="Next set">›</button>
         </div>
         <button class="add-set-btn" @click=${this._addSet} title="Add new category">+ Add Set</button>
@@ -300,7 +323,7 @@ export class FloatingStrip extends LitElement {
   render() {
     const isRetracted = this.store.stripRetracted;
     const currentPanel = this.store.currentPanel;
-    const isCanvasMode = currentPanel === 'canvas' || currentPanel === 'canvas-lyrics-left' || currentPanel === 'canvas-lyrics-right';
+    const isCanvasMode = currentPanel === 'canvas' || currentPanel === 'canvas-lyrics-left' || currentPanel === 'canvas-lyrics-right' || currentPanel === 'canvas-lyrics-top' || currentPanel === 'canvas-lyrics-bottom';
 
     return html`
       <div class="floating-strip ${isRetracted ? 'retracted' : ''}">

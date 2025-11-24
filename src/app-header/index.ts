@@ -10,21 +10,37 @@ export class AppHeader extends LitElement {
   
   private store = new SongStoreController(this);
 
-  private _handleSave(): void {
-    const success = this.store.saveSong();
-    if (!success) {
-      alert('Please enter a song name');
-      return;
+  private async _handleSave(): Promise<void> {
+    // Show saving state
+    const btn = this.shadowRoot?.querySelector('.btn-primary');
+    const originalText = btn?.textContent || 'Save';
+    if (btn) {
+      btn.textContent = '⏳ Saving...';
     }
     
-    // Visual feedback
-    const btn = this.shadowRoot?.querySelector('.btn-primary');
-    if (btn) {
-      const originalText = btn.textContent;
-      btn.textContent = '✓ Saved!';
-      setTimeout(() => {
-        btn.textContent = originalText;
-      }, 1500);
+    try {
+      const success = await this.store.saveSong();
+      if (!success) {
+        if (btn) btn.textContent = originalText;
+        alert('Please enter a song name');
+        return;
+      }
+      
+      // Visual feedback
+      if (btn) {
+        btn.textContent = '✓ Saved!';
+        setTimeout(() => {
+          btn.textContent = originalText;
+        }, 1500);
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+      if (btn) {
+        btn.textContent = '❌ Error';
+        setTimeout(() => {
+          btn.textContent = originalText;
+        }, 2000);
+      }
     }
   }
 
@@ -53,7 +69,6 @@ export class AppHeader extends LitElement {
           <button class="btn btn-primary" data-spectrum-pattern="button-accent" @click=${this._handleSave}>Save</button>
           <button class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${() => this.store.setShowLoadDialog(true)}>Load</button>
           <button class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${this._handleNew}>New</button>
-          <button class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${() => this.store.loadSampleSong()}>Load Sample</button>
         </div>
       </div>
     `;

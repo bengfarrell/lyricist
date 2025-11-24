@@ -31,6 +31,8 @@ export type CanvasItem = LyricLine | LyricGroup;
 
 export interface SavedSong {
   name: string;
+  songId: string; // Unique ID for this song
+  userId: string; // Unique ID of the user who created this song
   items?: CanvasItem[]; // New format: mixed lines and groups
   lines?: LyricLine[]; // Legacy format: only lines
   wordLadderSets?: WordLadderSet[]; // Word ladder data for this song

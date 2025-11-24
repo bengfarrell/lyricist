@@ -69,7 +69,7 @@ describe('Integration Tests', () => {
       expect(songStore.lines[0].y).toBe(200);
 
       // Step 7: Save the song
-      const success = songStore.saveSong();
+      const success = await songStore.saveSong();
       expect(success).toBe(true);
       expect(songStore.savedSongs).toHaveLength(1);
       expect(songStore.savedSongs[0].name).toBe('My First Song');
@@ -120,7 +120,7 @@ describe('Integration Tests', () => {
         zIndex: 1,
       };
       songStore.addLine(line);
-      songStore.saveSong();
+      await songStore.saveSong();
 
       // Clear current state
       songStore.newSong();
@@ -152,7 +152,7 @@ describe('Integration Tests', () => {
       expect(songStore.lines).toHaveLength(2);
 
       // Save the modified song (should update existing)
-      songStore.saveSong();
+      await songStore.saveSong();
       expect(songStore.savedSongs).toHaveLength(1); // Still only one song
       expect(songStore.savedSongs[0].items).toHaveLength(2); // But now with 2 lines
     });
@@ -173,7 +173,7 @@ describe('Integration Tests', () => {
         rotation: 0,
         zIndex: 1,
       });
-      songStore.saveSong();
+      await songStore.saveSong();
 
       // Create second song
       songStore.newSong();
@@ -189,7 +189,7 @@ describe('Integration Tests', () => {
         rotation: 0,
         zIndex: 1,
       });
-      songStore.saveSong();
+      await songStore.saveSong();
 
       // Should have two saved songs
       expect(songStore.savedSongs).toHaveLength(2);
@@ -369,7 +369,7 @@ describe('Integration Tests', () => {
         rotation: 0,
         zIndex: 1,
       });
-      songStore.saveSong();
+      await songStore.saveSong();
 
       // Verify localStorage was updated
       const saved = localStorage.getItem('lyricist-songs');

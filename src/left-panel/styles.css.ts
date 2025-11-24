@@ -132,8 +132,10 @@ export const leftPanelStyles = css`
     flex-direction: column;
     min-height: 0;
     min-width: 0;
+    max-width: 100%;
     position: relative;
     z-index: 1;
+    overflow: hidden;
   }
 
   .column-title {
@@ -170,6 +172,7 @@ export const leftPanelStyles = css`
   .edit-left-title,
   .edit-right-title {
     width: 100%;
+    max-width: 100%;
     padding: 4px 8px;
     border: 2px solid #374151;
     border-radius: 4px;
@@ -180,6 +183,7 @@ export const leftPanelStyles = css`
     letter-spacing: 0.5px;
     background: white;
     outline: none;
+    box-sizing: border-box;
   }
 
   .suggestion-chips {

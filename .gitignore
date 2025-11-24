@@ -6,6 +6,10 @@ dist
 .vscode
 package-lock.json
 
+# Environment variables
+.env
+.env.local
+
 # TypeScript compiled output (side-by-side with .ts files)
 # Ignore generated JS, declaration files, and source maps in src/
 src/**/*.js

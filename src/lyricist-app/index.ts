@@ -8,6 +8,7 @@ import '../lyric-canvas/index';
 import '../lyrics-panel/index';
 import '../left-panel/index';
 import '../load-dialog/index';
+import '../email-prompt/index';
 
 /**
  * Main application component that composes all child components
@@ -58,6 +59,7 @@ export class LyricistApp extends LitElement {
 
       <load-dialog></load-dialog>
       <file-modal></file-modal>
+      <email-prompt></email-prompt>
     `;
   }
 }

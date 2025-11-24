@@ -51,6 +51,10 @@ export class SongStoreController implements ReactiveController {
     return songStore.savedSongs;
   }
   
+  get sampleContent() {
+    return songStore.sampleContent;
+  }
+  
   get showLoadDialog(): boolean {
     return songStore.showLoadDialog;
   }
@@ -58,7 +62,15 @@ export class SongStoreController implements ReactiveController {
   get showFileModal(): boolean {
     return songStore.showFileModal;
   }
-  
+
+  get showEmailPrompt(): boolean {
+    return songStore.showEmailPrompt;
+  }
+
+  get userEmail(): string | null {
+    return songStore.userEmail;
+  }
+
   get lyricsPanelWidth(): number {
     return songStore.lyricsPanelWidth;
   }
@@ -201,7 +213,7 @@ export class SongStoreController implements ReactiveController {
   
   // ===== Song Management Actions =====
   
-  saveSong(): boolean {
+  saveSong(): Promise<boolean> {
     return songStore.saveSong();
   }
   
@@ -209,8 +221,8 @@ export class SongStoreController implements ReactiveController {
     songStore.loadSong(song);
   }
   
-  deleteSong(songName: string): void {
-    songStore.deleteSong(songName);
+  deleteSong(songName: string): Promise<void> {
+    return songStore.deleteSong(songName);
   }
   
   newSong(): void {
@@ -231,14 +243,26 @@ export class SongStoreController implements ReactiveController {
     songStore.loadSampleSong();
   }
   
+  async refreshSongsFromCloud(): Promise<void> {
+    await songStore.refreshSongsFromCloud();
+  }
+  
   // ===== UI State Actions =====
   
-  setShowLoadDialog(show: boolean): void {
-    songStore.setShowLoadDialog(show);
+  async setShowLoadDialog(show: boolean): Promise<void> {
+    await songStore.setShowLoadDialog(show);
   }
   
   setShowFileModal(show: boolean): void {
     songStore.setShowFileModal(show);
+  }
+  
+  setShowEmailPrompt(show: boolean): void {
+    songStore.setShowEmailPrompt(show);
+  }
+  
+  setUserEmail(email: string): Promise<void> {
+    return songStore.setUserEmail(email);
   }
   
   setCurrentPanel(panel: 'word-ladder' | 'canvas' | 'lyrics' | 'canvas-lyrics-left' | 'canvas-lyrics-right' | 'canvas-lyrics-top' | 'canvas-lyrics-bottom'): void {
