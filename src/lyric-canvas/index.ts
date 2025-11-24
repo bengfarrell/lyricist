@@ -66,21 +66,28 @@ export class LyricCanvas extends LitElement {
   }
 
   private _handlePointerMove(e: PointerEvent): void {
-    // Check if any line is marked as dragging and start drag if movement detected
+    // Check if any line is potentially being dragged and start drag if movement detected
     if (!this._draggedItem) {
-      const draggingElement = this.shadowRoot?.querySelector('[dragging]') as any;
-      if (draggingElement && draggingElement._isDragging) {
-        // Check if pointer has moved enough to initiate drag
-        const deltaX = Math.abs(e.clientX - draggingElement._pointerDownX);
-        const deltaY = Math.abs(e.clientY - draggingElement._pointerDownY);
-        if (deltaX > 5 || deltaY > 5) {
-          // Movement detected - start dragging
-          const itemId = draggingElement.id;
-          const item = this.store.items.find(i => i.id === itemId);
-          if (item) {
-            this._draggedItem = item;
-            draggingElement.setAttribute('dragging', '');
-            cursorManager.setCursor('move');
+      // Look for any lyric-line or lyric-group that might be in drag mode
+      const allElements = this.shadowRoot?.querySelectorAll('lyric-line, lyric-group');
+      if (allElements) {
+        for (const element of Array.from(allElements)) {
+          const elem = element as any;
+          if (elem._isDragging && !elem._isEditingText) {
+            // Check if pointer has moved enough to initiate drag
+            const deltaX = Math.abs(e.clientX - elem._pointerDownX);
+            const deltaY = Math.abs(e.clientY - elem._pointerDownY);
+            if (deltaX > 5 || deltaY > 5) {
+              // Movement detected - start dragging
+              const itemId = elem.id;
+              const item = this.store.items.find(i => i.id === itemId);
+              if (item) {
+                this._draggedItem = item;
+                elem.setAttribute('dragging', '');
+                cursorManager.setCursor('move');
+                break;
+              }
+            }
           }
         }
       }

@@ -186,29 +186,12 @@ export class LyricLine extends LitElement {
       
       // On touch devices (pointerType === 'touch'), activate editing with a tap
       if (e.pointerType === 'touch') {
-        e.preventDefault();
-        e.stopPropagation();
-        
         this._isEditingText = true;
         this.setAttribute('editing-text', '');
         
-        // Focus the input after render
-        this.updateComplete.then(() => {
-          const input = this.shadowRoot?.querySelector('.lyric-text-input') as HTMLInputElement;
-          if (input) {
-            // Use requestAnimationFrame to ensure DOM is ready
-            requestAnimationFrame(() => {
-              input.focus();
-              
-              // Select all text after a small delay
-              setTimeout(() => {
-                if (this._isEditingText && input) {
-                  input.select();
-                }
-              }, 100);
-            });
-          }
-        });
+        // Let the browser handle focus naturally - don't force it
+        // The input will appear and user can tap it again if needed
+        this.requestUpdate();
         return;
       }
     }

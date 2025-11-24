@@ -1,6 +1,6 @@
 {
   "name": "lyricist",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A LitElement-based web component app for creating songs with draggable lyrics",
   "type": "module",
   "scripts": {
