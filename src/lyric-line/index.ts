@@ -202,19 +202,33 @@ export class LyricLine extends LitElement {
         this._isEditingText = true;
         this.setAttribute('editing-text', '');
         
-        // Focus the editable span after render
+        // Focus the editable span after render - use multiple attempts for Android
         this.updateComplete.then(() => {
           const editableSpan = this.shadowRoot?.querySelector('.lyric-text-editable') as HTMLElement;
           if (editableSpan) {
+            // Attempt 1: Immediate focus
             editableSpan.focus();
-            // Select all text
-            const range = document.createRange();
-            range.selectNodeContents(editableSpan);
-            const selection = window.getSelection();
-            if (selection) {
-              selection.removeAllRanges();
-              selection.addRange(range);
-            }
+            
+            // Attempt 2: Delayed focus (Android sometimes needs this)
+            setTimeout(() => {
+              if (this._isEditingText && editableSpan) {
+                editableSpan.focus();
+                
+                // Select all text after focus is confirmed
+                try {
+                  const range = document.createRange();
+                  range.selectNodeContents(editableSpan);
+                  const selection = window.getSelection();
+                  if (selection) {
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                  }
+                } catch (e) {
+                  // If selection fails, just ensure we have focus
+                  console.warn('Text selection failed:', e);
+                }
+              }
+            }, 50);
           }
         });
         return;
@@ -630,8 +644,8 @@ export class LyricLine extends LitElement {
     return html`
       <div 
         class="container"
-        @pointerdown=${this._handlePointerDown}
-        @dblclick=${this._handleDoubleClick}
+        @pointerdown=${this._isEditingText ? null : this._handlePointerDown}
+        @dblclick=${this._isEditingText ? null : this._handleDoubleClick}
       >
         ${this.hasChordSection ? html`
           <div 
@@ -686,14 +700,9 @@ export class LyricLine extends LitElement {
               class="lyric-text-editable"
               contenteditable="true"
               inputmode="text"
+              spellcheck="true"
               @blur=${this._handleTextBlur}
               @keydown=${this._handleTextKeyDown}
-              @pointerdown=${(e: PointerEvent) => e.stopPropagation()}
-              @pointermove=${(e: PointerEvent) => e.stopPropagation()}
-              @pointerup=${(e: PointerEvent) => e.stopPropagation()}
-              @touchstart=${(e: TouchEvent) => e.stopPropagation()}
-              @touchmove=${(e: TouchEvent) => e.stopPropagation()}
-              @touchend=${(e: TouchEvent) => e.stopPropagation()}
             >${this.text}</span>
           ` : this.text}
           <button class="action-btn duplicate-btn" @click=${this._handleDuplicate}>⊕</button>

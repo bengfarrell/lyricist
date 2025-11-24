@@ -11,16 +11,7 @@ export const lyricLineStyles = css`
   /* Allow touch interactions when editing text */
   :host([editing-text]) {
     touch-action: auto;
-  }
-  
-  /* Prevent container from capturing events when editing */
-  :host([editing-text]) .container {
-    pointer-events: none;
-  }
-  
-  /* But allow pointer events on the editable text itself */
-  :host([editing-text]) .lyric-text-editable {
-    pointer-events: auto;
+    user-select: auto;
   }
 
   :host([dragging]) {
@@ -259,13 +250,16 @@ export const lyricLineStyles = css`
     display: inline-block;
     min-width: 100px;
     user-select: text;
-    touch-action: auto;
+    touch-action: manipulation;
+    -webkit-user-select: text;
+    -webkit-touch-callout: default;
   }
 
   .lyric-text-editable:focus {
     outline: 2px solid #1f2937;
     user-select: text;
-    touch-action: auto;
+    touch-action: manipulation;
+    -webkit-user-select: text;
   }
 
   .action-btn {
