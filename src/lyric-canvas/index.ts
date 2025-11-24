@@ -45,11 +45,8 @@ export class LyricCanvas extends LitElement {
   }
 
   private _handleDragStart(e: CustomEvent): void {
-    const item = this.store.items.find(item => item.id === e.detail.id);
-    if (item) {
-      this._draggedItem = item;
-      cursorManager.setCursor('move');
-    }
+    // This handler is no longer used - drag is now initiated on movement
+    // Keeping for backwards compatibility but it does nothing
   }
 
   private _handleBringToFront(e: CustomEvent): void {
@@ -64,19 +61,31 @@ export class LyricCanvas extends LitElement {
   }
 
   private _handleCancelDrag(e: CustomEvent): void {
-    // Cancel any active drag operation
-    if (this._draggedItem) {
-      const elementSelector = this._draggedItem.type === 'line' ? 'lyric-line' : 'lyric-group';
-      const itemElement = this.shadowRoot?.querySelector(`${elementSelector}[id="${this._draggedItem.id}"]`);
-      if (itemElement) {
-        itemElement.removeAttribute('dragging');
-      }
-      this._draggedItem = null;
-      cursorManager.clearCursor();
-    }
+    // No longer needed - drag is initiated on movement, not on pointerdown
+    // Taps never enter drag mode
   }
 
   private _handlePointerMove(e: PointerEvent): void {
+    // Check if any line is marked as dragging and start drag if movement detected
+    if (!this._draggedItem) {
+      const draggingElement = this.shadowRoot?.querySelector('[dragging]') as any;
+      if (draggingElement && draggingElement._isDragging) {
+        // Check if pointer has moved enough to initiate drag
+        const deltaX = Math.abs(e.clientX - draggingElement._pointerDownX);
+        const deltaY = Math.abs(e.clientY - draggingElement._pointerDownY);
+        if (deltaX > 5 || deltaY > 5) {
+          // Movement detected - start dragging
+          const itemId = draggingElement.id;
+          const item = this.store.items.find(i => i.id === itemId);
+          if (item) {
+            this._draggedItem = item;
+            draggingElement.setAttribute('dragging', '');
+            cursorManager.setCursor('move');
+          }
+        }
+      }
+    }
+    
     // Handle item dragging
     if (this._draggedItem) {
       const canvas = this.shadowRoot?.querySelector('.canvas');

@@ -146,19 +146,14 @@ export class LyricLine extends LitElement {
       composed: true
     }));
 
+    // Mark as potentially dragging, but DON'T dispatch drag-start yet
+    // We'll wait to see if this is a drag or a tap
     this._isDragging = true;
-    this.setAttribute('dragging', '');
     
     // Store the offset between pointer and element position
     const rect = this.getBoundingClientRect();
     this._offsetX = e.clientX - rect.left;
     this._offsetY = e.clientY - rect.top;
-
-    this.dispatchEvent(new CustomEvent('drag-start', {
-      detail: { id: this.id },
-      bubbles: true,
-      composed: true
-    }));
   }
 
   private _handlePointerUp(e: PointerEvent): void {
@@ -169,6 +164,10 @@ export class LyricLine extends LitElement {
     const deltaX = Math.abs(e.clientX - this._pointerDownX);
     const deltaY = Math.abs(e.clientY - this._pointerDownY);
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    // Reset dragging state
+    this._isDragging = false;
+    this.removeAttribute('dragging');
     
     // If pointer didn't move much (less than 5px), treat it as a tap
     if (distance < 5) {
@@ -182,61 +181,47 @@ export class LyricLine extends LitElement {
       // Don't activate editing if clicking on buttons
       if (target.classList.contains('action-btn') || 
           target.classList.contains('chord-toggle-btn')) {
-        this._isDragging = false;
         return;
       }
       
       // On touch devices (pointerType === 'touch'), activate editing with a tap
       if (e.pointerType === 'touch') {
-        // Cancel the drag before entering edit mode
-        this._isDragging = false;
-        this.removeAttribute('dragging');
-        
-        // Dispatch a custom event to tell canvas to cancel the drag
-        this.dispatchEvent(new CustomEvent('cancel-drag', {
-          detail: { id: this.id },
-          bubbles: true,
-          composed: true
-        }));
+        e.preventDefault();
+        e.stopPropagation();
         
         this._isEditingText = true;
         this.setAttribute('editing-text', '');
         
-        // Focus the editable span after render - use multiple attempts for Android
+        // Focus the editable span after render
         this.updateComplete.then(() => {
           const editableSpan = this.shadowRoot?.querySelector('.lyric-text-editable') as HTMLElement;
           if (editableSpan) {
-            // Attempt 1: Immediate focus
-            editableSpan.focus();
-            
-            // Attempt 2: Delayed focus (Android sometimes needs this)
-            setTimeout(() => {
-              if (this._isEditingText && editableSpan) {
-                editableSpan.focus();
-                
-                // Select all text after focus is confirmed
-                try {
-                  const range = document.createRange();
-                  range.selectNodeContents(editableSpan);
-                  const selection = window.getSelection();
-                  if (selection) {
-                    selection.removeAllRanges();
-                    selection.addRange(range);
+            // Use requestAnimationFrame to ensure DOM is ready
+            requestAnimationFrame(() => {
+              editableSpan.focus();
+              
+              // Try to select text after a small delay
+              setTimeout(() => {
+                if (this._isEditingText && document.activeElement === editableSpan) {
+                  try {
+                    const range = document.createRange();
+                    range.selectNodeContents(editableSpan);
+                    const selection = window.getSelection();
+                    if (selection) {
+                      selection.removeAllRanges();
+                      selection.addRange(range);
+                    }
+                  } catch (err) {
+                    // Selection failed, but focus should still work
                   }
-                } catch (e) {
-                  // If selection fails, just ensure we have focus
-                  console.warn('Text selection failed:', e);
                 }
-              }
-            }, 50);
+              }, 100);
+            });
           }
         });
         return;
       }
     }
-    
-    // Reset dragging state (canvas will also handle this)
-    this._isDragging = false;
   }
 
   private _handleDoubleClick(e: MouseEvent): void {
