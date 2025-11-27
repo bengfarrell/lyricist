@@ -634,15 +634,16 @@ export class LyricLine extends LitElement {
             ${this._showChordPicker ? html`
               <div 
                 class="chord-picker" 
+                data-spectrum-pattern="popover-right popover-open menu"
                 style="left: ${this._pickerX}px; top: ${this._pickerY}px;"
                 @click=${this._handlePickerClick}
               >
                 ${Object.entries(this._chordLibrary).map(([category, chords]) => html`
                   <div class="chord-picker-group">
-                    <div class="chord-picker-label">${category}</div>
+                    <div class="chord-picker-label" data-spectrum-pattern="menu-section-heading">${category}</div>
                     <div class="chord-picker-options">
                       ${chords.map(chord => html`
-                        <div class="chord-option" @click=${() => this._handleChordSelect(chord)}>
+                        <div class="chord-option" data-spectrum-pattern="menu-item" @click=${() => this._handleChordSelect(chord)}>
                           ${chord}
                         </div>
                       `)}
@@ -659,6 +660,7 @@ export class LyricLine extends LitElement {
             <input 
               type="text"
               class="lyric-text-input"
+              data-spectrum-pattern="textfield"
               inputmode="text"
               spellcheck="true"
               .value=${this.text}
@@ -666,11 +668,11 @@ export class LyricLine extends LitElement {
               @keydown=${this._handleTextKeyDown}
             />
           ` : this.text}
-          <button class="action-btn duplicate-btn" @click=${this._handleDuplicate}>⊕</button>
-          <button class="chord-toggle-btn" @click=${this._handleToggleChordSection}>
+          <button class="action-btn duplicate-btn" data-spectrum-pattern="action-button-quiet" @click=${this._handleDuplicate} title="Duplicate">⊕</button>
+          <button class="chord-toggle-btn" data-spectrum-pattern="action-button-quiet" @click=${this._handleToggleChordSection} title="${this.hasChordSection ? 'Hide chords' : 'Add chords'}">
             ${this.hasChordSection ? '−' : '♪'}
           </button>
-          <button class="action-btn delete-btn" @click=${this._handleDelete}>×</button>
+          <button class="action-btn delete-btn" data-spectrum-pattern="action-button-quiet" @click=${this._handleDelete} title="Delete">×</button>
         </div>
       </div>
     `;

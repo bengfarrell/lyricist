@@ -133,9 +133,9 @@ export class LyricGroup extends LitElement {
           <span class="line-count">(${this.lines.length} line${this.lines.length !== 1 ? 's' : ''})</span>
         </div>
         
-        <button class="action-btn duplicate-btn" @click=${this._handleDuplicate} title="Duplicate">⊕</button>
-        <button class="action-btn ungroup-btn" @click=${this._handleUngroup} title="Ungroup">⊟</button>
-        <button class="action-btn delete-btn" @click=${this._handleDelete} title="Delete">×</button>
+        <button class="action-btn duplicate-btn" data-spectrum-pattern="action-button-quiet" @click=${this._handleDuplicate} title="Duplicate">⊕</button>
+        <button class="action-btn ungroup-btn" data-spectrum-pattern="action-button-quiet" @click=${this._handleUngroup} title="Ungroup">⊟</button>
+        <button class="action-btn delete-btn" data-spectrum-pattern="action-button-quiet" @click=${this._handleDelete} title="Delete">×</button>
       </div>
     `;
   }

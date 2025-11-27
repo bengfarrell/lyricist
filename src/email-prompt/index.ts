@@ -66,33 +66,35 @@ export class EmailPrompt extends LitElement {
     const hasExistingEmail = !!this.store.userEmail;
 
     return html`
-      <div class="overlay" @click=${() => this._handleSkip()}>
-        <div class="dialog" @click=${(e: Event) => e.stopPropagation()}>
-          <div class="header">
+      <div class="overlay" data-spectrum-pattern="underlay-open" @click=${() => this._handleSkip()}>
+        <div class="dialog" data-spectrum-pattern="modal-open dialog" @click=${(e: Event) => e.stopPropagation()}>
+          <div class="header" data-spectrum-pattern="dialog-heading">
             <h2>${hasExistingEmail ? '⚙️ Cloud Sync Settings' : '📧 Set Up Cloud Sync'}</h2>
             <p>${hasExistingEmail ? 'Change your email to sync with different devices' : 'Enter your email to sync songs across all your devices'}</p>
           </div>
 
-          <form @submit=${this._handleSubmit}>
-            <div class="form-group">
-              <label for="email-input">Your Email</label>
+          <form data-spectrum-pattern="form" @submit=${this._handleSubmit}>
+            <div class="form-group" data-spectrum-pattern="form-item">
+              <label for="email-input" data-spectrum-pattern="field-label">Your Email</label>
               <input
                 id="email-input"
                 type="email"
                 class="email-input"
+                data-spectrum-pattern="textfield ${this.errorMessage ? 'textfield-invalid' : ''}"
                 placeholder="your.email@example.com"
                 .value=${this.email}
                 @input=${this._handleInput}
                 ?disabled=${this.isSubmitting}
                 required
                 autofocus
+                aria-invalid="${this.errorMessage ? 'true' : 'false'}"
               />
               ${this.errorMessage ? html`
-                <div class="error-message">${this.errorMessage}</div>
+                <div class="error-message" data-spectrum-pattern="help-text-negative">${this.errorMessage}</div>
               ` : ''}
             </div>
 
-            <div class="info-box">
+            <div class="info-box" data-spectrum-pattern="dialog-content">
               <strong>How it works:</strong>
               <ul>
                 <li>We create a unique ID from your email (using SHA-256 hashing)</li>
@@ -102,10 +104,11 @@ export class EmailPrompt extends LitElement {
               </ul>
             </div>
 
-            <div class="button-group">
+            <div class="button-group" data-spectrum-pattern="dialog-footer">
               <button
                 type="submit"
                 class="btn btn-primary"
+                data-spectrum-pattern="button-accent ${this.isSubmitting ? 'button-pending' : ''}"
                 ?disabled=${this.isSubmitting}
               >
                 ${this.isSubmitting ? '⏳ Saving...' : (hasExistingEmail ? '✓ Update Email' : '✓ Enable Sync')}
@@ -113,6 +116,7 @@ export class EmailPrompt extends LitElement {
               <button
                 type="button"
                 class="btn btn-secondary"
+                data-spectrum-pattern="button-secondary"
                 @click=${this._handleSkip}
                 ?disabled=${this.isSubmitting}
               >

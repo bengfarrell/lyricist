@@ -48,33 +48,37 @@ export class AppNavbar extends LitElement {
     
     return html`
       <div class="navbar">
-        <div class="navbar-tabs">
+        <div class="navbar-tabs" data-spectrum-pattern="tabs">
           <button 
             class="navbar-tab ${this.store.currentPanel === 'word-ladder' ? 'active' : ''}"
+            data-spectrum-pattern="tab-item ${this.store.currentPanel === 'word-ladder' ? 'tab-selected' : ''}"
             @click=${() => this._switchPanel('word-ladder')}
             title="Word Ladder"
           >Word Ladder</button>
           
           <button 
             class="navbar-tab ${isCanvasMode ? 'active' : ''}"
+            data-spectrum-pattern="tab-item ${isCanvasMode ? 'tab-selected' : ''}"
             @click=${() => this._switchPanel('canvas')}
             title="Canvas"
           >Canvas</button>
           
           <button 
             class="navbar-tab ${this.store.currentPanel === 'lyrics' ? 'active' : ''}"
+            data-spectrum-pattern="tab-item ${this.store.currentPanel === 'lyrics' ? 'tab-selected' : ''}"
             @click=${() => this._switchPanel('lyrics')}
             title="Lyrics Sheet"
           >Lyrics</button>
         </div>
         
-        <button class="navbar-title" @click=${this._handleTitleClick} title="Click to manage file">
+        <button class="navbar-title" data-spectrum-pattern="action-button" @click=${this._handleTitleClick} title="Click to manage file">
           ${this.store.songName || 'Untitled'}
         </button>
         
-        <div class="navbar-right">
+        <div class="navbar-right" data-spectrum-pattern="action-group-horizontal">
           <button 
             class="align-btn ${currentPanel === 'canvas-lyrics-left' ? 'active' : ''}"
+            data-spectrum-pattern="action-button ${currentPanel === 'canvas-lyrics-left' ? 'action-button-selected' : ''}"
             @click=${() => this._toggleLyricsPosition('left')}
             ?disabled=${!isCanvasMode}
             title="Lyrics on left (click again to hide)"
@@ -82,6 +86,7 @@ export class AppNavbar extends LitElement {
           >◧</button>
           <button 
             class="align-btn ${currentPanel === 'canvas-lyrics-right' ? 'active' : ''}"
+            data-spectrum-pattern="action-button ${currentPanel === 'canvas-lyrics-right' ? 'action-button-selected' : ''}"
             @click=${() => this._toggleLyricsPosition('right')}
             ?disabled=${!isCanvasMode}
             title="Lyrics on right (click again to hide)"
@@ -89,6 +94,7 @@ export class AppNavbar extends LitElement {
           >◨</button>
           <button 
             class="align-btn ${currentPanel === 'canvas-lyrics-top' ? 'active' : ''}"
+            data-spectrum-pattern="action-button ${currentPanel === 'canvas-lyrics-top' ? 'action-button-selected' : ''}"
             @click=${() => this._toggleLyricsPosition('top')}
             ?disabled=${!isCanvasMode}
             title="Lyrics on top (click again to hide)"
@@ -96,6 +102,7 @@ export class AppNavbar extends LitElement {
           >◩</button>
           <button 
             class="align-btn ${currentPanel === 'canvas-lyrics-bottom' ? 'active' : ''}"
+            data-spectrum-pattern="action-button ${currentPanel === 'canvas-lyrics-bottom' ? 'action-button-selected' : ''}"
             @click=${() => this._toggleLyricsPosition('bottom')}
             ?disabled=${!isCanvasMode}
             title="Lyrics on bottom (click again to hide)"
@@ -104,6 +111,7 @@ export class AppNavbar extends LitElement {
           
           <button 
             class="settings-btn"
+            data-spectrum-pattern="action-button"
             @click=${this._handleSettingsClick}
             title="${this.store.userEmail ? `Syncing as: ${this.store.userEmail}` : 'Set up cloud sync'}"
             aria-label="Settings"

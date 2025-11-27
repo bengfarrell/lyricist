@@ -63,26 +63,27 @@ export class EditModal extends LitElement {
     console.log('Line found:', line, 'Text:', text);
 
     return html`
-      <div class="modal-backdrop" @click=${this._handleBackdropClick}>
-        <div class="modal-content">
-          <div class="modal-header">
+      <div class="modal-backdrop" data-spectrum-pattern="underlay-open" @click=${this._handleBackdropClick}>
+        <div class="modal-content" data-spectrum-pattern="modal-open dialog">
+          <div class="modal-header" data-spectrum-pattern="dialog-heading">
             <h3>Edit Lyric</h3>
-            <button class="close-btn" @click=${this._handleClose}>✕</button>
+            <button class="close-btn" data-spectrum-pattern="action-button-quiet" @click=${this._handleClose}>✕</button>
           </div>
           
-          <div class="modal-body">
+          <div class="modal-body" data-spectrum-pattern="dialog-content">
             <input 
               type="text"
               class="edit-input"
+              data-spectrum-pattern="textfield"
               .value=${text}
               @keydown=${this._handleKeyDown}
               placeholder="Enter lyric text..."
             />
           </div>
           
-          <div class="modal-footer">
-            <button class="btn btn-cancel" @click=${this._handleClose}>Cancel</button>
-            <button class="btn btn-save" @click=${this._handleSave}>Save</button>
+          <div class="modal-footer" data-spectrum-pattern="dialog-footer">
+            <button class="btn btn-cancel" data-spectrum-pattern="button-secondary" @click=${this._handleClose}>Cancel</button>
+            <button class="btn btn-save" data-spectrum-pattern="button-accent" @click=${this._handleSave}>Save</button>
           </div>
         </div>
       </div>

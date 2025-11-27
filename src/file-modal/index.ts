@@ -115,7 +115,7 @@ export class FileModal extends LitElement {
     }
 
     return html`
-      <div class="document-picker">
+      <div class="document-picker" data-spectrum-pattern="menu">
         <div class="document-list">
           ${allSongs.map(song => {
             const isSample = this.store.sampleContent?.sampleSongs?.some(s => s.songId === song.songId);
@@ -123,7 +123,7 @@ export class FileModal extends LitElement {
             const date = new Date(song.lastModified).toLocaleDateString();
             
             return html`
-              <div class="document-item ${isSample ? 'sample-document' : ''}" @click=${() => this._handleDocumentSelect(song.name)}>
+              <div class="document-item ${isSample ? 'sample-document' : ''}" data-spectrum-pattern="menu-item" @click=${() => this._handleDocumentSelect(song.name)}>
                 <div class="document-info">
                   <div class="document-title">${song.name}</div>
                   <div class="document-meta">
@@ -145,8 +145,8 @@ export class FileModal extends LitElement {
     }
 
     return html`
-      <div class="modal-backdrop" @click=${this._handleBackdropClick}>
-        <div class="modal-content">
+      <div class="modal-backdrop" data-spectrum-pattern="underlay-open" @click=${this._handleBackdropClick}>
+        <div class="modal-content" data-spectrum-pattern="modal-open modal-fullscreen">
           <div class="modal-header">
             <label for="file-modal-song-name" class="visually-hidden" data-spectrum-pattern="field-label">Song name</label>
             <input 

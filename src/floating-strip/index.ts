@@ -222,21 +222,21 @@ export class FloatingStrip extends LitElement {
                 <button 
                   class="section-picker-btn" 
                   @click=${this._toggleSectionPicker}
-                  data-spectrum-pattern="picker"
+                  data-spectrum-pattern="button-secondary"
                 >
                   Section...
                 </button>
                 ${this._showSectionPicker ? html`
-                  <div class="section-picker-overlay" @click=${() => { this._showSectionPicker = false; this.requestUpdate(); }}>
-                    <div class="section-picker-panel" @click=${(e: Event) => e.stopPropagation()}>
-                      <button class="section-bubble" @click=${() => this._handleSectionClick('Verse')}>Verse</button>
-                      <button class="section-bubble" @click=${() => this._handleSectionClick('Chorus')}>Chorus</button>
-                      <button class="section-bubble" @click=${() => this._handleSectionClick('Bridge')}>Bridge</button>
-                      <button class="section-bubble" @click=${() => this._handleSectionClick('Intro')}>Intro</button>
-                      <button class="section-bubble" @click=${() => this._handleSectionClick('Outro')}>Outro</button>
-                      <button class="section-bubble" @click=${() => this._handleSectionClick('Pre-Chorus')}>Pre-Chorus</button>
-                      <button class="section-bubble" @click=${() => this._handleSectionClick('Hook')}>Hook</button>
-                      <button class="section-bubble" @click=${() => this._handleSectionClick('Custom')}>Custom...</button>
+                  <div class="section-picker-overlay" data-spectrum-pattern="popover-bottom popover-open" @click=${() => { this._showSectionPicker = false; this.requestUpdate(); }}>
+                    <div class="section-picker-panel" data-spectrum-pattern="menu" @click=${(e: Event) => e.stopPropagation()}>
+                      <button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Verse')}>Verse</button>
+                      <button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Chorus')}>Chorus</button>
+                      <button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Bridge')}>Bridge</button>
+                      <button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Intro')}>Intro</button>
+                      <button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Outro')}>Outro</button>
+                      <button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Pre-Chorus')}>Pre-Chorus</button>
+                      <button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Hook')}>Hook</button>
+                      <button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Custom')}>Custom...</button>
                     </div>
                   </div>
                 ` : ''}
@@ -297,12 +297,12 @@ export class FloatingStrip extends LitElement {
         <button class="dice-btn-icon" data-spectrum-pattern="action-button" @click=${this._rollDice} title="Roll the dice for random word combo!" aria-label="Roll random word combo">
           🎲
         </button>
-        <div class="word-ladder-nav">
-          <button class="carousel-btn" @click=${this._prevSet} ?disabled=${!hasMultipleSets} title="Previous set">‹</button>
+        <div class="word-ladder-nav" data-spectrum-pattern="pagination">
+          <button class="carousel-btn" data-spectrum-pattern="action-button" @click=${this._prevSet} ?disabled=${!hasMultipleSets} title="Previous set">‹</button>
           <span class="set-index">${currentIndex} of ${totalSets}</span>
-          <button class="carousel-btn" @click=${this._nextSet} ?disabled=${!hasMultipleSets} title="Next set">›</button>
+          <button class="carousel-btn" data-spectrum-pattern="action-button" @click=${this._nextSet} ?disabled=${!hasMultipleSets} title="Next set">›</button>
         </div>
-        <button class="add-set-btn" @click=${this._addSet} title="Add new category">+ Add Set</button>
+        <button class="add-set-btn" data-spectrum-pattern="button-secondary" @click=${this._addSet} title="Add new category">+ Add Set</button>
       </div>
     `;
   }
@@ -311,7 +311,7 @@ export class FloatingStrip extends LitElement {
     return html`
       <div class="lyrics-controls">
         <span class="lyrics-info">📝 Song Lyrics</span>
-        <button class="btn btn-secondary" @click=${this._copyLyrics} title="Copy all lyrics">
+        <button class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${this._copyLyrics} title="Copy all lyrics">
           📋 Copy to Clipboard
         </button>
       </div>
