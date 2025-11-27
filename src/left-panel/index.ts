@@ -43,6 +43,32 @@ export class LeftPanel extends LitElement {
   private _editingRightTitle: boolean = false;
   private _editLeftTitleValue: string = '';
   private _editRightTitleValue: string = '';
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    window.addEventListener('next-word-set', this._handleNextSet.bind(this));
+    window.addEventListener('prev-word-set', this._handlePrevSet.bind(this));
+    window.addEventListener('add-word-set', this._handleAddSet.bind(this));
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    window.removeEventListener('next-word-set', this._handleNextSet.bind(this));
+    window.removeEventListener('prev-word-set', this._handlePrevSet.bind(this));
+    window.removeEventListener('add-word-set', this._handleAddSet.bind(this));
+  }
+
+  private _handleNextSet(): void {
+    this._nextSet();
+  }
+
+  private _handlePrevSet(): void {
+    this._prevSet();
+  }
+
+  private _handleAddSet(): void {
+    this._addSet();
+  }
   
   private _getWordSetConfig(): WordSet[] {
     // Convert the store's word ladder sets to the local WordSet format
@@ -124,7 +150,6 @@ export class LeftPanel extends LitElement {
 
     // Always set selection, even if both are placeholders
     this.store.setWordLadderSelection(leftIndex, rightIndex);
-    this._updateInputText();
   }
 
   private _addSet(): void {
@@ -135,9 +160,6 @@ export class LeftPanel extends LitElement {
     // Navigate to the newly added set (last one in the array)
     const newIndex = this.store.wordLadderSets.length - 1;
     this.store.setWordLadderSetIndex(newIndex);
-    
-    // Auto-select placeholders for the new empty category
-    this._selectRandomPairing();
   }
 
   private _startEditLeftTitle(): void {
@@ -208,8 +230,8 @@ export class LeftPanel extends LitElement {
     this._editingRightTitle = false;
   }
 
-  private _addLeftWord(e: Event): void {
-    e.preventDefault();
+  private _addLeftWord(e?: Event): void {
+    if (e) e.preventDefault();
     const word = this._newLeftWord.trim();
     if (!word) return;
     
@@ -217,10 +239,40 @@ export class LeftPanel extends LitElement {
     const newWords = [...currentSet.leftColumn.words, word];
     this.store.setWordLadderLeftWords(newWords);
     this._newLeftWord = '';
+    
+    // Auto-select the newly added word
+    const newIndex = newWords.length - 1;
+    
+    // If right column has words, select the first one (or keep current selection)
+    const rightWords = currentSet.rightColumn.words;
+    let rightIndex = this.store.wordLadderSelectedRight;
+    
+    // If no right selection yet but right words exist, select the first one
+    if (rightIndex === -1 && rightWords.length > 0) {
+      rightIndex = 0;
+    }
+    
+    this.store.setWordLadderSelection(newIndex, rightIndex);
+  }
+  
+  private _handleLeftInputBlur(): void {
+    this._addLeftWord();
+  }
+  
+  private _handleLeftInputKeyDown(e: KeyboardEvent): void {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      this._addLeftWord();
+      // Focus the right input
+      this.updateComplete.then(() => {
+        const rightInput = this.shadowRoot?.querySelector('.word-column:nth-child(2) .word-input-inline') as HTMLInputElement;
+        if (rightInput) rightInput.focus();
+      });
+    }
   }
 
-  private _addRightWord(e: Event): void {
-    e.preventDefault();
+  private _addRightWord(e?: Event): void {
+    if (e) e.preventDefault();
     const word = this._newRightWord.trim();
     if (!word) return;
     
@@ -228,6 +280,36 @@ export class LeftPanel extends LitElement {
     const newWords = [...currentSet.rightColumn.words, word];
     this.store.setWordLadderRightWords(newWords);
     this._newRightWord = '';
+    
+    // Auto-select the newly added word
+    const newIndex = newWords.length - 1;
+    
+    // If left column has words, select the first one (or keep current selection)
+    const leftWords = currentSet.leftColumn.words;
+    let leftIndex = this.store.wordLadderSelectedLeft;
+    
+    // If no left selection yet but left words exist, select the first one
+    if (leftIndex === -1 && leftWords.length > 0) {
+      leftIndex = 0;
+    }
+    
+    this.store.setWordLadderSelection(leftIndex, newIndex);
+  }
+  
+  private _handleRightInputBlur(): void {
+    this._addRightWord();
+  }
+  
+  private _handleRightInputKeyDown(e: KeyboardEvent): void {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      this._addRightWord();
+      // Focus the left input (wrap around)
+      this.updateComplete.then(() => {
+        const leftInput = this.shadowRoot?.querySelector('.word-column:nth-child(1) .word-input-inline') as HTMLInputElement;
+        if (leftInput) leftInput.focus();
+      });
+    }
   }
 
   private _removeLeftWord(wordIndex: number): void {
@@ -253,7 +335,6 @@ export class LeftPanel extends LitElement {
     }
     
     this.store.setWordLadderSelection(newLeftIndex, this.store.wordLadderSelectedRight);
-    this._updateInputText();
   }
 
   private _removeRightWord(wordIndex: number): void {
@@ -279,42 +360,16 @@ export class LeftPanel extends LitElement {
     }
     
     this.store.setWordLadderSelection(this.store.wordLadderSelectedLeft, newRightIndex);
-    this._updateInputText();
   }
 
   private _selectLeftWord(index: number): void {
     const rightIndex = this.store.wordLadderSelectedRight;
     this.store.setWordLadderSelection(index, rightIndex);
-    this._updateInputText();
   }
 
   private _selectRightWord(index: number): void {
     const leftIndex = this.store.wordLadderSelectedLeft;
     this.store.setWordLadderSelection(leftIndex, index);
-    this._updateInputText();
-  }
-
-  private _updateInputText(): void {
-    const currentSet = this.store.currentWordLadderSet;
-    const leftWords = currentSet.leftColumn.words;
-    const rightWords = currentSet.rightColumn.words;
-    const leftIndex = this.store.wordLadderSelectedLeft;
-    const rightIndex = this.store.wordLadderSelectedRight;
-
-    // If both sides have valid word selections, update the input text
-    if (leftIndex !== -1 && rightIndex !== -1 && 
-        leftWords.length > 0 && rightWords.length > 0) {
-      const combinedText = `${leftWords[leftIndex]} ${rightWords[rightIndex]}`;
-      this.store.setNewLineInputText(combinedText);
-    } else if (leftIndex === -1 && rightIndex === -1 && 
-               leftWords.length === 0 && rightWords.length === 0) {
-      // Both are placeholders in an empty category - use category titles
-      const combinedText = `${currentSet.leftColumn.title.toLowerCase()} ${currentSet.rightColumn.title.toLowerCase()}`;
-      this.store.setNewLineInputText(combinedText);
-    } else {
-      // Clear the input to show placeholder
-      this.store.setNewLineInputText('');
-    }
   }
 
   render() {
@@ -324,12 +379,6 @@ export class LeftPanel extends LitElement {
     const hasMultipleSets = this._getWordSetConfig().length > 1;
     
     return html`
-      <div class="left-panel-header">
-        <button class="carousel-btn" data-spectrum-pattern="action-button-quiet" @click=${this._prevSet} ?disabled=${!hasMultipleSets} title="Previous set">‹</button>
-        <h2 class="header-title">📝 Word Ladder</h2>
-        <button class="carousel-btn" data-spectrum-pattern="action-button-quiet" @click=${this._nextSet} ?disabled=${!hasMultipleSets} title="Next set">›</button>
-        <button class="add-set-btn" data-spectrum-pattern="action-button" @click=${this._addSet} title="Add new category">+</button>
-      </div>
       <div class="left-panel-content">
         <div class="word-ladder">
           <div class="word-column">
@@ -340,11 +389,10 @@ export class LeftPanel extends LitElement {
                     type="text"
                     class="edit-left-title"
                     data-spectrum-pattern="textfield"
-                    .value=${this._editLeftTitleValue}
-                    @input=${(e: InputEvent) => {
-                      this._editLeftTitleValue = (e.target as HTMLInputElement).value;
-                      this.requestUpdate();
-                    }}
+                  .value=${this._editLeftTitleValue}
+                  @input=${(e: InputEvent) => {
+                    this._editLeftTitleValue = (e.target as HTMLInputElement).value;
+                  }}
                     @blur=${this._saveLeftTitle}
                     @keydown=${(e: KeyboardEvent) => {
                       if (e.key === 'Escape') this._cancelEditLeftTitle();
@@ -366,31 +414,32 @@ export class LeftPanel extends LitElement {
               <h3 class="column-title editable" @click=${this._startEditLeftTitle} title="Click to edit">${currentSet.leftTitle}</h3>
             `}
             <div class="word-list">
-              ${leftWords.length === 0 ? html`
-                <div class="word-item placeholder ${this.store.wordLadderSelectedLeft === -1 && (this.store.wordLadderSelectedRight !== -1 || rightWords.length === 0) ? 'selected' : ''}" data-spectrum-pattern="list-item">
-                  <span class="word-text">${currentSet.leftTitle.toLowerCase()}</span>
-                </div>
-              ` : leftWords.map((word, index) => html`
+              <!-- Add word item at the top -->
+              <form class="word-item add-word-item" data-spectrum-pattern="form" @submit=${this._addLeftWord} @click=${(e: MouseEvent) => {
+                const input = (e.currentTarget as HTMLFormElement).querySelector('.word-input-inline') as HTMLInputElement;
+                if (input) input.focus();
+              }}>
+                <input
+                  type="text"
+                  class="word-input-inline"
+                  data-spectrum-pattern="textfield"
+                  placeholder="+ Add word..."
+                .value=${this._newLeftWord}
+                @input=${(e: InputEvent) => {
+                  this._newLeftWord = (e.target as HTMLInputElement).value;
+                }}
+                  @blur=${this._handleLeftInputBlur}
+                  @keydown=${this._handleLeftInputKeyDown}
+                />
+              </form>
+              
+              ${leftWords.map((word, index) => html`
                 <div class="word-item ${index === this.store.wordLadderSelectedLeft ? 'selected' : ''}" data-spectrum-pattern="list-item-selectable" @click=${() => this._selectLeftWord(index)}>
                   <span class="word-text">${word}</span>
                   <button class="remove-btn" data-spectrum-pattern="action-button-quiet" @click=${(e: Event) => { e.stopPropagation(); this._removeLeftWord(index); }} title="Remove">×</button>
                 </div>
               `)}
             </div>
-            <form class="add-word-form" data-spectrum-pattern="form" @submit=${this._addLeftWord}>
-              <input
-                type="text"
-                class="word-input"
-                data-spectrum-pattern="textfield"
-                placeholder="Add..."
-                .value=${this._newLeftWord}
-                @input=${(e: InputEvent) => {
-                  this._newLeftWord = (e.target as HTMLInputElement).value;
-                  this.requestUpdate();
-                }}
-              />
-              <button type="submit" class="add-btn" data-spectrum-pattern="action-button" title="Add word">+</button>
-            </form>
           </div>
 
           <div class="word-column">
@@ -401,11 +450,10 @@ export class LeftPanel extends LitElement {
                     type="text"
                     class="edit-right-title"
                     data-spectrum-pattern="textfield"
-                    .value=${this._editRightTitleValue}
-                    @input=${(e: InputEvent) => {
-                      this._editRightTitleValue = (e.target as HTMLInputElement).value;
-                      this.requestUpdate();
-                    }}
+                  .value=${this._editRightTitleValue}
+                  @input=${(e: InputEvent) => {
+                    this._editRightTitleValue = (e.target as HTMLInputElement).value;
+                  }}
                     @blur=${this._saveRightTitle}
                     @keydown=${(e: KeyboardEvent) => {
                       if (e.key === 'Escape') this._cancelEditRightTitle();
@@ -427,31 +475,32 @@ export class LeftPanel extends LitElement {
               <h3 class="column-title editable" @click=${this._startEditRightTitle} title="Click to edit">${currentSet.rightTitle}</h3>
             `}
             <div class="word-list">
-              ${rightWords.length === 0 ? html`
-                <div class="word-item placeholder ${this.store.wordLadderSelectedRight === -1 && (this.store.wordLadderSelectedLeft !== -1 || leftWords.length === 0) ? 'selected' : ''}" data-spectrum-pattern="list-item">
-                  <span class="word-text">${currentSet.rightTitle.toLowerCase()}</span>
-                </div>
-              ` : rightWords.map((word, index) => html`
+              <!-- Add word item at the top -->
+              <form class="word-item add-word-item" data-spectrum-pattern="form" @submit=${this._addRightWord} @click=${(e: MouseEvent) => {
+                const input = (e.currentTarget as HTMLFormElement).querySelector('.word-input-inline') as HTMLInputElement;
+                if (input) input.focus();
+              }}>
+                <input
+                  type="text"
+                  class="word-input-inline"
+                  data-spectrum-pattern="textfield"
+                  placeholder="+ Add word..."
+                .value=${this._newRightWord}
+                @input=${(e: InputEvent) => {
+                  this._newRightWord = (e.target as HTMLInputElement).value;
+                }}
+                  @blur=${this._handleRightInputBlur}
+                  @keydown=${this._handleRightInputKeyDown}
+                />
+              </form>
+              
+              ${rightWords.map((word, index) => html`
                 <div class="word-item ${index === this.store.wordLadderSelectedRight ? 'selected' : ''}" data-spectrum-pattern="list-item-selectable" @click=${() => this._selectRightWord(index)}>
                   <span class="word-text">${word}</span>
                   <button class="remove-btn" data-spectrum-pattern="action-button-quiet" @click=${(e: Event) => { e.stopPropagation(); this._removeRightWord(index); }} title="Remove">×</button>
                 </div>
               `)}
             </div>
-            <form class="add-word-form" data-spectrum-pattern="form" @submit=${this._addRightWord}>
-              <input
-                type="text"
-                class="word-input"
-                data-spectrum-pattern="textfield"
-                placeholder="Add..."
-                .value=${this._newRightWord}
-                @input=${(e: InputEvent) => {
-                  this._newRightWord = (e.target as HTMLInputElement).value;
-                  this.requestUpdate();
-                }}
-              />
-              <button type="submit" class="add-btn" data-spectrum-pattern="action-button" title="Add word">+</button>
-            </form>
           </div>
         </div>
       </div>

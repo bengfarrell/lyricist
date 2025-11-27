@@ -7,24 +7,115 @@ import { lyricsPanelStyles } from './styles.css.ts';
  * Panel component for displaying formatted lyrics with chords
  */
 export class LyricsPanel extends LitElement {
+  static properties = {
+    overlay: { type: Boolean, reflect: true }
+  };
+
   static styles = lyricsPanelStyles;
   
   private store = new SongStoreController(this);
+  
+  overlay = false;
+  private _maxCharsPerLine = 80; // Default, will be calculated dynamically
 
-  private _renderChordLine(line: LyricLine): string {
-    if (!line.chords || line.chords.length === 0) {
+  connectedCallback(): void {
+    super.connectedCallback();
+    window.addEventListener('copy-lyrics', this._handleCopyLyrics.bind(this));
+    window.addEventListener('resize', this._handleResize.bind(this));
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    window.removeEventListener('copy-lyrics', this._handleCopyLyrics.bind(this));
+    window.removeEventListener('resize', this._handleResize.bind(this));
+  }
+
+  firstUpdated(): void {
+    this._calculateMaxChars();
+  }
+
+  private _handleResize(): void {
+    this._calculateMaxChars();
+    this.requestUpdate();
+  }
+
+  private _calculateMaxChars(): void {
+    const content = this.shadowRoot?.querySelector('.lyrics-panel-content');
+    if (!content) return;
+
+    const width = content.clientWidth;
+    // At 16px font, Courier New has character width of ~9.6px
+    // Subtract padding (30px * 2) from available width
+    const availableWidth = width - 60;
+    const charWidth = 9.6;
+    this._maxCharsPerLine = Math.floor(availableWidth / charWidth);
+  }
+
+  private _handleCopyLyrics(): void {
+    this._copyLyricsToClipboard();
+  }
+
+  private _breakLineIntoSegments(line: LyricLine, maxChars: number): Array<{text: string, chords: Array<{name: string, position: number}>}> {
+    // If line has no chords or is short enough, return as single segment
+    const fullText = line.text;
+    const totalChars = fullText.length + 4; // +4 for padding spaces
+    
+    if (!line.chords || line.chords.length === 0 || totalChars <= maxChars) {
+      return [{
+        text: fullText,
+        chords: line.chords || []
+      }];
+    }
+
+    // Break into segments
+    const segments: Array<{text: string, chords: Array<{name: string, position: number}>}> = [];
+    const charsPerSegment = maxChars - 4; // Account for padding
+    let startChar = 0;
+
+    while (startChar < fullText.length) {
+      const endChar = Math.min(startChar + charsPerSegment, fullText.length);
+      const segmentText = fullText.substring(startChar, endChar);
+      
+      // Calculate which chords belong to this segment
+      // Chord positions are percentages of the total line
+      const startPercent = (startChar / fullText.length) * 100;
+      const endPercent = (endChar / fullText.length) * 100;
+      
+      const segmentChords = line.chords
+        .filter(chord => {
+          // Include chord if its position falls within this segment
+          // Chords exactly at the break point go to the next segment
+          return chord.position >= startPercent && chord.position < endPercent;
+        })
+        .map(chord => {
+          // Recalculate position relative to this segment
+          const relativePercent = ((chord.position - startPercent) / (endPercent - startPercent)) * 100;
+          return {
+            name: chord.name,
+            position: relativePercent
+          };
+        });
+
+      segments.push({
+        text: segmentText,
+        chords: segmentChords
+      });
+
+      startChar = endChar;
+    }
+
+    return segments;
+  }
+
+  private _renderChordLine(text: string, chords: Array<{name: string, position: number}>): string {
+    if (!chords || chords.length === 0) {
       return '';
     }
 
     // Sort chords by position
-    const sortedChords = [...line.chords].sort((a, b) => a.position - b.position);
+    const sortedChords = [...chords].sort((a, b) => a.position - b.position);
     
-    // The lyric line in the canvas has 20px padding on each side
-    // Match that exactly by calculating: padding as a fraction of character width
-    // At 16px font, Courier New has character width of ~0.6em = ~9.6px
-    // 20px padding / 9.6px per char = 2.083 chars
-    // But we add the 2 non-breaking spaces in HTML, so we work with text length directly
-    const textLength = line.text.length;
+    const textLength = text.length;
     
     let chordLine = '';
     let currentPos = 0;
@@ -67,7 +158,7 @@ export class LyricsPanel extends LitElement {
 
     sortedItems.forEach(item => {
       if (item.type === 'line') {
-        const chordLine = this._renderChordLine(item);
+        const chordLine = this._renderChordLine(item.text, item.chords || []);
         if (chordLine) {
           text += chordLine + '\n';
         }
@@ -77,7 +168,7 @@ export class LyricsPanel extends LitElement {
         text += `[${item.sectionName}]\n`;
         // Add all lines in the group
         item.lines.forEach(line => {
-          const chordLine = this._renderChordLine(line);
+          const chordLine = this._renderChordLine(line.text, line.chords || []);
           if (chordLine) {
             text += chordLine + '\n';
           }
@@ -105,26 +196,29 @@ export class LyricsPanel extends LitElement {
 
   render() {
     return html`
-      <div class="lyrics-panel-header">
-        <h2>📝 Song Lyrics</h2>
-        <button class="copy-lyrics-btn" @click=${this._copyLyricsToClipboard} title="Copy all lyrics">📋</button>
-      </div>
       <div class="lyrics-panel-content">
         ${this.store.items.length === 0 ? html`
           <div class="lyrics-text empty">
-            No lyrics yet. Add lines and arrange them on the canvas to see your song here.
+            No lyrics yet.<br>
+            Add lines and arrange them<br>
+            on the canvas to see your song here.
           </div>
         ` : html`
           <div class="lyrics-text">
             ${this.store.getSortedItems().map(item => {
               if (item.type === 'line') {
-                // Render a single line
-                const chordLine = this._renderChordLine(item);
+                // Break line into segments if needed
+                const segments = this._breakLineIntoSegments(item, this._maxCharsPerLine);
                 return html`
-                  <div class="lyric-line-with-chords">
-                    ${chordLine ? html`<div class="chord-line">${chordLine}</div>` : ''}
-                    <div class="lyric-text-line">${'\u00A0\u00A0'}${item.text}${'\u00A0\u00A0'}</div>
-                  </div>
+                  ${segments.map(segment => {
+                    const chordLine = this._renderChordLine(segment.text, segment.chords);
+                    return html`
+                      <div class="lyric-line-with-chords">
+                        ${chordLine ? html`<div class="chord-line">${chordLine}</div>` : ''}
+                        <div class="lyric-text-line">${'\u00A0\u00A0'}${segment.text}${'\u00A0\u00A0'}</div>
+                      </div>
+                    `;
+                  })}
                 `;
               } else {
                 // Render a group with section header
@@ -132,12 +226,17 @@ export class LyricsPanel extends LitElement {
                   <div class="section-group">
                     <div class="section-header">[${item.sectionName}]</div>
                     ${item.lines.map(line => {
-                      const chordLine = this._renderChordLine(line);
+                      const segments = this._breakLineIntoSegments(line, this._maxCharsPerLine);
                       return html`
-                        <div class="lyric-line-with-chords">
-                          ${chordLine ? html`<div class="chord-line">${chordLine}</div>` : ''}
-                          <div class="lyric-text-line">${'\u00A0\u00A0'}${line.text}${'\u00A0\u00A0'}</div>
-                        </div>
+                        ${segments.map(segment => {
+                          const chordLine = this._renderChordLine(segment.text, segment.chords);
+                          return html`
+                            <div class="lyric-line-with-chords">
+                              ${chordLine ? html`<div class="chord-line">${chordLine}</div>` : ''}
+                              <div class="lyric-text-line">${'\u00A0\u00A0'}${segment.text}${'\u00A0\u00A0'}</div>
+                            </div>
+                          `;
+                        })}
                       `;
                     })}
                     <div class="section-divider">------------------------</div>

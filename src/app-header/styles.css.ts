@@ -85,5 +85,58 @@ export const appHeaderStyles = css`
   .btn-secondary:hover {
     background: rgba(255, 255, 255, 0.3);
   }
+
+  /* Mobile responsive styles */
+  @media (max-width: 768px) {
+    .header {
+      padding: 12px 15px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      width: 100%;
+    }
+
+    .header-controls {
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .song-name-input {
+      min-width: 0;
+      flex: 1;
+      font-size: 14px;
+      padding: 6px 12px;
+    }
+
+    .btn {
+      padding: 6px 12px;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .header {
+      padding: 10px;
+    }
+
+    .header h1 {
+      font-size: 18px;
+    }
+
+    .song-name-input {
+      font-size: 13px;
+      padding: 5px 10px;
+    }
+
+    .btn {
+      padding: 5px 10px;
+      font-size: 11px;
+    }
+  }
 `;
 

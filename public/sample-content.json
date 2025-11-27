@@ -2,6 +2,8 @@
   "sampleSongs": [
     {
       "name": "Morning Coffee (Sample)",
+      "songId": "11111111-1111-1111-1111-111111111111",
+      "userId": "00000000-0000-0000-0000-000000000000",
       "lastModified": "2024-01-01T00:00:00.000Z",
       "wordLadderSets": [
         {

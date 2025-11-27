@@ -5,9 +5,10 @@ export const lyricsPanelStyles = css`
     display: flex;
     flex-direction: column;
     background: #f8f9fa;
-    border-left: 2px solid #e9ecef;
     overflow: hidden;
     flex-shrink: 0;
+    height: 100%;
+    width: 100%;
   }
 
   .lyrics-panel-header {
@@ -28,7 +29,7 @@ export const lyricsPanelStyles = css`
 
   .copy-lyrics-btn {
     padding: 8px 12px;
-    background: #667eea;
+    background: #374151;
     color: white;
     border: none;
     border-radius: 6px;
@@ -41,7 +42,7 @@ export const lyricsPanelStyles = css`
   }
 
   .copy-lyrics-btn:hover {
-    background: #5568d3;
+    background: #1f2937;
     transform: translateY(-1px);
   }
 
@@ -64,6 +65,16 @@ export const lyricsPanelStyles = css`
       );
   }
 
+  /* Hide scrollbar when used as overlay in canvas mode */
+  :host([overlay]) .lyrics-panel-content {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+
+  :host([overlay]) .lyrics-panel-content::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
   .lyrics-text {
     font-family: 'Courier New', 'Courier', monospace;
     font-size: 16px;
@@ -76,6 +87,7 @@ export const lyricsPanelStyles = css`
     color: #9ca3af;
     font-style: italic;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    white-space: normal;
   }
 
   .lyric-line-with-chords {
@@ -126,6 +138,65 @@ export const lyricsPanelStyles = css`
     color: #9ca3af;
     margin-top: 8px;
     line-height: 16px;
+  }
+
+  /* Mobile responsive styles */
+  @media (max-width: 768px) {
+    .lyrics-panel-header {
+      padding: 12px;
+    }
+
+    .lyrics-panel-header h2 {
+      font-size: 16px;
+    }
+
+    .copy-lyrics-btn {
+      padding: 6px 10px;
+      font-size: 16px;
+    }
+
+    .lyrics-panel-content {
+      padding: 16px;
+    }
+
+    .lyrics-text,
+    .chord-line,
+    .lyric-text-line,
+    .section-header,
+    .section-divider {
+      font-size: 14px;
+    }
+
+    .section-group {
+      margin-top: 20px;
+      margin-bottom: 16px;
+    }
+
+    .section-header {
+      margin-bottom: 6px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .lyrics-panel-header {
+      padding: 10px;
+    }
+
+    .lyrics-panel-header h2 {
+      font-size: 14px;
+    }
+
+    .lyrics-panel-content {
+      padding: 12px;
+    }
+
+    .lyrics-text,
+    .chord-line,
+    .lyric-text-line,
+    .section-header,
+    .section-divider {
+      font-size: 13px;
+    }
   }
 `;
 

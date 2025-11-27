@@ -12,10 +12,8 @@ export const lyricCanvasStyles = css`
     width: 100%;
     height: 100%;
     position: relative;
-    background: linear-gradient(90deg, #f8f9fa 1px, transparent 1px),
-                linear-gradient(#f8f9fa 1px, transparent 1px);
-    background-size: 40px 40px;
     overflow: hidden;
+    touch-action: none;
   }
 
   .empty-state {
@@ -45,10 +43,42 @@ export const lyricCanvasStyles = css`
 
   .selection-box {
     position: absolute;
-    border: 2px solid #667eea;
-    background: rgba(102, 126, 234, 0.1);
+    border: 2px solid #1f2937;
+    background: rgba(0, 0, 0, 0.05);
     pointer-events: none;
     z-index: 10000;
+  }
+
+  /* Mobile responsive styles */
+  @media (max-width: 768px) {
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .empty-state h2 {
+      font-size: 20px;
+      margin: 0 0 8px 0;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .empty-state-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+
+    .empty-state h2 {
+      font-size: 18px;
+    }
+
+    .empty-state p {
+      font-size: 13px;
+    }
   }
 `;
 

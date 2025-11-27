@@ -44,6 +44,9 @@ export class LyricLine extends LitElement {
   private _startY: number = 0;
   _offsetX: number = 0;
   _offsetY: number = 0;
+  private _pointerDownX: number = 0;
+  private _pointerDownY: number = 0;
+  private _hasMoved: boolean = false;
   private _showChordPicker: boolean = false;
   private _pickerPosition: number = 0;
   private _editingChordId: string | null = null;
@@ -62,9 +65,10 @@ export class LyricLine extends LitElement {
   
   private _boundHandleClickOutside?: (e: Event) => void;
   private _boundHandleClosePickerEvent?: (e: Event) => void;
-  private _boundHandleChordDragMove?: (e: MouseEvent) => void;
-  private _boundHandleChordDragEnd?: (e: MouseEvent) => void;
+  private _boundHandleChordDragMove?: (e: PointerEvent) => void;
+  private _boundHandleChordDragEnd?: (e: PointerEvent) => void;
   private _boundHandleKeyDown?: (e: KeyboardEvent) => void;
+  private _boundHandlePointerUp?: (e: PointerEvent) => void;
 
   constructor() {
     super();
@@ -107,14 +111,26 @@ export class LyricLine extends LitElement {
     this.style.zIndex = this.zIndex.toString();
   }
 
-  private _handleMouseDown(e: MouseEvent): void {
+  private _handlePointerDown(e: PointerEvent): void {
     // Don't start dragging if editing text, clicking buttons, or clicking on editable text
     const target = e.target as HTMLElement;
-    if (target.classList.contains('action-btn') || 
-        target.classList.contains('lyric-text-editable') ||
-        this._isEditingText) {
+    
+    // If we're already editing text, completely ignore pointer events
+    if (this._isEditingText) {
+      e.stopPropagation();
       return;
     }
+    
+    if (target.classList.contains('action-btn') || 
+        target.classList.contains('lyric-text-input') ||
+        target.classList.contains('chord-toggle-btn')) {
+      return;
+    }
+
+    // Track initial pointer position for tap detection
+    this._pointerDownX = e.clientX;
+    this._pointerDownY = e.clientY;
+    this._hasMoved = false;
 
     // Select this line
     this.dispatchEvent(new CustomEvent('line-selected', {
@@ -130,19 +146,71 @@ export class LyricLine extends LitElement {
       composed: true
     }));
 
+    // Mark as potentially dragging, but DON'T dispatch drag-start yet
+    // We'll wait to see if this is a drag or a tap
     this._isDragging = true;
-    this.setAttribute('dragging', '');
     
-    // Store the offset between mouse and element position
+    // Store the offset between pointer and element position
     const rect = this.getBoundingClientRect();
     this._offsetX = e.clientX - rect.left;
     this._offsetY = e.clientY - rect.top;
+  }
 
-    this.dispatchEvent(new CustomEvent('drag-start', {
-      detail: { id: this.id },
-      bubbles: true,
-      composed: true
-    }));
+  private _handlePointerUp(e: PointerEvent): void {
+    // Only handle if this line was being interacted with
+    if (!this._isDragging) return;
+    
+    // Calculate how much the pointer moved
+    const deltaX = Math.abs(e.clientX - this._pointerDownX);
+    const deltaY = Math.abs(e.clientY - this._pointerDownY);
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    // Reset dragging state
+    this._isDragging = false;
+    this.removeAttribute('dragging');
+    
+    // If pointer didn't move much (less than 5px), treat it as a tap
+    if (distance < 5) {
+      // Check if the pointer is over this line's text area
+      const composedPath = e.composedPath();
+      const isOverThisLine = composedPath.includes(this);
+      
+      if (!isOverThisLine) return;
+      
+      const target = e.target as HTMLElement;
+      // Don't activate editing if clicking on buttons
+      if (target.classList.contains('action-btn') || 
+          target.classList.contains('chord-toggle-btn')) {
+        return;
+      }
+      
+      // TODO: Inline editing on Android/mobile was extremely problematic
+      // Issues encountered:
+      // 1. Contenteditable in Shadow DOM didn't receive input events from Android IME
+      // 2. Native <input> elements caused Chrome crashes when combined with touch drag system
+      // 3. Race conditions between drag detection and focus caused "Aw Snap" crashes
+      // 4. Touch-action CSS property conflicts prevented keyboard input
+      // 5. Event propagation issues with pointer/touch events in nested Shadow DOM
+      // 
+      // Solution: Use a modal dialog for mobile editing (standard mobile UX pattern)
+      // - Completely separates editing from drag system
+      // - Input is in a separate DOM context (no Shadow DOM issues)
+      // - Android IME works reliably with standard form input
+      // - No touch-action conflicts
+      // 
+      // Desktop double-click inline editing still works normally
+      
+      // On touch devices (pointerType === 'touch'), open the edit modal
+      if (e.pointerType === 'touch') {
+        console.log('Opening edit modal for touch tap on line:', this.id);
+        this.dispatchEvent(new CustomEvent('open-edit-modal', {
+          detail: { id: this.id },
+          bubbles: true,
+          composed: true
+        }));
+        return;
+      }
+    }
   }
 
   private _handleDoubleClick(e: MouseEvent): void {
@@ -154,20 +222,14 @@ export class LyricLine extends LitElement {
 
     e.stopPropagation();
     this._isEditingText = true;
+    this.setAttribute('editing-text', '');
     
-    // Focus the editable span after render
+    // Focus the input after render
     this.updateComplete.then(() => {
-      const editableSpan = this.shadowRoot?.querySelector('.lyric-text-editable') as HTMLElement;
-      if (editableSpan) {
-        editableSpan.focus();
-        // Select all text
-        const range = document.createRange();
-        range.selectNodeContents(editableSpan);
-        const selection = window.getSelection();
-        if (selection) {
-          selection.removeAllRanges();
-          selection.addRange(range);
-        }
+      const input = this.shadowRoot?.querySelector('.lyric-text-input') as HTMLInputElement;
+      if (input) {
+        input.focus();
+        input.select();
       }
     });
   }
@@ -175,29 +237,23 @@ export class LyricLine extends LitElement {
   // Public method to programmatically start editing
   focusTextarea(): void {
     this._isEditingText = true;
+    this.setAttribute('editing-text', '');
     
-    // Focus the editable span after render
+    // Focus the input after render
     this.updateComplete.then(() => {
-      const editableSpan = this.shadowRoot?.querySelector('.lyric-text-editable') as HTMLElement;
-      if (editableSpan) {
-        editableSpan.focus();
-        // Select all text if there is any
+      const input = this.shadowRoot?.querySelector('.lyric-text-input') as HTMLInputElement;
+      if (input) {
+        input.focus();
         if (this.text) {
-          const range = document.createRange();
-          range.selectNodeContents(editableSpan);
-          const selection = window.getSelection();
-          if (selection) {
-            selection.removeAllRanges();
-            selection.addRange(range);
-          }
+          input.select();
         }
       }
     });
   }
 
   private _handleTextBlur(e: FocusEvent): void {
-    const target = e.target as HTMLElement;
-    const newText = target.textContent?.trim();
+    const target = e.target as HTMLInputElement;
+    const newText = target.value?.trim();
     if (newText && newText !== this.text) {
       this.dispatchEvent(new CustomEvent('text-changed', {
         detail: { id: this.id, text: newText },
@@ -206,6 +262,7 @@ export class LyricLine extends LitElement {
       }));
     }
     this._isEditingText = false;
+    this.removeAttribute('editing-text');
   }
 
   private _handleTextKeyDown(e: KeyboardEvent): void {
@@ -215,6 +272,7 @@ export class LyricLine extends LitElement {
     } else if (e.key === 'Escape') {
       e.preventDefault();
       this._isEditingText = false;
+      this.removeAttribute('editing-text');
     }
   }
 
@@ -277,7 +335,7 @@ export class LyricLine extends LitElement {
     this._calculatePickerPosition();
   }
 
-  private _handleChordMarkerMouseDown(e: MouseEvent, chord: Chord): void {
+  private _handleChordMarkerPointerDown(e: PointerEvent, chord: Chord): void {
     e.stopPropagation();
     
     // Set this chord as active for keyboard control
@@ -301,7 +359,7 @@ export class LyricLine extends LitElement {
     this._pickerWasOpenBeforeDrag = pickerWasOpen;
   }
 
-  private _handleChordDragMove(e: MouseEvent): void {
+  private _handleChordDragMove(e: PointerEvent): void {
     if (!this._draggedChordId) return;
     
     const dragDistance = Math.abs(e.clientX - this._dragStartX);
@@ -325,12 +383,12 @@ export class LyricLine extends LitElement {
       }
     }
     
-    // Always update position while mouse is moving, regardless of threshold
+    // Always update position while pointer is moving, regardless of threshold
     const chordSection = this.shadowRoot?.querySelector('.chord-section');
     if (!chordSection) return;
     
     const rect = chordSection.getBoundingClientRect();
-    // Subtract the offset so the chord center follows the mouse properly
+    // Subtract the offset so the chord center follows the pointer properly
     const relativeX = e.clientX - rect.left - this._chordDragOffsetX;
     const newPosition = Math.max(0, Math.min(100, (relativeX / rect.width) * 100));
     
@@ -346,7 +404,7 @@ export class LyricLine extends LitElement {
     }));
   }
 
-  private _handleChordDragEnd(e: MouseEvent): void {
+  private _handleChordDragEnd(e: PointerEvent): void {
     if (!this._draggedChordId) return;
     
     const chord = this.chords.find(c => c.id === this._draggedChordId);
@@ -498,11 +556,13 @@ export class LyricLine extends LitElement {
     this._boundHandleChordDragMove = this._handleChordDragMove.bind(this);
     this._boundHandleChordDragEnd = this._handleChordDragEnd.bind(this);
     this._boundHandleKeyDown = this._handleKeyDown.bind(this);
+    this._boundHandlePointerUp = this._handlePointerUp.bind(this);
     document.addEventListener('click', this._boundHandleClickOutside);
     document.addEventListener('close-chord-picker', this._boundHandleClosePickerEvent);
-    document.addEventListener('mousemove', this._boundHandleChordDragMove);
-    document.addEventListener('mouseup', this._boundHandleChordDragEnd);
+    document.addEventListener('pointermove', this._boundHandleChordDragMove);
+    document.addEventListener('pointerup', this._boundHandleChordDragEnd);
     document.addEventListener('keydown', this._boundHandleKeyDown);
+    window.addEventListener('pointerup', this._boundHandlePointerUp);
   }
 
   disconnectedCallback(): void {
@@ -514,13 +574,16 @@ export class LyricLine extends LitElement {
       document.removeEventListener('close-chord-picker', this._boundHandleClosePickerEvent);
     }
     if (this._boundHandleChordDragMove) {
-      document.removeEventListener('mousemove', this._boundHandleChordDragMove);
+      document.removeEventListener('pointermove', this._boundHandleChordDragMove);
     }
     if (this._boundHandleChordDragEnd) {
-      document.removeEventListener('mouseup', this._boundHandleChordDragEnd);
+      document.removeEventListener('pointerup', this._boundHandleChordDragEnd);
     }
     if (this._boundHandleKeyDown) {
       document.removeEventListener('keydown', this._boundHandleKeyDown);
+    }
+    if (this._boundHandlePointerUp) {
+      window.removeEventListener('pointerup', this._boundHandlePointerUp);
     }
     
     // Clean up cursor if we were dragging
@@ -541,14 +604,14 @@ export class LyricLine extends LitElement {
     return html`
       <div 
         class="container"
-        @mousedown=${this._handleMouseDown}
-        @dblclick=${this._handleDoubleClick}
+        @pointerdown=${this._isEditingText ? null : this._handlePointerDown}
+        @dblclick=${this._isEditingText ? null : this._handleDoubleClick}
       >
         ${this.hasChordSection ? html`
           <div 
             class="chord-section"
             @click=${this._handleChordSectionClick}
-            @mousedown=${(e: MouseEvent) => e.stopPropagation()}
+            @pointerdown=${(e: PointerEvent) => e.stopPropagation()}
           >
             ${this.chords.length === 0 ? html`
               <div class="chord-section-hint">Click to add chords</div>
@@ -559,7 +622,7 @@ export class LyricLine extends LitElement {
                 <div 
                   class="chord-marker ${chord.id === this._activeChordId ? 'active' : ''}" 
                   style="left: ${chord.position}%"
-                  @mousedown=${(e: MouseEvent) => this._handleChordMarkerMouseDown(e, chord)}
+                  @pointerdown=${(e: PointerEvent) => this._handleChordMarkerPointerDown(e, chord)}
                   @click=${(e: MouseEvent) => e.stopPropagation()}
                 >
                   ${chord.name}
@@ -593,12 +656,15 @@ export class LyricLine extends LitElement {
         
         <div class="lyric-line">
           ${this._isEditingText ? html`
-            <span 
-              class="lyric-text-editable"
-              contenteditable="true"
+            <input 
+              type="text"
+              class="lyric-text-input"
+              inputmode="text"
+              spellcheck="true"
+              .value=${this.text}
               @blur=${this._handleTextBlur}
               @keydown=${this._handleTextKeyDown}
-            >${this.text}</span>
+            />
           ` : this.text}
           <button class="action-btn duplicate-btn" @click=${this._handleDuplicate}>⊕</button>
           <button class="chord-toggle-btn" @click=${this._handleToggleChordSection}>

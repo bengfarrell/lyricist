@@ -158,9 +158,9 @@ describe('SongStore - Word Ladder', () => {
       store.setWordLadderRightWords(['moon', 'star']);
     });
 
-    it('should include word ladder sets when saving a song', () => {
+    it('should include word ladder sets when saving a song', async () => {
       store.setSongName('Test Song');
-      store.saveSong();
+      await store.saveSong();
       
       const savedSongs = store.savedSongs;
       expect(savedSongs).toHaveLength(1);
@@ -170,11 +170,11 @@ describe('SongStore - Word Ladder', () => {
       expect(savedSongs[0].wordLadderSets![0].rightColumn.words).toEqual(['moon', 'star']);
     });
 
-    it('should restore word ladder sets when loading a song', () => {
+    it('should restore word ladder sets when loading a song', async () => {
       store.setSongName('Test Song');
       store.setWordLadderLeftWords(['dance', 'sing']);
       store.setWordLadderRightWords(['moon', 'star']);
-      store.saveSong();
+      await store.saveSong();
       
       // Create new store and load
       const newStore = new SongStore();

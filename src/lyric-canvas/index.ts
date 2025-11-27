@@ -15,41 +15,38 @@ export class LyricCanvas extends LitElement {
   private store = new SongStoreController(this);
   
   private _draggedItem: CanvasItem | null = null;
-  private _boundHandleMouseMove?: (e: MouseEvent) => void;
-  private _boundHandleMouseUp?: (e: MouseEvent) => void;
+  private _boundHandlePointerMove?: (e: PointerEvent) => void;
+  private _boundHandlePointerUp?: (e: PointerEvent) => void;
   
   // Selection box state
   private _isSelectionBoxActive: boolean = false;
   private _selectionBoxStart: { x: number; y: number } | null = null;
   private _selectionBoxEnd: { x: number; y: number } | null = null;
   
-  // Click detection for adding lines
-  private _canvasMouseDownPos: { x: number; y: number } | null = null;
+  // Track pointer down position for selection box
+  private _canvasPointerDownPos: { x: number; y: number } | null = null;
 
   connectedCallback(): void {
     super.connectedCallback();
-    this._boundHandleMouseMove = this._handleMouseMove.bind(this);
-    this._boundHandleMouseUp = this._handleMouseUp.bind(this);
-    window.addEventListener('mousemove', this._boundHandleMouseMove);
-    window.addEventListener('mouseup', this._boundHandleMouseUp);
+    this._boundHandlePointerMove = this._handlePointerMove.bind(this);
+    this._boundHandlePointerUp = this._handlePointerUp.bind(this);
+    window.addEventListener('pointermove', this._boundHandlePointerMove);
+    window.addEventListener('pointerup', this._boundHandlePointerUp);
   }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    if (this._boundHandleMouseMove) {
-      window.removeEventListener('mousemove', this._boundHandleMouseMove);
+    if (this._boundHandlePointerMove) {
+      window.removeEventListener('pointermove', this._boundHandlePointerMove);
     }
-    if (this._boundHandleMouseUp) {
-      window.removeEventListener('mouseup', this._boundHandleMouseUp);
+    if (this._boundHandlePointerUp) {
+      window.removeEventListener('pointerup', this._boundHandlePointerUp);
     }
   }
 
   private _handleDragStart(e: CustomEvent): void {
-    const item = this.store.items.find(item => item.id === e.detail.id);
-    if (item) {
-      this._draggedItem = item;
-      cursorManager.setCursor('move');
-    }
+    // This handler is no longer used - drag is now initiated on movement
+    // Keeping for backwards compatibility but it does nothing
   }
 
   private _handleBringToFront(e: CustomEvent): void {
@@ -63,7 +60,44 @@ export class LyricCanvas extends LitElement {
     this.store.bringLineToFront(clickedId);
   }
 
-  private _handleMouseMove(e: MouseEvent): void {
+  private _handleCancelDrag(e: CustomEvent): void {
+    // No longer needed - drag is initiated on movement, not on pointerdown
+    // Taps never enter drag mode
+  }
+
+  private _handleOpenEditModal(e: CustomEvent): void {
+    console.log('Canvas received open-edit-modal event for:', e.detail.id);
+    this.store.setEditingLineId(e.detail.id);
+  }
+
+  private _handlePointerMove(e: PointerEvent): void {
+    // Check if any line is potentially being dragged and start drag if movement detected
+    if (!this._draggedItem) {
+      // Look for any lyric-line or lyric-group that might be in drag mode
+      const allElements = this.shadowRoot?.querySelectorAll('lyric-line, lyric-group');
+      if (allElements) {
+        for (const element of Array.from(allElements)) {
+          const elem = element as any;
+          if (elem._isDragging && !elem._isEditingText) {
+            // Check if pointer has moved enough to initiate drag
+            const deltaX = Math.abs(e.clientX - elem._pointerDownX);
+            const deltaY = Math.abs(e.clientY - elem._pointerDownY);
+            if (deltaX > 5 || deltaY > 5) {
+              // Movement detected - start dragging
+              const itemId = elem.id;
+              const item = this.store.items.find(i => i.id === itemId);
+              if (item) {
+                this._draggedItem = item;
+                elem.setAttribute('dragging', '');
+                cursorManager.setCursor('move');
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+    
     // Handle item dragging
     if (this._draggedItem) {
       const canvas = this.shadowRoot?.querySelector('.canvas');
@@ -100,7 +134,7 @@ export class LyricCanvas extends LitElement {
     }
   }
 
-  private _handleMouseUp(e: MouseEvent): void {
+  private _handlePointerUp(e: PointerEvent): void {
     // Handle item drag end
     if (this._draggedItem) {
       const elementSelector = this._draggedItem.type === 'line' ? 'lyric-line' : 'lyric-group';
@@ -112,27 +146,23 @@ export class LyricCanvas extends LitElement {
       cursorManager.clearCursor();
     }
     
-    // Handle selection box end or click to add line
-    if (this._isSelectionBoxActive && this._canvasMouseDownPos) {
+    // Handle selection box end
+    if (this._isSelectionBoxActive && this._canvasPointerDownPos) {
       const canvas = this.shadowRoot?.querySelector('.canvas');
       if (canvas) {
         const rect = canvas.getBoundingClientRect();
-        const mouseUpX = e.clientX - rect.left;
-        const mouseUpY = e.clientY - rect.top;
+        const pointerUpX = e.clientX - rect.left;
+        const pointerUpY = e.clientY - rect.top;
         
-        // Calculate distance between mousedown and mouseup
-        const dx = mouseUpX - this._canvasMouseDownPos.x;
-        const dy = mouseUpY - this._canvasMouseDownPos.y;
+        // Calculate distance between pointerdown and pointerup
+        const dx = pointerUpX - this._canvasPointerDownPos.x;
+        const dy = pointerUpY - this._canvasPointerDownPos.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        // If distance is small (less than 5 pixels), it's a click, not a drag
+        // If distance is greater than threshold, it's a drag - complete the selection box
         const CLICK_THRESHOLD = 5;
         
-        if (distance < CLICK_THRESHOLD) {
-          // It's a click - add a new line at this position
-          this._addLineAtPosition(this._canvasMouseDownPos.x, this._canvasMouseDownPos.y);
-        } else {
-          // It's a drag - complete the selection box
+        if (distance >= CLICK_THRESHOLD) {
           this._updateSelectionFromBox(e.shiftKey);
         }
       }
@@ -140,7 +170,7 @@ export class LyricCanvas extends LitElement {
       this._isSelectionBoxActive = false;
       this._selectionBoxStart = null;
       this._selectionBoxEnd = null;
-      this._canvasMouseDownPos = null;
+      this._canvasPointerDownPos = null;
       this.requestUpdate();
     }
   }
@@ -249,8 +279,7 @@ export class LyricCanvas extends LitElement {
   private _handleTextChanged(e: CustomEvent): void {
     const { id, text } = e.detail;
     this.store.updateLineText(id, text);
-    // Auto-save on text change
-    this.store.saveSong();
+    // Note: Auto-save to localStorage happens automatically via store
   }
 
   private _handleLineSelected(e: CustomEvent): void {
@@ -312,11 +341,20 @@ export class LyricCanvas extends LitElement {
     this.store.addLine(newLine);
   }
 
-  private _handleCanvasClick(e: MouseEvent): void {
-    // This will be handled by mousedown/mouseup for selection box
+  private _handleCanvasDoubleClick(e: PointerEvent): void {
+    // Only add line if double-clicking directly on canvas background
+    if (e.target !== e.currentTarget) return;
+    
+    const canvas = e.currentTarget as HTMLElement;
+    const rect = canvas.getBoundingClientRect();
+    
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+    
+    this._addLineAtPosition(clickX, clickY);
   }
   
-  private _handleCanvasMouseDown(e: MouseEvent): void {
+  private _handleCanvasPointerDown(e: PointerEvent): void {
     // Only start selection box if clicking directly on canvas background
     if (e.target !== e.currentTarget) return;
     
@@ -329,7 +367,7 @@ export class LyricCanvas extends LitElement {
     this._isSelectionBoxActive = true;
     this._selectionBoxStart = { x: clickX, y: clickY };
     this._selectionBoxEnd = { ...this._selectionBoxStart };
-    this._canvasMouseDownPos = { x: clickX, y: clickY };
+    this._canvasPointerDownPos = { x: clickX, y: clickY };
     
     // Clear selection if shift is not held
     if (!e.shiftKey) {
@@ -346,7 +384,9 @@ export class LyricCanvas extends LitElement {
     
     return html`
       <div class="canvas" 
-        @drag-start=${this._handleDragStart} 
+        @drag-start=${this._handleDragStart}
+        @cancel-drag=${this._handleCancelDrag}
+        @open-edit-modal=${this._handleOpenEditModal}
         @delete-line=${this._handleDeleteLine} 
         @duplicate-line=${this._handleDuplicateLine}
         @delete-group=${this._handleDeleteGroup}
@@ -361,7 +401,8 @@ export class LyricCanvas extends LitElement {
         @text-changed=${this._handleTextChanged}
         @line-selected=${this._handleLineSelected}
         @group-selected=${this._handleGroupSelected}
-        @mousedown=${this._handleCanvasMouseDown}
+        @pointerdown=${this._handleCanvasPointerDown}
+        @dblclick=${this._handleCanvasDoubleClick}
       >
         ${this.store.items.length === 0 ? html`
           <div class="empty-state">

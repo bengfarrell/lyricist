@@ -28,7 +28,7 @@ describe('SongStore', () => {
 
     it('should load saved songs from localStorage', () => {
       const mockSongs: SavedSong[] = [
-        { name: 'Test', lines: [], lastModified: '2025-01-01' },
+        { name: 'Test', songId: 'test-song-id', userId: 'test-user-id', lines: [], lastModified: '2025-01-01' },
       ];
       localStorage.setItem('lyricist-songs', JSON.stringify(mockSongs));
 
@@ -256,7 +256,7 @@ describe('SongStore', () => {
       expect(store.songName).toBe('My Song');
     });
 
-    it('should save a song', () => {
+    it('should save a song', async () => {
       store.setSongName('Test Song');
       const line: LyricLine = {
         id: 'line-1',
@@ -271,7 +271,7 @@ describe('SongStore', () => {
       };
       store.addLine(line);
 
-      const result = store.saveSong();
+      const result = await store.saveSong();
 
       expect(result).toBe(true);
       expect(store.savedSongs).toHaveLength(1);
@@ -279,7 +279,7 @@ describe('SongStore', () => {
       expect(store.savedSongs[0].items).toHaveLength(1);
     });
 
-    it('should not save song without name', () => {
+    it('should not save song without name', async () => {
       const line: LyricLine = {
         id: 'line-1',
         type: 'line' as const,
@@ -293,7 +293,7 @@ describe('SongStore', () => {
       };
       store.addLine(line);
 
-      const result = store.saveSong();
+      const result = await store.saveSong();
 
       expect(result).toBe(false);
       expect(store.savedSongs).toHaveLength(0);
@@ -302,6 +302,8 @@ describe('SongStore', () => {
     it('should load a song', () => {
       const song: SavedSong = {
         name: 'Loaded Song',
+        songId: 'test-song-id',
+        userId: 'test-user-id',
         lines: [
           {
             id: 'line-1',
@@ -325,11 +327,11 @@ describe('SongStore', () => {
       expect(store.lines[0].hasChordSection).toBe(false); // Should close chord sections
     });
 
-    it('should delete a saved song', () => {
+    it('should delete a saved song', async () => {
       store.setSongName('Test Song');
-      store.saveSong();
+      await store.saveSong();
 
-      store.deleteSong('Test Song');
+      await store.deleteSong('Test Song');
 
       expect(store.savedSongs).toHaveLength(0);
     });
@@ -386,6 +388,8 @@ describe('SongStore', () => {
     it('should import song from JSON', () => {
       const importedSong: SavedSong = {
         name: 'Imported',
+        songId: 'imported-song-id',
+        userId: 'imported-user-id',
         lines: [
           {
             id: 'line-1',
@@ -638,6 +642,8 @@ describe('SongStore', () => {
       
       const song: SavedSong = {
         name: 'New Song',
+        songId: 'test-song-id',
+        userId: 'test-user-id',
         lines: [],
         lastModified: '2025-01-01',
       };
@@ -659,6 +665,8 @@ describe('SongStore', () => {
       
       const song: SavedSong = {
         name: 'Imported',
+        songId: 'imported-song-id',
+        userId: 'imported-user-id',
         lines: [],
         lastModified: '2025-01-01',
       };

@@ -7,9 +7,12 @@ A beautiful LitElement-based web component app for creating and arranging song l
 - ✨ Add lyric lines one at a time
 - 🎯 Drag and drop lines anywhere on the canvas
 - 📋 Double-click any line to copy it to clipboard
-- 💾 Save and load songs using localStorage
+- 💾 Auto-save to localStorage (instant backup)
+- ☁️ Cloud sync with DynamoDB (optional)
 - 📦 Import/Export songs as JSON files
 - 🎨 Beautiful, modern UI with smooth animations
+- 🎵 Organize lyrics into sections (Verse, Chorus, etc.)
+- 🎸 Add chords above lyrics
 
 ## Getting Started
 
@@ -18,6 +21,22 @@ A beautiful LitElement-based web component app for creating and arranging song l
 ```bash
 npm install
 ```
+
+### Environment Setup (Required for Cloud Sync)
+
+If you want cloud sync to work:
+
+```bash
+# Copy the environment template
+cp env.template .env
+
+# Edit .env and add your API Gateway URL
+# VITE_API_URL=https://your-api-url...
+```
+
+See [ENV_SETUP.md](./ENV_SETUP.md) for detailed instructions.
+
+**Note:** The app works fine without cloud sync - it will just use localStorage only.
 
 ### Development
 
@@ -58,14 +77,25 @@ npm test
 
 ## Technology Stack
 
+### Frontend
 - **LitElement** - Fast, lightweight web components
 - **Vite** - Modern build tool and dev server
 - **Vitest** - Unit testing framework
-- **localStorage** - Client-side data persistence
+- **localStorage** - Client-side data persistence (auto-save)
+
+### Cloud Sync (Optional)
+- **AWS DynamoDB** - Cloud database for song storage
+- **API Gateway** - REST API endpoints
+- **Lambda** - Serverless functions for data operations
+
+See [CLOUD_SYNC_README.md](./CLOUD_SYNC_README.md) for cloud sync documentation.
 
 ## License
 
 MIT
+
+
+
 
 
 

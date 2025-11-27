@@ -35,11 +35,27 @@ export const loadDialogStyles = css`
     color: #333;
   }
 
+  .song-section {
+    margin-bottom: 24px;
+  }
+
+  .song-section:last-of-type {
+    margin-bottom: 20px;
+  }
+
+  .section-heading {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
   .song-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin-bottom: 20px;
   }
 
   .song-item {
@@ -56,6 +72,16 @@ export const loadDialogStyles = css`
   .song-item:hover {
     border-color: #667eea;
     background: #f8f9fa;
+  }
+
+  .sample-item {
+    border-style: dashed;
+    border-color: #d1d5db;
+  }
+
+  .sample-item:hover {
+    border-color: #667eea;
+    border-style: solid;
   }
 
   .song-item-info {
@@ -136,6 +162,114 @@ export const loadDialogStyles = css`
     color: #6b7280;
     text-align: center;
     padding: 40px 0;
+  }
+
+  /* Mobile responsive styles */
+  @media (max-width: 768px) {
+    .dialog {
+      min-width: 0;
+      max-width: 90%;
+      width: 90%;
+      padding: 20px;
+      max-height: 85vh;
+    }
+
+    .dialog h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+
+    .section-heading {
+      font-size: 14px;
+    }
+
+    .song-item {
+      padding: 12px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .song-item-name {
+      font-size: 16px;
+    }
+
+    .song-item-meta {
+      font-size: 12px;
+    }
+
+    .btn {
+      padding: 6px 16px;
+      font-size: 12px;
+      width: 100%;
+    }
+
+    .export-section h3 {
+      font-size: 16px;
+    }
+
+    .export-actions {
+      flex-direction: column;
+    }
+
+    .dialog-actions {
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .dialog {
+      width: 95%;
+      max-width: 95%;
+      padding: 16px;
+      max-height: 90vh;
+      border-radius: 12px;
+    }
+
+    .dialog h2 {
+      font-size: 18px;
+    }
+
+    .section-heading {
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .song-section {
+      margin-bottom: 20px;
+    }
+
+    .song-item {
+      padding: 10px;
+    }
+
+    .song-item-name {
+      font-size: 15px;
+    }
+
+    .song-item-meta {
+      font-size: 11px;
+    }
+
+    .btn {
+      padding: 6px 12px;
+      font-size: 11px;
+    }
+
+    .export-section {
+      margin-top: 16px;
+      padding-top: 16px;
+    }
+
+    .export-section h3 {
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+
+    .empty-message {
+      padding: 30px 0;
+      font-size: 14px;
+    }
   }
 `;
 

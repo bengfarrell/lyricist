@@ -51,10 +51,30 @@ export class SongStoreController implements ReactiveController {
     return songStore.savedSongs;
   }
   
+  get sampleContent() {
+    return songStore.sampleContent;
+  }
+  
   get showLoadDialog(): boolean {
     return songStore.showLoadDialog;
   }
   
+  get showFileModal(): boolean {
+    return songStore.showFileModal;
+  }
+
+  get editingLineId(): string | null {
+    return songStore.editingLineId;
+  }
+
+  get showEmailPrompt(): boolean {
+    return songStore.showEmailPrompt;
+  }
+
+  get userEmail(): string | null {
+    return songStore.userEmail;
+  }
+
   get lyricsPanelWidth(): number {
     return songStore.lyricsPanelWidth;
   }
@@ -69,6 +89,14 @@ export class SongStoreController implements ReactiveController {
   
   get newLineInputText(): string {
     return songStore.newLineInputText;
+  }
+  
+  get currentPanel(): 'word-ladder' | 'canvas' | 'lyrics' | 'canvas-lyrics-left' | 'canvas-lyrics-right' | 'canvas-lyrics-top' | 'canvas-lyrics-bottom' {
+    return songStore.currentPanel;
+  }
+  
+  get stripRetracted(): boolean {
+    return songStore.stripRetracted;
   }
   
   get wordLadderSetIndex(): number {
@@ -189,7 +217,7 @@ export class SongStoreController implements ReactiveController {
   
   // ===== Song Management Actions =====
   
-  saveSong(): boolean {
+  saveSong(): Promise<boolean> {
     return songStore.saveSong();
   }
   
@@ -197,8 +225,8 @@ export class SongStoreController implements ReactiveController {
     songStore.loadSong(song);
   }
   
-  deleteSong(songName: string): void {
-    songStore.deleteSong(songName);
+  deleteSong(songName: string): Promise<void> {
+    return songStore.deleteSong(songName);
   }
   
   newSong(): void {
@@ -219,10 +247,38 @@ export class SongStoreController implements ReactiveController {
     songStore.loadSampleSong();
   }
   
+  async refreshSongsFromCloud(): Promise<void> {
+    await songStore.refreshSongsFromCloud();
+  }
+  
   // ===== UI State Actions =====
   
-  setShowLoadDialog(show: boolean): void {
-    songStore.setShowLoadDialog(show);
+  async setShowLoadDialog(show: boolean): Promise<void> {
+    await songStore.setShowLoadDialog(show);
+  }
+  
+  setShowFileModal(show: boolean): void {
+    songStore.setShowFileModal(show);
+  }
+
+  setEditingLineId(id: string | null): void {
+    songStore.setEditingLineId(id);
+  }
+  
+  setShowEmailPrompt(show: boolean): void {
+    songStore.setShowEmailPrompt(show);
+  }
+  
+  setUserEmail(email: string): Promise<void> {
+    return songStore.setUserEmail(email);
+  }
+  
+  setCurrentPanel(panel: 'word-ladder' | 'canvas' | 'lyrics' | 'canvas-lyrics-left' | 'canvas-lyrics-right' | 'canvas-lyrics-top' | 'canvas-lyrics-bottom'): void {
+    songStore.setCurrentPanel(panel);
+  }
+  
+  setStripRetracted(retracted: boolean): void {
+    songStore.setStripRetracted(retracted);
   }
   
   setLyricsPanelWidth(width: number): void {
@@ -311,6 +367,12 @@ export class SongStoreController implements ReactiveController {
   
   getMaxZIndex(): number {
     return songStore.getMaxZIndex();
+  }
+  
+  // ===== Alignment Actions =====
+  
+  alignSelectedItems(alignment: 'left' | 'center' | 'right', canvasWidth: number): void {
+    songStore.alignSelectedItems(alignment, canvasWidth);
   }
 }
 
