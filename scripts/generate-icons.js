@@ -35,3 +35,4 @@ console.log('✅ PWA icons generated in public/ folder');
 console.log('💡 These are placeholder SVG icons. Replace with PNG for better compatibility!');
 
 
+
