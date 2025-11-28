@@ -2,6 +2,11 @@ import { LitElement, html } from 'lit';
 import { SongStoreController } from '../store/index';
 import { editModalStyles } from './styles.css.ts';
 
+// Spectrum Web Components
+import '@spectrum-web-components/textfield/sp-textfield.js';
+import '@spectrum-web-components/button/sp-button.js';
+import '@spectrum-web-components/action-button/sp-action-button.js';
+
 /**
  * Simple modal for editing lyric text on mobile
  */
@@ -67,23 +72,21 @@ export class EditModal extends LitElement {
         <div class="modal-content" data-spectrum-pattern="modal-open dialog">
           <div class="modal-header" data-spectrum-pattern="dialog-heading">
             <h3>Edit Lyric</h3>
-            <button class="close-btn" data-spectrum-pattern="action-button-quiet" @click=${this._handleClose}>✕</button>
+            <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleClose}>✕</sp-action-button>
           </div>
           
           <div class="modal-body" data-spectrum-pattern="dialog-content">
-            <input 
-              type="text"
-              class="edit-input"
+            <sp-textfield 
               data-spectrum-pattern="textfield"
               .value=${text}
               @keydown=${this._handleKeyDown}
               placeholder="Enter lyric text..."
-            />
+            ></sp-textfield>
           </div>
           
           <div class="modal-footer" data-spectrum-pattern="dialog-footer">
-            <button class="btn btn-cancel" data-spectrum-pattern="button-secondary" @click=${this._handleClose}>Cancel</button>
-            <button class="btn btn-save" data-spectrum-pattern="button-accent" @click=${this._handleSave}>Save</button>
+            <sp-button variant="secondary" data-spectrum-pattern="button-secondary" @click=${this._handleClose}>Cancel</sp-button>
+            <sp-button variant="accent" data-spectrum-pattern="button-accent" @click=${this._handleSave}>Save</sp-button>
           </div>
         </div>
       </div>

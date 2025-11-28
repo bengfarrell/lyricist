@@ -2,6 +2,10 @@ import { LitElement, html } from 'lit';
 import { SongStoreController } from '../store/index';
 import { appHeaderStyles } from './styles.css.ts';
 
+// Spectrum Web Components
+import '@spectrum-web-components/textfield/sp-textfield.js';
+import '@spectrum-web-components/button/sp-button.js';
+
 /**
  * App header component with song name input and action buttons
  */
@@ -56,19 +60,17 @@ export class AppHeader extends LitElement {
       <div class="header">
         <h1>🎵 Lyricist</h1>
         <div class="header-controls">
-          <label for="song-name-input" class="visually-hidden" data-spectrum-pattern="field-label">Song name</label>
-          <input 
+          <sp-textfield 
             id="song-name-input"
-            type="text" 
-            class="song-name-input" 
             data-spectrum-pattern="textfield"
             placeholder="Song Name"
+            quiet
             .value=${this.store.songName}
             @input=${(e: InputEvent) => this.store.setSongName((e.target as HTMLInputElement).value)}
-          />
-          <button class="btn btn-primary" data-spectrum-pattern="button-accent" @click=${this._handleSave}>Save</button>
-          <button class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${() => this.store.setShowLoadDialog(true)}>Load</button>
-          <button class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${this._handleNew}>New</button>
+          ></sp-textfield>
+          <sp-button variant="accent" data-spectrum-pattern="button-accent" @click=${this._handleSave}>Save</sp-button>
+          <sp-button variant="secondary" data-spectrum-pattern="button-secondary" @click=${() => this.store.setShowLoadDialog(true)}>Load</sp-button>
+          <sp-button variant="secondary" data-spectrum-pattern="button-secondary" @click=${this._handleNew}>New</sp-button>
         </div>
       </div>
     `;

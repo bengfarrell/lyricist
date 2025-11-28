@@ -4,6 +4,11 @@ import { SongStoreController } from '../store/index';
 import { fileModalStyles } from './styles.css.ts';
 import '../lyrics-panel/index';
 
+// Spectrum Web Components
+import '@spectrum-web-components/textfield/sp-textfield.js';
+import '@spectrum-web-components/button/sp-button.js';
+import '@spectrum-web-components/action-button/sp-action-button.js';
+
 // @ts-ignore - vite will resolve this
 const APP_VERSION = __APP_VERSION__;
 
@@ -148,17 +153,15 @@ export class FileModal extends LitElement {
       <div class="modal-backdrop" data-spectrum-pattern="underlay-open" @click=${this._handleBackdropClick}>
         <div class="modal-content" data-spectrum-pattern="modal-open modal-fullscreen">
           <div class="modal-header">
-            <label for="file-modal-song-name" class="visually-hidden" data-spectrum-pattern="field-label">Song name</label>
-            <input 
+            <sp-textfield 
               id="file-modal-song-name"
-              type="text" 
-              class="song-name-input" 
               data-spectrum-pattern="textfield"
               placeholder="Enter song name..."
+              quiet
               .value=${this.store.songName}
               @input=${(e: InputEvent) => this.store.setSongName((e.target as HTMLInputElement).value)}
-            />
-            <button class="close-btn" data-spectrum-pattern="action-button-quiet" @click=${this._handleClose}>✕</button>
+            ></sp-textfield>
+            <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleClose}>✕</sp-action-button>
           </div>
           
           <div class="modal-body">
@@ -169,44 +172,44 @@ export class FileModal extends LitElement {
               </div>
               <div class="actions-container">
                 <div class="actions-row">
-                  <button 
-                    class="btn btn-secondary" 
+                  <sp-button 
+                    variant="secondary" 
                     data-spectrum-pattern="button-secondary" 
                     @click=${this._copyLyrics}
                     ?disabled=${this.store.items.length === 0}
                     title="Copy lyrics to clipboard"
                   >
                     Copy
-                  </button>
-                  <button 
-                    class="btn btn-secondary btn-save" 
+                  </sp-button>
+                  <sp-button 
+                    variant="secondary"
                     data-spectrum-pattern="button-secondary" 
                     @click=${this._handleSave}
                     ?disabled=${this.store.items.length === 0}
                     title="Save song"
                   >
                     Save
-                  </button>
+                  </sp-button>
                 </div>
                 <div class="button-divider"></div>
                 <div class="actions-row">
-                  <button 
-                    class="btn btn-secondary" 
+                  <sp-button 
+                    variant="secondary" 
                     data-spectrum-pattern="button-secondary" 
                     @click=${this._handleNew}
                     ?disabled=${this.store.items.length === 0}
                     title="Start a new song"
                   >
                     New
-                  </button>
-                  <button 
-                    class="btn btn-secondary ${this.showDocumentPicker ? 'btn-active' : ''}" 
+                  </sp-button>
+                  <sp-button 
+                    variant="secondary"
                     data-spectrum-pattern="button-secondary" 
                     @click=${this._handleLoad}
                     title="Load a saved song"
                   >
                     Load
-                  </button>
+                  </sp-button>
                 </div>
               </div>
             </div>

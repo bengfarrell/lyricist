@@ -2,6 +2,10 @@ import { LitElement, html } from 'lit';
 import { SongStoreController } from '../store/index';
 import { leftPanelStyles } from './styles.css.ts';
 
+// Spectrum Web Components
+import '@spectrum-web-components/textfield/sp-textfield.js';
+import '@spectrum-web-components/action-button/sp-action-button.js';
+
 /**
  * Left panel component with word ladder feature
  */
@@ -385,9 +389,7 @@ export class LeftPanel extends LitElement {
             ${this._editingLeftTitle ? html`
               <div class="edit-title-container">
                 <form class="edit-title-form" data-spectrum-pattern="form" @submit=${this._saveLeftTitle}>
-                  <input
-                    type="text"
-                    class="edit-left-title"
+                  <sp-textfield
                     data-spectrum-pattern="textfield"
                   .value=${this._editLeftTitleValue}
                   @input=${(e: InputEvent) => {
@@ -397,16 +399,14 @@ export class LeftPanel extends LitElement {
                     @keydown=${(e: KeyboardEvent) => {
                       if (e.key === 'Escape') this._cancelEditLeftTitle();
                     }}
-                  />
+                  ></sp-textfield>
                 </form>
                 <div class="suggestion-chips" data-spectrum-pattern="action-group-horizontal">
                   ${LEFT_CATEGORY_SUGGESTIONS.map(suggestion => html`
-                    <button 
-                      class="suggestion-chip"
+                    <sp-action-button 
                       data-spectrum-pattern="action-button"
                       @mousedown=${(e: Event) => { e.preventDefault(); this._selectLeftSuggestion(suggestion); }}
-                      type="button"
-                    >${suggestion}</button>
+                    >${suggestion}</sp-action-button>
                   `)}
                 </div>
               </div>
@@ -416,12 +416,11 @@ export class LeftPanel extends LitElement {
             <div class="word-list">
               <!-- Add word item at the top -->
               <form class="word-item add-word-item" data-spectrum-pattern="form" @submit=${this._addLeftWord} @click=${(e: MouseEvent) => {
-                const input = (e.currentTarget as HTMLFormElement).querySelector('.word-input-inline') as HTMLInputElement;
+                const input = (e.currentTarget as HTMLFormElement).querySelector('sp-textfield') as HTMLInputElement;
                 if (input) input.focus();
               }}>
-                <input
-                  type="text"
-                  class="word-input-inline"
+                <sp-textfield
+                  quiet
                   data-spectrum-pattern="textfield"
                   placeholder="+ Add word..."
                 .value=${this._newLeftWord}
@@ -430,13 +429,13 @@ export class LeftPanel extends LitElement {
                 }}
                   @blur=${this._handleLeftInputBlur}
                   @keydown=${this._handleLeftInputKeyDown}
-                />
+                ></sp-textfield>
               </form>
               
               ${leftWords.map((word, index) => html`
                 <div class="word-item ${index === this.store.wordLadderSelectedLeft ? 'selected' : ''}" data-spectrum-pattern="list-item-selectable" @click=${() => this._selectLeftWord(index)}>
                   <span class="word-text">${word}</span>
-                  <button class="remove-btn" data-spectrum-pattern="action-button-quiet" @click=${(e: Event) => { e.stopPropagation(); this._removeLeftWord(index); }} title="Remove">×</button>
+                  <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${(e: Event) => { e.stopPropagation(); this._removeLeftWord(index); }} title="Remove">×</sp-action-button>
                 </div>
               `)}
             </div>
@@ -446,9 +445,7 @@ export class LeftPanel extends LitElement {
             ${this._editingRightTitle ? html`
               <div class="edit-title-container">
                 <form class="edit-title-form" data-spectrum-pattern="form" @submit=${this._saveRightTitle}>
-                  <input
-                    type="text"
-                    class="edit-right-title"
+                  <sp-textfield
                     data-spectrum-pattern="textfield"
                   .value=${this._editRightTitleValue}
                   @input=${(e: InputEvent) => {
@@ -458,16 +455,14 @@ export class LeftPanel extends LitElement {
                     @keydown=${(e: KeyboardEvent) => {
                       if (e.key === 'Escape') this._cancelEditRightTitle();
                     }}
-                  />
+                  ></sp-textfield>
                 </form>
                 <div class="suggestion-chips" data-spectrum-pattern="action-group-horizontal">
                   ${RIGHT_CATEGORY_SUGGESTIONS.map(suggestion => html`
-                    <button 
-                      class="suggestion-chip"
+                    <sp-action-button 
                       data-spectrum-pattern="action-button"
                       @mousedown=${(e: Event) => { e.preventDefault(); this._selectRightSuggestion(suggestion); }}
-                      type="button"
-                    >${suggestion}</button>
+                    >${suggestion}</sp-action-button>
                   `)}
                 </div>
               </div>
@@ -477,12 +472,11 @@ export class LeftPanel extends LitElement {
             <div class="word-list">
               <!-- Add word item at the top -->
               <form class="word-item add-word-item" data-spectrum-pattern="form" @submit=${this._addRightWord} @click=${(e: MouseEvent) => {
-                const input = (e.currentTarget as HTMLFormElement).querySelector('.word-input-inline') as HTMLInputElement;
+                const input = (e.currentTarget as HTMLFormElement).querySelector('sp-textfield') as HTMLInputElement;
                 if (input) input.focus();
               }}>
-                <input
-                  type="text"
-                  class="word-input-inline"
+                <sp-textfield
+                  quiet
                   data-spectrum-pattern="textfield"
                   placeholder="+ Add word..."
                 .value=${this._newRightWord}
@@ -491,13 +485,13 @@ export class LeftPanel extends LitElement {
                 }}
                   @blur=${this._handleRightInputBlur}
                   @keydown=${this._handleRightInputKeyDown}
-                />
+                ></sp-textfield>
               </form>
               
               ${rightWords.map((word, index) => html`
                 <div class="word-item ${index === this.store.wordLadderSelectedRight ? 'selected' : ''}" data-spectrum-pattern="list-item-selectable" @click=${() => this._selectRightWord(index)}>
                   <span class="word-text">${word}</span>
-                  <button class="remove-btn" data-spectrum-pattern="action-button-quiet" @click=${(e: Event) => { e.stopPropagation(); this._removeRightWord(index); }} title="Remove">×</button>
+                  <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${(e: Event) => { e.stopPropagation(); this._removeRightWord(index); }} title="Remove">×</sp-action-button>
                 </div>
               `)}
             </div>

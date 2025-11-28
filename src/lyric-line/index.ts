@@ -3,6 +3,10 @@ import { cursorManager } from '../cursor-manager/index';
 import { lyricLineStyles } from './styles.css.ts';
 import type { Chord } from '../store/types';
 
+// Spectrum Web Components
+import '@spectrum-web-components/textfield/sp-textfield.js';
+import '@spectrum-web-components/action-button/sp-action-button.js';
+
 export type { Chord };
 
 interface ChordLibrary {
@@ -657,22 +661,19 @@ export class LyricLine extends LitElement {
         
         <div class="lyric-line">
           ${this._isEditingText ? html`
-            <input 
-              type="text"
-              class="lyric-text-input"
+            <sp-textfield 
+              quiet
               data-spectrum-pattern="textfield"
-              inputmode="text"
-              spellcheck="true"
               .value=${this.text}
               @blur=${this._handleTextBlur}
               @keydown=${this._handleTextKeyDown}
-            />
+            ></sp-textfield>
           ` : this.text}
-          <button class="action-btn duplicate-btn" data-spectrum-pattern="action-button-quiet" @click=${this._handleDuplicate} title="Duplicate">⊕</button>
-          <button class="chord-toggle-btn" data-spectrum-pattern="action-button-quiet" @click=${this._handleToggleChordSection} title="${this.hasChordSection ? 'Hide chords' : 'Add chords'}">
+          <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleDuplicate} title="Duplicate">⊕</sp-action-button>
+          <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleToggleChordSection} title="${this.hasChordSection ? 'Hide chords' : 'Add chords'}">
             ${this.hasChordSection ? '−' : '♪'}
-          </button>
-          <button class="action-btn delete-btn" data-spectrum-pattern="action-button-quiet" @click=${this._handleDelete} title="Delete">×</button>
+          </sp-action-button>
+          <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleDelete} title="Delete">×</sp-action-button>
         </div>
       </div>
     `;

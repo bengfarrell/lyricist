@@ -3,6 +3,11 @@ import { SongStoreController, DEFAULT_LINE_TEXT } from '../store/index';
 import type { LyricLine } from '../store/index';
 import { appControlsStyles } from './styles.css.ts';
 
+// Spectrum Web Components
+import '@spectrum-web-components/textfield/sp-textfield.js';
+import '@spectrum-web-components/button/sp-button.js';
+import '@spectrum-web-components/action-button/sp-action-button.js';
+
 /**
  * Controls component for adding new lyric lines or creating groups
  */
@@ -174,9 +179,7 @@ export class AppControls extends LitElement {
             
             ${this._showCustomSectionInput ? html`
               <form class="custom-section-form" data-spectrum-pattern="form" @submit=${this._handleCustomSectionSubmit}>
-                <input 
-                  type="text" 
-                  class="custom-section-input" 
+                <sp-textfield 
                   data-spectrum-pattern="textfield"
                   placeholder="Enter custom section name..."
                   .value=${this._customSectionName}
@@ -184,46 +187,42 @@ export class AppControls extends LitElement {
                     this._customSectionName = (e.target as HTMLInputElement).value;
                     this.requestUpdate();
                   }}
-                />
-                <button type="submit" class="btn btn-primary" data-spectrum-pattern="button-primary">Create</button>
-                <button type="button" class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${() => {
+                ></sp-textfield>
+                <sp-button type="submit" variant="primary" data-spectrum-pattern="button-primary">Create</sp-button>
+                <sp-button type="button" variant="secondary" data-spectrum-pattern="button-secondary" @click=${() => {
                   this._showCustomSectionInput = false;
                   this._customSectionName = '';
                   this.requestUpdate();
-                }}>Cancel</button>
+                }}>Cancel</sp-button>
               </form>
             ` : html`
               <div class="section-buttons" data-spectrum-pattern="action-group-horizontal">
                 ${sectionNames.map(name => html`
-                  <button 
-                    class="section-btn" 
+                  <sp-action-button 
                     data-spectrum-pattern="action-button"
                     @click=${() => this._handleSectionClick(name)}
-                  >${name}</button>
+                  >${name}</sp-action-button>
                 `)}
               </div>
             `}
           </div>
         ` : html`
-          <button class="dice-btn" data-spectrum-pattern="action-button" @click=${this._rollDice} title="Roll the dice for random word combo!" aria-label="Roll random word combo">
+          <sp-action-button data-spectrum-pattern="action-button" @click=${this._rollDice} title="Roll the dice for random word combo!" aria-label="Roll random word combo">
             🎲
-          </button>
+          </sp-action-button>
           <div class="lyric-creator">
             <div class="lyric-header">
               <span class="lyric-title">Enter a line of lyrics...</span>
             </div>
             <form class="input-container" data-spectrum-pattern="form" @submit=${this._addLine}>
-              <label for="lyric-input" class="visually-hidden" data-spectrum-pattern="field-label">Lyric line</label>
-              <input 
+              <sp-textfield 
                 id="lyric-input"
-                type="text" 
-                class="lyric-input" 
                 data-spectrum-pattern="textfield"
                 placeholder=${inputPlaceholder}
                 .value=${this.store.newLineInputText}
                 @input=${this._handleInput}
-              />
-              <button type="submit" class="btn btn-primary" data-spectrum-pattern="button-primary">Add Line</button>
+              ></sp-textfield>
+              <sp-button type="submit" variant="primary" data-spectrum-pattern="button-primary">Add Line</sp-button>
             </form>
           </div>
         `}

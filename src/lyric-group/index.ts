@@ -3,6 +3,9 @@ import { cursorManager } from '../cursor-manager/index';
 import { lyricGroupStyles } from './styles.css.ts';
 import type { LyricLine } from '../store/types';
 
+// Spectrum Web Components
+import '@spectrum-web-components/action-button/sp-action-button.js';
+
 export class LyricGroup extends LitElement {
   static properties = {
     sectionName: { type: String },
@@ -133,9 +136,9 @@ export class LyricGroup extends LitElement {
           <span class="line-count">(${this.lines.length} line${this.lines.length !== 1 ? 's' : ''})</span>
         </div>
         
-        <button class="action-btn duplicate-btn" data-spectrum-pattern="action-button-quiet" @click=${this._handleDuplicate} title="Duplicate">⊕</button>
-        <button class="action-btn ungroup-btn" data-spectrum-pattern="action-button-quiet" @click=${this._handleUngroup} title="Ungroup">⊟</button>
-        <button class="action-btn delete-btn" data-spectrum-pattern="action-button-quiet" @click=${this._handleDelete} title="Delete">×</button>
+        <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleDuplicate} title="Duplicate">⊕</sp-action-button>
+        <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleUngroup} title="Ungroup">⊟</sp-action-button>
+        <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleDelete} title="Delete">×</sp-action-button>
       </div>
     `;
   }

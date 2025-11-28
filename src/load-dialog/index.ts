@@ -3,6 +3,9 @@ import { SongStoreController } from '../store/index';
 import type { SavedSong } from '../store/index';
 import { loadDialogStyles } from './styles.css.ts';
 
+// Spectrum Web Components
+import '@spectrum-web-components/button/sp-button.js';
+
 /**
  * Dialog component for managing saved songs (load/delete/import/export)
  */
@@ -76,7 +79,7 @@ export class LoadDialog extends LitElement {
                           ${(song.items || song.lines || []).length} items • Last modified: ${new Date(song.lastModified).toLocaleDateString()}
                         </div>
                       </div>
-                      <button class="btn btn-danger" data-spectrum-pattern="button-negative" @click=${(e: MouseEvent) => this._deleteSong(song, e)}>Delete</button>
+                      <sp-button variant="negative" data-spectrum-pattern="button-negative" @click=${(e: MouseEvent) => this._deleteSong(song, e)}>Delete</sp-button>
                     </div>
                   `)}
                 </div>
@@ -105,14 +108,14 @@ export class LoadDialog extends LitElement {
           <div class="export-section">
             <h3>Import/Export</h3>
             <div class="export-actions">
-              <button class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${this._importFromJSON}>Import JSON</button>
-              <button class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${() => this.store.exportToJSON()}>Export JSON</button>
+              <sp-button variant="secondary" data-spectrum-pattern="button-secondary" @click=${this._importFromJSON}>Import JSON</sp-button>
+              <sp-button variant="secondary" data-spectrum-pattern="button-secondary" @click=${() => this.store.exportToJSON()}>Export JSON</sp-button>
             </div>
             <input type="file" class="file-input" accept=".json" @change=${this._handleFileImport} />
           </div>
 
           <div class="dialog-actions" data-spectrum-pattern="dialog-footer">
-            <button class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${() => this.store.setShowLoadDialog(false)}>Close</button>
+            <sp-button variant="secondary" data-spectrum-pattern="button-secondary" @click=${() => this.store.setShowLoadDialog(false)}>Close</sp-button>
           </div>
         </div>
       </div>

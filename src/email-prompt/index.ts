@@ -2,6 +2,10 @@ import { LitElement, html } from 'lit';
 import { SongStoreController } from '../store/index';
 import { emailPromptStyles } from './styles.css.ts';
 
+// Spectrum Web Components
+import '@spectrum-web-components/textfield/sp-textfield.js';
+import '@spectrum-web-components/button/sp-button.js';
+
 /**
  * Email prompt dialog for setting up cross-device sync
  */
@@ -75,20 +79,18 @@ export class EmailPrompt extends LitElement {
 
           <form data-spectrum-pattern="form" @submit=${this._handleSubmit}>
             <div class="form-group" data-spectrum-pattern="form-item">
-              <label for="email-input" data-spectrum-pattern="field-label">Your Email</label>
-              <input
+              <sp-textfield
                 id="email-input"
                 type="email"
-                class="email-input"
+                label="Your Email"
                 data-spectrum-pattern="textfield ${this.errorMessage ? 'textfield-invalid' : ''}"
                 placeholder="your.email@example.com"
                 .value=${this.email}
                 @input=${this._handleInput}
                 ?disabled=${this.isSubmitting}
+                ?invalid=${!!this.errorMessage}
                 required
-                autofocus
-                aria-invalid="${this.errorMessage ? 'true' : 'false'}"
-              />
+              ></sp-textfield>
               ${this.errorMessage ? html`
                 <div class="error-message" data-spectrum-pattern="help-text-negative">${this.errorMessage}</div>
               ` : ''}
@@ -105,23 +107,24 @@ export class EmailPrompt extends LitElement {
             </div>
 
             <div class="button-group" data-spectrum-pattern="dialog-footer">
-              <button
+              <sp-button
                 type="submit"
-                class="btn btn-primary"
+                variant="accent"
                 data-spectrum-pattern="button-accent ${this.isSubmitting ? 'button-pending' : ''}"
                 ?disabled=${this.isSubmitting}
+                ?pending=${this.isSubmitting}
               >
-                ${this.isSubmitting ? '⏳ Saving...' : (hasExistingEmail ? '✓ Update Email' : '✓ Enable Sync')}
-              </button>
-              <button
+                ${this.isSubmitting ? 'Saving...' : (hasExistingEmail ? '✓ Update Email' : '✓ Enable Sync')}
+              </sp-button>
+              <sp-button
                 type="button"
-                class="btn btn-secondary"
+                variant="secondary"
                 data-spectrum-pattern="button-secondary"
                 @click=${this._handleSkip}
                 ?disabled=${this.isSubmitting}
               >
                 ${hasExistingEmail ? 'Cancel' : 'Skip (Local Only)'}
-              </button>
+              </sp-button>
             </div>
           </form>
 

@@ -28,6 +28,7 @@ export class LyricistApp extends LitElement {
     const isHybridMode = isCanvasLyricsLeft || isCanvasLyricsRight || isCanvasLyricsTop || isCanvasLyricsBottom;
     
     return html`
+      <sp-theme scale="medium" color="light" theme="spectrum">
       <div class="container">
         <app-navbar></app-navbar>
         
@@ -62,6 +63,8 @@ export class LyricistApp extends LitElement {
       <file-modal></file-modal>
       <email-prompt></email-prompt>
       <edit-modal></edit-modal>
+      </div>
+      </sp-theme>
     `;
   }
 }

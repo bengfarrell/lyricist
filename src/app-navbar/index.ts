@@ -2,6 +2,9 @@ import { LitElement, html } from 'lit';
 import { SongStoreController } from '../store/index';
 import { appNavbarStyles } from './styles.css.ts';
 
+// Spectrum Web Components
+import '@spectrum-web-components/action-button/sp-action-button.js';
+
 /**
  * Thin macOS-style navbar at the top of the app
  */
@@ -71,51 +74,55 @@ export class AppNavbar extends LitElement {
           >Lyrics</button>
         </div>
         
-        <button class="navbar-title" data-spectrum-pattern="action-button" @click=${this._handleTitleClick} title="Click to manage file">
+        <sp-action-button class="navbar-title" data-spectrum-pattern="action-button" @click=${this._handleTitleClick} title="Click to manage file">
           ${this.store.songName || 'Untitled'}
-        </button>
+        </sp-action-button>
         
         <div class="navbar-right" data-spectrum-pattern="action-group-horizontal">
-          <button 
-            class="align-btn ${currentPanel === 'canvas-lyrics-left' ? 'active' : ''}"
+          <sp-action-button 
+            class="align-btn"
+            ?selected=${currentPanel === 'canvas-lyrics-left'}
             data-spectrum-pattern="action-button ${currentPanel === 'canvas-lyrics-left' ? 'action-button-selected' : ''}"
             @click=${() => this._toggleLyricsPosition('left')}
             ?disabled=${!isCanvasMode}
             title="Lyrics on left (click again to hide)"
             aria-label="Toggle lyrics on left"
-          >◧</button>
-          <button 
-            class="align-btn ${currentPanel === 'canvas-lyrics-right' ? 'active' : ''}"
+          >◧</sp-action-button>
+          <sp-action-button 
+            class="align-btn"
+            ?selected=${currentPanel === 'canvas-lyrics-right'}
             data-spectrum-pattern="action-button ${currentPanel === 'canvas-lyrics-right' ? 'action-button-selected' : ''}"
             @click=${() => this._toggleLyricsPosition('right')}
             ?disabled=${!isCanvasMode}
             title="Lyrics on right (click again to hide)"
             aria-label="Toggle lyrics on right"
-          >◨</button>
-          <button 
-            class="align-btn ${currentPanel === 'canvas-lyrics-top' ? 'active' : ''}"
+          >◨</sp-action-button>
+          <sp-action-button 
+            class="align-btn"
+            ?selected=${currentPanel === 'canvas-lyrics-top'}
             data-spectrum-pattern="action-button ${currentPanel === 'canvas-lyrics-top' ? 'action-button-selected' : ''}"
             @click=${() => this._toggleLyricsPosition('top')}
             ?disabled=${!isCanvasMode}
             title="Lyrics on top (click again to hide)"
             aria-label="Toggle lyrics on top"
-          >◩</button>
-          <button 
-            class="align-btn ${currentPanel === 'canvas-lyrics-bottom' ? 'active' : ''}"
+          >◩</sp-action-button>
+          <sp-action-button 
+            class="align-btn"
+            ?selected=${currentPanel === 'canvas-lyrics-bottom'}
             data-spectrum-pattern="action-button ${currentPanel === 'canvas-lyrics-bottom' ? 'action-button-selected' : ''}"
             @click=${() => this._toggleLyricsPosition('bottom')}
             ?disabled=${!isCanvasMode}
             title="Lyrics on bottom (click again to hide)"
             aria-label="Toggle lyrics on bottom"
-          >◪</button>
+          >◪</sp-action-button>
           
-          <button 
+          <sp-action-button 
             class="settings-btn"
             data-spectrum-pattern="action-button"
             @click=${this._handleSettingsClick}
             title="${this.store.userEmail ? `Syncing as: ${this.store.userEmail}` : 'Set up cloud sync'}"
             aria-label="Settings"
-          >⚙️</button>
+          >⚙️</sp-action-button>
         </div>
       </div>
     `;

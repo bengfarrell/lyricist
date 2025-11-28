@@ -3,6 +3,11 @@ import { SongStoreController, DEFAULT_LINE_TEXT } from '../store/index';
 import type { LyricLine } from '../store/index';
 import { floatingStripStyles } from './styles.css.ts';
 
+// Spectrum Web Components
+import '@spectrum-web-components/textfield/sp-textfield.js';
+import '@spectrum-web-components/button/sp-button.js';
+import '@spectrum-web-components/action-button/sp-action-button.js';
+
 /**
  * Floating header strip with controls and panel switcher
  */
@@ -191,52 +196,50 @@ export class FloatingStrip extends LitElement {
     return html`
       ${hasSelection ? html`
         <div class="group-creator">
-          ${this._showCustomSectionInput ? html`
-            <form class="custom-section-form" data-spectrum-pattern="form" @submit=${this._handleCustomSectionSubmit}>
-              <input 
-                type="text" 
-                class="custom-section-input" 
-                data-spectrum-pattern="textfield"
-                placeholder="Enter section name..."
-                .value=${this._customSectionName}
-                @input=${(e: InputEvent) => {
-                  this._customSectionName = (e.target as HTMLInputElement).value;
+            ${this._showCustomSectionInput ? html`
+              <form class="custom-section-form" data-spectrum-pattern="form" @submit=${this._handleCustomSectionSubmit}>
+                <sp-textfield 
+                  data-spectrum-pattern="textfield"
+                  placeholder="Enter section name..."
+                  .value=${this._customSectionName}
+                  @input=${(e: InputEvent) => {
+                    this._customSectionName = (e.target as HTMLInputElement).value;
+                    this.requestUpdate();
+                  }}
+                ></sp-textfield>
+                <sp-button type="submit" variant="primary" data-spectrum-pattern="button-primary">Create</sp-button>
+                <sp-button type="button" variant="secondary" data-spectrum-pattern="button-secondary" @click=${() => {
+                  this._showCustomSectionInput = false;
+                  this._customSectionName = '';
                   this.requestUpdate();
-                }}
-              />
-              <button type="submit" class="btn btn-primary" data-spectrum-pattern="button-primary">Create</button>
-              <button type="button" class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${() => {
-                this._showCustomSectionInput = false;
-                this._customSectionName = '';
-                this.requestUpdate();
-              }}>Cancel</button>
-            </form>
+                }}>Cancel</sp-button>
+              </form>
           ` : html`
             <div class="group-controls">
               <div class="alignment-buttons" data-spectrum-pattern="action-group-horizontal">
-                <button class="align-btn" data-spectrum-pattern="action-button" @click=${() => this._alignItems('left')} title="Align left">◧</button>
-                <button class="align-btn" data-spectrum-pattern="action-button" @click=${() => this._alignItems('center')} title="Align center">◫</button>
-                <button class="align-btn" data-spectrum-pattern="action-button" @click=${() => this._alignItems('right')} title="Align right">◨</button>
+                <sp-action-button data-spectrum-pattern="action-button" @click=${() => this._alignItems('left')} title="Align left">◧</sp-action-button>
+                <sp-action-button data-spectrum-pattern="action-button" @click=${() => this._alignItems('center')} title="Align center">◫</sp-action-button>
+                <sp-action-button data-spectrum-pattern="action-button" @click=${() => this._alignItems('right')} title="Align right">◨</sp-action-button>
               </div>
               <div class="section-picker-wrapper">
-                <button 
-                  class="section-picker-btn" 
+                <sp-button 
+                  variant="secondary"
                   @click=${this._toggleSectionPicker}
                   data-spectrum-pattern="button-secondary"
                 >
                   Section...
-                </button>
+                </sp-button>
                 ${this._showSectionPicker ? html`
                   <div class="section-picker-overlay" data-spectrum-pattern="popover-bottom popover-open" @click=${() => { this._showSectionPicker = false; this.requestUpdate(); }}>
                     <div class="section-picker-panel" data-spectrum-pattern="menu" @click=${(e: Event) => e.stopPropagation()}>
-                      <button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Verse')}>Verse</button>
-                      <button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Chorus')}>Chorus</button>
-                      <button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Bridge')}>Bridge</button>
-                      <button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Intro')}>Intro</button>
-                      <button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Outro')}>Outro</button>
-                      <button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Pre-Chorus')}>Pre-Chorus</button>
-                      <button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Hook')}>Hook</button>
-                      <button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Custom')}>Custom...</button>
+                      <sp-action-button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Verse')}>Verse</sp-action-button>
+                      <sp-action-button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Chorus')}>Chorus</sp-action-button>
+                      <sp-action-button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Bridge')}>Bridge</sp-action-button>
+                      <sp-action-button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Intro')}>Intro</sp-action-button>
+                      <sp-action-button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Outro')}>Outro</sp-action-button>
+                      <sp-action-button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Pre-Chorus')}>Pre-Chorus</sp-action-button>
+                      <sp-action-button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Hook')}>Hook</sp-action-button>
+                      <sp-action-button class="section-bubble" data-spectrum-pattern="menu-item" @click=${() => this._handleSectionClick('Custom')}>Custom...</sp-action-button>
                     </div>
                   </div>
                 ` : ''}
@@ -244,23 +247,20 @@ export class FloatingStrip extends LitElement {
             </div>
           `}
         </div>
-      ` : html`
-        <button class="dice-btn-icon" data-spectrum-pattern="action-button" @click=${this._rollDice} title="Roll the dice for random word combo!" aria-label="Roll random word combo">
+        ` : html`
+        <sp-action-button data-spectrum-pattern="action-button" @click=${this._rollDice} title="Roll the dice for random word combo!" aria-label="Roll random word combo">
           🎲
-        </button>
+        </sp-action-button>
         <div class="lyric-creator">
           <form class="input-container" data-spectrum-pattern="form" @submit=${this._addLine}>
-            <label for="lyric-input" class="visually-hidden" data-spectrum-pattern="field-label">Lyric line</label>
-            <input 
+            <sp-textfield 
               id="lyric-input"
-              type="text" 
-              class="lyric-input" 
               data-spectrum-pattern="textfield"
               placeholder=${inputPlaceholder}
               .value=${this.store.newLineInputText}
               @input=${this._handleInput}
-            />
-            <button type="submit" class="btn btn-primary" data-spectrum-pattern="button-primary">Add Lyric</button>
+            ></sp-textfield>
+            <sp-button type="submit" variant="primary" data-spectrum-pattern="button-primary">Add Lyric</sp-button>
           </form>
         </div>
       `}
@@ -294,15 +294,15 @@ export class FloatingStrip extends LitElement {
     
     return html`
       <div class="word-ladder-controls">
-        <button class="dice-btn-icon" data-spectrum-pattern="action-button" @click=${this._rollDice} title="Roll the dice for random word combo!" aria-label="Roll random word combo">
+        <sp-action-button data-spectrum-pattern="action-button" @click=${this._rollDice} title="Roll the dice for random word combo!" aria-label="Roll random word combo">
           🎲
-        </button>
+        </sp-action-button>
         <div class="word-ladder-nav" data-spectrum-pattern="pagination">
-          <button class="carousel-btn" data-spectrum-pattern="action-button" @click=${this._prevSet} ?disabled=${!hasMultipleSets} title="Previous set">‹</button>
+          <sp-action-button data-spectrum-pattern="action-button" @click=${this._prevSet} ?disabled=${!hasMultipleSets} title="Previous set">‹</sp-action-button>
           <span class="set-index">${currentIndex} of ${totalSets}</span>
-          <button class="carousel-btn" data-spectrum-pattern="action-button" @click=${this._nextSet} ?disabled=${!hasMultipleSets} title="Next set">›</button>
+          <sp-action-button data-spectrum-pattern="action-button" @click=${this._nextSet} ?disabled=${!hasMultipleSets} title="Next set">›</sp-action-button>
         </div>
-        <button class="add-set-btn" data-spectrum-pattern="button-secondary" @click=${this._addSet} title="Add new category">+ Add Set</button>
+        <sp-button variant="secondary" data-spectrum-pattern="button-secondary" @click=${this._addSet} title="Add new category">+ Add Set</sp-button>
       </div>
     `;
   }
@@ -311,9 +311,9 @@ export class FloatingStrip extends LitElement {
     return html`
       <div class="lyrics-controls">
         <span class="lyrics-info">📝 Song Lyrics</span>
-        <button class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${this._copyLyrics} title="Copy all lyrics">
+        <sp-button variant="secondary" data-spectrum-pattern="button-secondary" @click=${this._copyLyrics} title="Copy all lyrics">
           📋 Copy to Clipboard
-        </button>
+        </sp-button>
       </div>
     `;
   }
