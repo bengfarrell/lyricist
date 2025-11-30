@@ -1,77 +1,47 @@
 import { test, expect } from '@playwright/test';
-
-// Helper function to fill lyric input inside shadow DOM
-async function fillLyricInput(page: any, text: string) {
-  await page.evaluate((textValue: string) => {
-    const app = document.querySelector('lyricist-app');
-    const controls = app?.shadowRoot?.querySelector('app-controls');
-    const input = controls?.shadowRoot?.querySelector('.lyric-input') as HTMLInputElement;
-    if (input) {
-      input.value = textValue;
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-  }, text);
-}
+import { setupPage, addLyricLine } from './test-helpers';
 
 test.describe('Copy Lyrics', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-    
-    // Wait for web components to be defined and rendered
-    await page.waitForSelector('lyricist-app');
-    await page.waitForSelector('lyrics-panel');
-    
-    await page.waitForTimeout(300);
+    await setupPage(page);
   });
 
   test('should copy formatted lyrics to clipboard', async ({ page }) => {
-    // Add some lyric lines
-    await fillLyricInput(page, 'First verse here');
-    await page.getByRole('button', { name: 'Add Line' }).click();
-    await page.waitForTimeout(200);
-    
-    await fillLyricInput(page, 'Second verse here');
-    await page.getByRole('button', { name: 'Add Line' }).click();
-    await page.waitForTimeout(200);
-    
-    // Grant clipboard permissions
+    // Grant clipboard permissions first
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     
-    // Click copy button (use evaluate as it's in shadow DOM)
+    // Add some lyric lines
+    await addLyricLine(page, 'First verse here');
+    await addLyricLine(page, 'Second verse here');
+    await addLyricLine(page, 'Third verse here');
+    
+    // Switch to lyrics panel to make sure we're in the right context
     await page.evaluate(() => {
       const app = document.querySelector('lyricist-app');
-      const panel = app?.shadowRoot?.querySelector('lyrics-panel');
-      const copyBtn = panel?.shadowRoot?.querySelector('.copy-lyrics-btn') as HTMLButtonElement;
-      copyBtn?.click();
+      const navbar = app?.shadowRoot?.querySelector('app-navbar');
+      const lyricsTab = Array.from(navbar?.shadowRoot?.querySelectorAll('.navbar-tab') || [])
+        .find(tab => tab.textContent?.trim() === 'Lyrics') as HTMLElement;
+      lyricsTab?.click();
     });
+    
     await page.waitForTimeout(300);
+    
+    // Click copy button in floating-strip
+    const copyResult = await page.evaluate(() => {
+      const app = document.querySelector('lyricist-app');
+      const floatingStrip = app?.shadowRoot?.querySelector('floating-strip');
+      const copyBtn = floatingStrip?.shadowRoot?.querySelector('sp-button[title="Copy all lyrics"]') as HTMLElement;
+      copyBtn?.click();
+      return !!copyBtn;
+    });
+    
+    expect(copyResult).toBe(true);
+    await page.waitForTimeout(500);
     
     // Verify clipboard contains the lyrics
     const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
     expect(clipboardText).toContain('First verse here');
     expect(clipboardText).toContain('Second verse here');
-  });
-
-  test('should copy lyrics with sample song', async ({ page }) => {
-    // Load sample song
-    await page.getByRole('button', { name: 'Load Sample' }).click();
-    await page.waitForTimeout(500);
-    
-    // Grant clipboard permissions
-    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
-    
-    // Copy lyrics (use evaluate as it's in shadow DOM)
-    await page.evaluate(() => {
-      const app = document.querySelector('lyricist-app');
-      const panel = app?.shadowRoot?.querySelector('lyrics-panel');
-      const copyBtn = panel?.shadowRoot?.querySelector('.copy-lyrics-btn') as HTMLButtonElement;
-      copyBtn?.click();
-    });
-    await page.waitForTimeout(300);
-    
-    // Verify clipboard has content
-    const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
-    expect(clipboardText.length).toBeGreaterThan(50); // Sample song should have substantial content
+    expect(clipboardText).toContain('Third verse here');
   });
 });

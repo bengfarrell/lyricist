@@ -29,8 +29,8 @@ import {
 test.describe('Spectrum Pattern Compliance', () => {
   
   test.beforeEach(async ({ page }) => {
-    // Navigate to your app - this can be configured
-    await page.goto('http://localhost:5173'); // Vite default port
+    // Navigate to your app using the baseURL from config
+    await page.goto('/');
     
     // Wait for app to be ready
     await page.waitForSelector('[data-spectrum-pattern]', { timeout: 10000 });

@@ -1,6 +1,9 @@
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify('test-version'),
+  },
   test: {
     globals: true,
     environment: 'jsdom',
@@ -23,6 +26,13 @@ export default defineConfig({
         '**/*.d.ts',
         '**/*.config.*',
         '**/dist/',
+      ],
+    },
+    // Handle ESM/CommonJS interop issues
+    deps: {
+      inline: [
+        '@lit-labs/observers',
+        '@spectrum-web-components',
       ],
     },
   },

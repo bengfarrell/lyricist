@@ -71,9 +71,15 @@ export class EmailPrompt extends LitElement {
 
     return html`
       <div class="overlay" data-spectrum-pattern="underlay-open" @click=${() => this._handleSkip()}>
-        <div class="dialog" data-spectrum-pattern="modal-open dialog" @click=${(e: Event) => e.stopPropagation()}>
-          <div class="header" data-spectrum-pattern="dialog-heading">
-            <h2>${hasExistingEmail ? '⚙️ Cloud Sync Settings' : '📧 Set Up Cloud Sync'}</h2>
+        <div 
+          class="dialog" 
+          role="dialog"
+          aria-labelledby="email-dialog-title"
+          data-spectrum-pattern="modal-open dialog" 
+          @click=${(e: Event) => e.stopPropagation()}
+        >
+          <div class="header">
+            <h2 id="email-dialog-title" data-spectrum-pattern="dialog-heading">${hasExistingEmail ? 'Cloud Sync Settings' : 'Set Up Cloud Sync'}</h2>
             <p>${hasExistingEmail ? 'Change your email to sync with different devices' : 'Enter your email to sync songs across all your devices'}</p>
           </div>
 
@@ -100,7 +106,7 @@ export class EmailPrompt extends LitElement {
               <strong>How it works:</strong>
               <ul>
                 <li>We create a unique ID from your email (using SHA-256 hashing)</li>
-                <li>Same email on any device = automatic sync ✨</li>
+                <li>Same email on any device = automatic sync</li>
                 <li>Your email is stored locally only, not sent to our servers</li>
                 <li>We never send you emails or share your address</li>
               </ul>

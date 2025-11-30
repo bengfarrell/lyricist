@@ -8,14 +8,20 @@ export const appNavbarStyles = css`
   .navbar {
     background: linear-gradient(180deg, #f5f5f7 0%, #e8e8ed 100%);
     border-bottom: 1px solid #d1d1d6;
-    height: 32px;
+    min-height: var(--spectrum-action-bar-height);
     display: flex;
     align-items: center;
-    padding: 0 12px;
+    padding: var(--spectrum-spacing-75) var(--spectrum-spacing-200);
     font-size: 13px;
     color: #1d1d1f;
     user-select: none;
-    gap: 12px;
+    gap: var(--spectrum-spacing-200);
+  }
+
+  /* Ensure action-group fills height properly */
+  sp-action-group.navbar-right {
+    min-height: var(--spectrum-action-bar-height);
+    align-items: center;
   }
 
   .navbar-menu {
@@ -51,24 +57,21 @@ export const appNavbarStyles = css`
     flex-shrink: 0;
   }
 
-  .navbar-tab {
-    background: transparent;
-    border: none;
+  sp-action-button.navbar-tab {
+    --mod-actionbutton-background-color-default: transparent;
+    --mod-actionbutton-background-color-hover: rgba(0, 0, 0, 0.05);
+    --mod-actionbutton-border-color: transparent;
     padding: 3px 12px;
     font-size: 12px;
     color: #1d1d1f;
-    cursor: pointer;
     border-radius: 4px;
-    transition: all 0.15s ease;
     font-weight: 500;
+    min-height: auto;
+    height: auto;
   }
 
-  .navbar-tab:hover {
-    background: rgba(0, 0, 0, 0.05);
-  }
-
-  .navbar-tab.active {
-    background: white;
+  sp-action-button.navbar-tab.active {
+    --mod-actionbutton-background-color-default: white;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
 
@@ -86,7 +89,7 @@ export const appNavbarStyles = css`
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
 
-  .navbar-tab-group .navbar-tab {
+  .navbar-tab-group sp-action-button.navbar-tab {
     padding: 3px 8px;
   }
 
@@ -195,12 +198,12 @@ export const appNavbarStyles = css`
       padding: 1px;
     }
 
-    .navbar-tab {
+    sp-action-button.navbar-tab {
       padding: 4px 8px;
       font-size: 11px;
     }
 
-    .navbar-tab-group .navbar-tab {
+    .navbar-tab-group sp-action-button.navbar-tab {
       padding: 4px 6px;
     }
 
@@ -226,7 +229,7 @@ export const appNavbarStyles = css`
       white-space: nowrap;
     }
 
-    .navbar-tab {
+    sp-action-button.navbar-tab {
       padding: 6px 10px;
       font-size: 10px;
       min-width: 44px;
@@ -236,7 +239,7 @@ export const appNavbarStyles = css`
       justify-content: center;
     }
 
-    .navbar-tab-group .navbar-tab {
+    .navbar-tab-group sp-action-button.navbar-tab {
       padding: 6px 8px;
     }
 

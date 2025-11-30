@@ -131,10 +131,8 @@ describe('LyricsPanel', () => {
       const el = await fixture<LyricsPanel>(html`<lyrics-panel></lyrics-panel>`);
       await el.updateComplete;
 
-      const copyBtn = el.shadowRoot!.querySelector('.copy-lyrics-btn') as HTMLButtonElement;
-      expect(copyBtn).toBeTruthy();
-
-      copyBtn.click();
+      // Trigger copy via custom event (the component listens for 'copy-lyrics' event)
+      window.dispatchEvent(new CustomEvent('copy-lyrics'));
       await el.updateComplete;
 
       expect(mockWriteText).toHaveBeenCalled();
@@ -166,8 +164,8 @@ describe('LyricsPanel', () => {
       const el = await fixture<LyricsPanel>(html`<lyrics-panel></lyrics-panel>`);
       await el.updateComplete;
 
-      const copyBtn = el.shadowRoot!.querySelector('.copy-lyrics-btn') as HTMLButtonElement;
-      copyBtn.click();
+      // Trigger copy via custom event (the component listens for 'copy-lyrics' event)
+      window.dispatchEvent(new CustomEvent('copy-lyrics'));
       await el.updateComplete;
 
       expect(mockWriteText).toHaveBeenCalled();
@@ -176,14 +174,15 @@ describe('LyricsPanel', () => {
     });
   });
 
-  it('should display song name in header', async () => {
+  it('should render lyrics panel content', async () => {
     songStore.setSongName('Test Song Name');
 
     const el = await fixture<LyricsPanel>(html`<lyrics-panel></lyrics-panel>`);
     await el.updateComplete;
 
-    const header = el.shadowRoot!.querySelector('.lyrics-panel-header');
-    expect(header).toBeTruthy();
+    // Check that the main content container exists
+    const content = el.shadowRoot!.querySelector('.lyrics-panel-content');
+    expect(content).toBeTruthy();
   });
 
   it('should update when store changes', async () => {

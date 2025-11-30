@@ -11,27 +11,40 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
+  timeout: 60000, // 60 seconds per test
   
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    navigationTimeout: 30000,
+    actionTimeout: 10000,
   },
 
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        launchOptions: {
+          args: [
+            '--disable-crashpad',
+            '--disable-crash-reporter',
+            '--no-sandbox',
+          ],
+        },
+      },
     },
   ],
 
-  // Note: Start the dev server manually with 'npm run dev' before running tests
-  // webServer: {
-  //   command: 'npm run dev',
-  //   url: 'http://localhost:5173',
-  //   reuseExistingServer: !process.env.CI,
-  //   stdout: 'ignore',
-  //   stderr: 'pipe',
-  // },
+  // Automatically start dev server before running tests
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI,
+    stdout: 'ignore',
+    stderr: 'pipe',
+    timeout: 120000, // 2 minutes to start
+  },
 });
 

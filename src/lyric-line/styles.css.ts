@@ -276,6 +276,51 @@ export const lyricLineStyles = css`
     }
   }
 
+  /* Spectrum action buttons positioning */
+  .lyric-line sp-action-button {
+    position: absolute;
+    bottom: -20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.1s ease;
+  }
+
+  :host(:hover) .lyric-line sp-action-button {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Hide buttons when dragging chords */
+  :host([chord-drag-active]) .lyric-line sp-action-button {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  /* Position each button: Duplicate, Toggle Chords, Delete */
+  .lyric-line sp-action-button:nth-of-type(1) {
+    left: -8px;
+  }
+
+  .lyric-line sp-action-button:nth-of-type(2) {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .lyric-line sp-action-button:hover:nth-of-type(2) {
+    transform: translateX(-50%) scale(1.1);
+  }
+
+  .lyric-line sp-action-button:nth-of-type(3) {
+    right: -8px;
+  }
+
+  /* Hover effects for first and last buttons */
+  .lyric-line sp-action-button:hover:nth-of-type(1),
+  .lyric-line sp-action-button:hover:nth-of-type(3) {
+    transform: scale(1.1);
+  }
+
+  /* Legacy action button styles (if any remain) */
   .action-btn {
     position: absolute;
     bottom: -20px;
@@ -404,6 +449,19 @@ export const lyricLineStyles = css`
 
     .chord-markers {
       height: 24px;
+    }
+
+    /* Make Spectrum action buttons larger on mobile for easier tapping */
+    .lyric-line sp-action-button {
+      bottom: -24px;
+    }
+
+    .lyric-line sp-action-button:nth-of-type(1) {
+      left: -12px;
+    }
+
+    .lyric-line sp-action-button:nth-of-type(3) {
+      right: -12px;
     }
 
     .action-btn {

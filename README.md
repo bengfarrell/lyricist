@@ -79,6 +79,7 @@ npm test
 
 ### Frontend
 - **LitElement** - Fast, lightweight web components
+- **Spectrum Web Components** - Adobe's design system components
 - **Vite** - Modern build tool and dev server
 - **Vitest** - Unit testing framework
 - **localStorage** - Client-side data persistence (auto-save)
@@ -87,6 +88,18 @@ npm test
 - **AWS DynamoDB** - Cloud database for song storage
 - **API Gateway** - REST API endpoints
 - **Lambda** - Serverless functions for data operations
+
+### Design System
+- **Adobe Spectrum** - Enterprise design system
+- **Spectrum CSS** - Spectrum design tokens and styles
+- **Spectrum Icons** - Official icon set
+
+See [spectrum/README.md](./spectrum/README.md) for complete Spectrum documentation.
+
+**Key Resources:**
+- [`spectrum/tokens.json`](./spectrum/tokens.json) - All design token values ⭐
+- [`spectrum/DESIGN_TOKENS_GUIDE.md`](./spectrum/DESIGN_TOKENS_GUIDE.md) - How to use tokens
+- [`spectrum/patterns/`](./spectrum/patterns/) - UI pattern documentation
 
 See [CLOUD_SYNC_README.md](./CLOUD_SYNC_README.md) for cloud sync documentation.
 

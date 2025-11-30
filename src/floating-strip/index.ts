@@ -7,6 +7,13 @@ import { floatingStripStyles } from './styles.css.ts';
 import '@spectrum-web-components/textfield/sp-textfield.js';
 import '@spectrum-web-components/button/sp-button.js';
 import '@spectrum-web-components/action-button/sp-action-button.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-data-refresh.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-close.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-align-left.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-align-center.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-align-right.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-chevron-left.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-chevron-right.js';
 
 /**
  * Floating header strip with controls and panel switcher
@@ -217,9 +224,15 @@ export class FloatingStrip extends LitElement {
           ` : html`
             <div class="group-controls">
               <div class="alignment-buttons" data-spectrum-pattern="action-group-horizontal">
-                <sp-action-button data-spectrum-pattern="action-button" @click=${() => this._alignItems('left')} title="Align left">◧</sp-action-button>
-                <sp-action-button data-spectrum-pattern="action-button" @click=${() => this._alignItems('center')} title="Align center">◫</sp-action-button>
-                <sp-action-button data-spectrum-pattern="action-button" @click=${() => this._alignItems('right')} title="Align right">◨</sp-action-button>
+                <sp-action-button data-spectrum-pattern="action-button" @click=${() => this._alignItems('left')} title="Align left">
+                  <sp-icon-align-left slot="icon"></sp-icon-align-left>
+                </sp-action-button>
+                <sp-action-button data-spectrum-pattern="action-button" @click=${() => this._alignItems('center')} title="Align center">
+                  <sp-icon-align-center slot="icon"></sp-icon-align-center>
+                </sp-action-button>
+                <sp-action-button data-spectrum-pattern="action-button" @click=${() => this._alignItems('right')} title="Align right">
+                  <sp-icon-align-right slot="icon"></sp-icon-align-right>
+                </sp-action-button>
               </div>
               <div class="section-picker-wrapper">
                 <sp-button 
@@ -249,7 +262,7 @@ export class FloatingStrip extends LitElement {
         </div>
         ` : html`
         <sp-action-button data-spectrum-pattern="action-button" @click=${this._rollDice} title="Roll the dice for random word combo!" aria-label="Roll random word combo">
-          🎲
+          <sp-icon-data-refresh slot="icon"></sp-icon-data-refresh>
         </sp-action-button>
         <div class="lyric-creator">
           <form class="input-container" data-spectrum-pattern="form" @submit=${this._addLine}>
@@ -260,7 +273,7 @@ export class FloatingStrip extends LitElement {
               .value=${this.store.newLineInputText}
               @input=${this._handleInput}
             ></sp-textfield>
-            <sp-button type="submit" variant="primary" data-spectrum-pattern="button-primary">Add Lyric</sp-button>
+            <sp-button type="submit" variant="accent" data-spectrum-pattern="button-accent">Add Lyric</sp-button>
           </form>
         </div>
       `}
@@ -295,12 +308,16 @@ export class FloatingStrip extends LitElement {
     return html`
       <div class="word-ladder-controls">
         <sp-action-button data-spectrum-pattern="action-button" @click=${this._rollDice} title="Roll the dice for random word combo!" aria-label="Roll random word combo">
-          🎲
+          <sp-icon-data-refresh slot="icon"></sp-icon-data-refresh>
         </sp-action-button>
         <div class="word-ladder-nav" data-spectrum-pattern="pagination">
-          <sp-action-button data-spectrum-pattern="action-button" @click=${this._prevSet} ?disabled=${!hasMultipleSets} title="Previous set">‹</sp-action-button>
+          <sp-action-button data-spectrum-pattern="action-button" @click=${this._prevSet} ?disabled=${!hasMultipleSets} title="Previous set">
+            <sp-icon-chevron-left slot="icon"></sp-icon-chevron-left>
+          </sp-action-button>
           <span class="set-index">${currentIndex} of ${totalSets}</span>
-          <sp-action-button data-spectrum-pattern="action-button" @click=${this._nextSet} ?disabled=${!hasMultipleSets} title="Next set">›</sp-action-button>
+          <sp-action-button data-spectrum-pattern="action-button" @click=${this._nextSet} ?disabled=${!hasMultipleSets} title="Next set">
+            <sp-icon-chevron-right slot="icon"></sp-icon-chevron-right>
+          </sp-action-button>
         </div>
         <sp-button variant="secondary" data-spectrum-pattern="button-secondary" @click=${this._addSet} title="Add new category">+ Add Set</sp-button>
       </div>
@@ -310,9 +327,9 @@ export class FloatingStrip extends LitElement {
   private _renderLyricsControls() {
     return html`
       <div class="lyrics-controls">
-        <span class="lyrics-info">📝 Song Lyrics</span>
+        <span class="lyrics-info">Song Lyrics</span>
         <sp-button variant="secondary" data-spectrum-pattern="button-secondary" @click=${this._copyLyrics} title="Copy all lyrics">
-          📋 Copy to Clipboard
+          Copy to Clipboard
         </sp-button>
       </div>
     `;
@@ -327,7 +344,7 @@ export class FloatingStrip extends LitElement {
       <div class="floating-strip ${isRetracted ? 'retracted' : ''}">
         ${isRetracted ? html`
           <button class="expand-btn" @click=${this._toggleRetract} title="Expand" aria-label="Expand controls">
-            ›
+            <sp-icon-chevron-right></sp-icon-chevron-right>
           </button>
         ` : html`
           <div class="strip-content">
@@ -338,7 +355,7 @@ export class FloatingStrip extends LitElement {
             </div>
           </div>
           <button class="close-btn" @click=${this._toggleRetract} title="Close" aria-label="Close controls">
-            ×
+            <sp-icon-close></sp-icon-close>
           </button>
         `}
       </div>

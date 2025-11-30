@@ -12,12 +12,12 @@ export const appHeaderStyles = css`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px var(--spectrum-transparent-black-300);
   }
 
   .header h1 {
     margin: 0;
-    font-size: 28px;
+    font-size: var(--spectrum-font-size-500);
     font-weight: 600;
   }
 
@@ -41,23 +41,23 @@ export const appHeaderStyles = css`
 
   .song-name-input {
     padding: 8px 16px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    border: 2px solid var(--spectrum-transparent-white-500);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--spectrum-transparent-white-400);
     color: white;
-    font-size: 16px;
+    font-size: var(--spectrum-font-size-200);
     min-width: 200px;
   }
 
   .song-name-input::placeholder {
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--spectrum-transparent-white-800);
   }
 
   .btn {
     padding: 8px 20px;
     border: none;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: var(--spectrum-font-size-100);
     font-weight: 600;
     transition: all 0.2s ease;
     text-transform: uppercase;
@@ -67,23 +67,23 @@ export const appHeaderStyles = css`
 
   .btn-primary {
     background: white;
-    color: #667eea;
+    color: var(--spectrum-blue-600);
   }
 
   .btn-primary:hover {
-    background: #f0f0f0;
+    background: var(--spectrum-gray-100);
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px var(--spectrum-transparent-black-400);
   }
 
   .btn-secondary {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--spectrum-transparent-white-400);
     color: white;
     border: 2px solid white;
   }
 
   .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--spectrum-transparent-white-500);
   }
 
   /* Mobile responsive styles */
@@ -95,7 +95,7 @@ export const appHeaderStyles = css`
     }
 
     .header h1 {
-      font-size: 20px;
+      font-size: var(--spectrum-font-size-300);
       width: 100%;
     }
 
@@ -108,13 +108,13 @@ export const appHeaderStyles = css`
     .song-name-input {
       min-width: 0;
       flex: 1;
-      font-size: 14px;
+      font-size: var(--spectrum-font-size-100);
       padding: 6px 12px;
     }
 
     .btn {
       padding: 6px 12px;
-      font-size: 12px;
+      font-size: var(--spectrum-font-size-75);
       flex-shrink: 0;
     }
   }
@@ -125,17 +125,17 @@ export const appHeaderStyles = css`
     }
 
     .header h1 {
-      font-size: 18px;
+      font-size: var(--spectrum-font-size-300);
     }
 
     .song-name-input {
-      font-size: 13px;
+      font-size: var(--spectrum-font-size-75);
       padding: 5px 10px;
     }
 
     .btn {
       padding: 5px 10px;
-      font-size: 11px;
+      font-size: var(--spectrum-font-size-50);
     }
   }
 `;

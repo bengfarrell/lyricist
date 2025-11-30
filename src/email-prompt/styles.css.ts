@@ -44,6 +44,7 @@ export const emailPromptStyles = css`
   .header h2 {
     margin: 0 0 8px 0;
     font-size: 24px;
+    font-weight: 600;
     color: #333;
   }
 

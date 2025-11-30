@@ -1,52 +1,30 @@
 import { test, expect } from '@playwright/test';
-
-// Helper function to fill lyric input inside shadow DOM
-async function fillLyricInput(page: any, text: string) {
-  await page.evaluate((textValue: string) => {
-    const app = document.querySelector('lyricist-app');
-    const controls = app?.shadowRoot?.querySelector('app-controls');
-    const input = controls?.shadowRoot?.querySelector('.lyric-input') as HTMLInputElement;
-    if (input) {
-      input.value = textValue;
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-  }, text);
-}
+import { setupPage, addLyricLine, getLyricsPanelText } from './test-helpers';
 
 test.describe('Chord Management', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-    
-    // Wait for web components to be defined and rendered
-    await page.waitForSelector('lyricist-app');
-    await page.waitForSelector('app-controls');
-    await page.waitForSelector('lyrics-panel');
-    
-    await page.waitForTimeout(300);
+    await setupPage(page);
   });
 
   test('should add lyrics and display them', async ({ page }) => {
     // Add a lyric line
-    await fillLyricInput(page, 'Amazing grace how sweet the sound');
-    await page.getByRole('button', { name: 'Add Line' }).click();
-    await page.waitForTimeout(300);
+    await addLyricLine(page, 'Amazing grace how sweet the sound');
     
     // Verify line is visible in panel
-    const lyrics = await page.evaluate(() => {
-      const app = document.querySelector('lyricist-app');
-      const panel = app?.shadowRoot?.querySelector('lyrics-panel');
-      return panel?.shadowRoot?.querySelector('.lyrics-text')?.textContent || '';
-    });
+    const lyrics = await getLyricsPanelText(page);
     
     expect(lyrics).toContain('Amazing grace how sweet the sound');
   });
 
   test('should create and save a multi-line song', async ({ page }) => {
-    const songNameInput = page.locator('input[placeholder="Song Name"]');
-    
-    // Set song name
-    await songNameInput.fill('Test Song');
+    // Set song name through the store (song name input is in edit-modal)
+    await page.evaluate(() => {
+      const app = document.querySelector('lyricist-app');
+      const store = (app as any)?._store || (app as any)?.store;
+      if (store) {
+        store.songName = 'Test Song';
+      }
+    });
     
     // Add multiple lines
     const lines = [
@@ -57,24 +35,28 @@ test.describe('Chord Management', () => {
     ];
     
     for (const line of lines) {
-      await fillLyricInput(page, line);
-      await page.getByRole('button', { name: 'Add Line' }).click();
-      await page.waitForTimeout(200);
+      await addLyricLine(page, line);
     }
     
-    // Save the song
-    await page.getByRole('button', { name: 'Save' }).click();
+    // Open file modal and save
+    await page.evaluate(() => {
+      const app = document.querySelector('lyricist-app');
+      const navbar = app?.shadowRoot?.querySelector('app-navbar');
+      const titleBtn = navbar?.shadowRoot?.querySelector('.navbar-title') as HTMLElement;
+      titleBtn?.click();
+    });
     await page.waitForTimeout(300);
     
-    // Verify save confirmation
-    await expect(page.getByRole('button', { name: /Saved/i })).toBeVisible({ timeout: 2000 });
+    await page.evaluate(() => {
+      const app = document.querySelector('lyricist-app');
+      const modal = app?.shadowRoot?.querySelector('file-modal');
+      const saveBtn = modal?.shadowRoot?.querySelector('sp-button[title="Save song"]') as HTMLElement;
+      saveBtn?.click();
+    });
+    await page.waitForTimeout(500);
     
     // Verify all lines in lyrics panel
-    const lyricsText = await page.evaluate(() => {
-      const app = document.querySelector('lyricist-app');
-      const panel = app?.shadowRoot?.querySelector('lyrics-panel');
-      return panel?.shadowRoot?.querySelector('.lyrics-text')?.textContent || '';
-    });
+    const lyricsText = await getLyricsPanelText(page);
     
     for (const line of lines) {
       expect(lyricsText).toContain(line);
@@ -83,9 +65,7 @@ test.describe('Chord Management', () => {
 
   test('should move chord with keyboard arrows when active', async ({ page }) => {
     // Add a lyric line
-    await fillLyricInput(page, 'Wake up to the sunrise glow');
-    await page.getByRole('button', { name: 'Add Line' }).click();
-    await page.waitForTimeout(300);
+    await addLyricLine(page, 'Wake up to the sunrise glow');
     
     // Enable chord section and add a chord
     const { chordPosition: initialPosition } = await page.evaluate(async () => {
@@ -95,8 +75,12 @@ test.describe('Chord Management', () => {
       
       if (!lyricLine) throw new Error('Lyric line not found');
       
-      // Click the chord toggle button to enable chord section
-      const chordToggleBtn = lyricLine.shadowRoot?.querySelector('.chord-toggle-btn') as HTMLElement;
+      // Hover over the lyric line to show buttons
+      lyricLine.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+      
+      // Click the chord toggle button (sp-action-button:nth-of-type(2))
+      const chordToggleBtn = lyricLine.shadowRoot?.querySelector('.lyric-line sp-action-button:nth-of-type(2)') as HTMLElement;
+      if (!chordToggleBtn) throw new Error('Chord toggle button not found');
       chordToggleBtn?.click();
       
       // Wait a bit for chord section to appear
@@ -133,17 +117,29 @@ test.describe('Chord Management', () => {
       return { chordPosition: chords[0]?.position || 0 };
     });
     
-    // Click the chord marker to make it active
+    // Click the chord marker to make it active using pointerdown event
     await page.evaluate(() => {
       const app = document.querySelector('lyricist-app');
       const canvas = app?.shadowRoot?.querySelector('lyric-canvas');
       const lyricLine = canvas?.shadowRoot?.querySelector('lyric-line');
       const chordMarker = lyricLine?.shadowRoot?.querySelector('.chord-marker') as HTMLElement;
-      chordMarker?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-      chordMarker?.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+      
+      // Dispatch pointerdown event (not mousedown) to activate the chord
+      chordMarker?.dispatchEvent(new PointerEvent('pointerdown', { 
+        bubbles: true,
+        cancelable: true,
+        pointerType: 'mouse'
+      }));
+      
+      // Also dispatch pointerup to complete the interaction
+      chordMarker?.dispatchEvent(new PointerEvent('pointerup', { 
+        bubbles: true,
+        cancelable: true,
+        pointerType: 'mouse'
+      }));
     });
     
-    await page.waitForTimeout(100);
+    await page.waitForTimeout(200);
     
     // Press right arrow key multiple times by dispatching keyboard events directly to document
     // Add small delays between key presses to let the app process each one

@@ -185,6 +185,38 @@ export const ACTION_GROUP_PATTERNS: Record<string, PatternSpec> = {
     description: 'Vertical group of action buttons',
     allowedElements: ['div', 'sp-action-group'],
     requiredAttributes: ['vertical']
+  },
+
+  'action-group-compact': {
+    name: 'Action Group (Compact)',
+    description: 'Compact action group for toolbars with reduced spacing',
+    allowedElements: ['div', 'sp-action-group'],
+    requiredAttributes: ['compact'],
+    structureValidation: (element) => {
+      const warnings = [];
+      
+      // Check if it's a Spectrum Web Component
+      const isSpectrumComponent = element.tagName.toLowerCase() === 'sp-action-group';
+      
+      // For toolbars, recommend quiet buttons
+      const children = Array.from(element.children);
+      const actionButtons = children.filter(child => 
+        child.tagName.toLowerCase() === 'sp-action-button'
+      );
+      
+      if (isSpectrumComponent && actionButtons.length > 0) {
+        const hasQuietAttr = element.hasAttribute('quiet');
+        if (!hasQuietAttr) {
+          warnings.push('Compact action groups typically use "quiet" attribute for subtle toolbar styling');
+        }
+      }
+      
+      return {
+        valid: true,
+        errors: [],
+        warnings
+      };
+    }
   }
 };
 
@@ -215,11 +247,15 @@ export const FORM_PATTERNS: Record<string, PatternSpec> = {
       const hasLabel = element.querySelector('label, sp-field-label, [data-spectrum-pattern*="field-label"]');
       const hasInput = element.querySelector('input, textarea, select, sp-textfield, sp-picker');
       
+      // Check if sp-textfield has built-in label
+      const spectrumTextfield = element.querySelector('sp-textfield');
+      const hasSpectrumLabel = spectrumTextfield?.hasAttribute('label') || spectrumTextfield?.hasAttribute('aria-label');
+      
       return {
         valid: true,
         errors: [],
         warnings: [
-          !hasLabel ? 'Form item should have a label' : null,
+          (!hasLabel && !hasSpectrumLabel) ? 'Form item should have a label' : null,
           !hasInput ? 'Form item should have an input element' : null
         ].filter(Boolean) as string[]
       };
@@ -477,7 +513,7 @@ export const TAB_PATTERNS: Record<string, PatternSpec> = {
   'tab-item': {
     name: 'Tab',
     description: 'Individual tab button',
-    allowedElements: ['button', 'sp-tab'],
+    allowedElements: ['button', 'sp-tab', 'sp-action-button'],
     ariaRequirements: {
       requiredRoles: ['tab'],
       requiredStates: ['aria-selected']
@@ -487,7 +523,7 @@ export const TAB_PATTERNS: Record<string, PatternSpec> = {
   'tab-selected': {
     name: 'Tab (Selected)',
     description: 'Selected tab',
-    allowedElements: ['button', 'sp-tab'],
+    allowedElements: ['button', 'sp-tab', 'sp-action-button'],
     requiredAttributes: ['aria-selected="true"', 'selected'],
     ariaRequirements: {
       requiredStates: ['aria-selected="true"']

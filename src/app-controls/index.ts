@@ -7,6 +7,7 @@ import { appControlsStyles } from './styles.css.ts';
 import '@spectrum-web-components/textfield/sp-textfield.js';
 import '@spectrum-web-components/button/sp-button.js';
 import '@spectrum-web-components/action-button/sp-action-button.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-data-refresh.js';
 
 /**
  * Controls component for adding new lyric lines or creating groups
@@ -180,6 +181,7 @@ export class AppControls extends LitElement {
             ${this._showCustomSectionInput ? html`
               <form class="custom-section-form" data-spectrum-pattern="form" @submit=${this._handleCustomSectionSubmit}>
                 <sp-textfield 
+                  aria-label="Custom section name"
                   data-spectrum-pattern="textfield"
                   placeholder="Enter custom section name..."
                   .value=${this._customSectionName}
@@ -208,7 +210,7 @@ export class AppControls extends LitElement {
           </div>
         ` : html`
           <sp-action-button data-spectrum-pattern="action-button" @click=${this._rollDice} title="Roll the dice for random word combo!" aria-label="Roll random word combo">
-            🎲
+            <sp-icon-data-refresh slot="icon"></sp-icon-data-refresh>
           </sp-action-button>
           <div class="lyric-creator">
             <div class="lyric-header">
@@ -217,12 +219,13 @@ export class AppControls extends LitElement {
             <form class="input-container" data-spectrum-pattern="form" @submit=${this._addLine}>
               <sp-textfield 
                 id="lyric-input"
+                aria-label="Add a song lyric here"
                 data-spectrum-pattern="textfield"
                 placeholder=${inputPlaceholder}
                 .value=${this.store.newLineInputText}
                 @input=${this._handleInput}
               ></sp-textfield>
-              <sp-button type="submit" variant="primary" data-spectrum-pattern="button-primary">Add Line</sp-button>
+              <sp-button type="submit" variant="accent" data-spectrum-pattern="button-accent">Add Line</sp-button>
             </form>
           </div>
         `}

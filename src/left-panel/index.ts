@@ -5,6 +5,7 @@ import { leftPanelStyles } from './styles.css.ts';
 // Spectrum Web Components
 import '@spectrum-web-components/textfield/sp-textfield.js';
 import '@spectrum-web-components/action-button/sp-action-button.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-close.js';
 
 /**
  * Left panel component with word ladder feature
@@ -367,13 +368,29 @@ export class LeftPanel extends LitElement {
   }
 
   private _selectLeftWord(index: number): void {
+    const currentSet = this._getCurrentSet();
     const rightIndex = this.store.wordLadderSelectedRight;
     this.store.setWordLadderSelection(index, rightIndex);
+    
+    // Update input text if both words are selected
+    if (index !== -1 && rightIndex !== -1) {
+      const leftWord = currentSet.leftWords[index];
+      const rightWord = currentSet.rightWords[rightIndex];
+      this.store.setNewLineInputText(`${leftWord} ${rightWord}`);
+    }
   }
 
   private _selectRightWord(index: number): void {
+    const currentSet = this._getCurrentSet();
     const leftIndex = this.store.wordLadderSelectedLeft;
     this.store.setWordLadderSelection(leftIndex, index);
+    
+    // Update input text if both words are selected
+    if (leftIndex !== -1 && index !== -1) {
+      const leftWord = currentSet.leftWords[leftIndex];
+      const rightWord = currentSet.rightWords[index];
+      this.store.setNewLineInputText(`${leftWord} ${rightWord}`);
+    }
   }
 
   render() {
@@ -390,6 +407,7 @@ export class LeftPanel extends LitElement {
               <div class="edit-title-container">
                 <form class="edit-title-form" data-spectrum-pattern="form" @submit=${this._saveLeftTitle}>
                   <sp-textfield
+                    aria-label="Edit category title"
                     data-spectrum-pattern="textfield"
                   .value=${this._editLeftTitleValue}
                   @input=${(e: InputEvent) => {
@@ -421,6 +439,7 @@ export class LeftPanel extends LitElement {
               }}>
                 <sp-textfield
                   quiet
+                  aria-label="Add word to left column"
                   data-spectrum-pattern="textfield"
                   placeholder="+ Add word..."
                 .value=${this._newLeftWord}
@@ -435,7 +454,9 @@ export class LeftPanel extends LitElement {
               ${leftWords.map((word, index) => html`
                 <div class="word-item ${index === this.store.wordLadderSelectedLeft ? 'selected' : ''}" data-spectrum-pattern="list-item-selectable" @click=${() => this._selectLeftWord(index)}>
                   <span class="word-text">${word}</span>
-                  <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${(e: Event) => { e.stopPropagation(); this._removeLeftWord(index); }} title="Remove">×</sp-action-button>
+                  <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${(e: Event) => { e.stopPropagation(); this._removeLeftWord(index); }} title="Remove">
+                    <sp-icon-close slot="icon"></sp-icon-close>
+                  </sp-action-button>
                 </div>
               `)}
             </div>
@@ -477,6 +498,7 @@ export class LeftPanel extends LitElement {
               }}>
                 <sp-textfield
                   quiet
+                  aria-label="Add word to right column"
                   data-spectrum-pattern="textfield"
                   placeholder="+ Add word..."
                 .value=${this._newRightWord}
@@ -491,7 +513,9 @@ export class LeftPanel extends LitElement {
               ${rightWords.map((word, index) => html`
                 <div class="word-item ${index === this.store.wordLadderSelectedRight ? 'selected' : ''}" data-spectrum-pattern="list-item-selectable" @click=${() => this._selectRightWord(index)}>
                   <span class="word-text">${word}</span>
-                  <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${(e: Event) => { e.stopPropagation(); this._removeRightWord(index); }} title="Remove">×</sp-action-button>
+                  <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${(e: Event) => { e.stopPropagation(); this._removeRightWord(index); }} title="Remove">
+                    <sp-icon-close slot="icon"></sp-icon-close>
+                  </sp-action-button>
                 </div>
               `)}
             </div>

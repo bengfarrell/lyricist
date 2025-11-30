@@ -9,6 +9,14 @@ export const lyricistAppStyles = css`
     overflow: hidden;
   }
 
+  /* Fix sp-theme to participate in flex layout */
+  sp-theme {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+  }
+
   .container {
     display: flex;
     flex-direction: column;
@@ -23,8 +31,8 @@ export const lyricistAppStyles = css`
     overflow: hidden;
     position: relative;
     background: white;
-    background-image: linear-gradient(90deg, #f8f9fa 1px, transparent 1px),
-                      linear-gradient(#f8f9fa 1px, transparent 1px);
+    background-image: linear-gradient(90deg, var(--spectrum-gray-75) 1px, transparent 1px),
+                      linear-gradient(var(--spectrum-gray-75) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 

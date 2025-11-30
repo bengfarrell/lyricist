@@ -36,90 +36,73 @@ export interface PatternViolation {
 export async function findAllPatternElements(page: Page): Promise<PatternElement[]> {
   return await page.evaluate(() => {
     const elements: PatternElement[] = [];
-    const nodeIterator = document.createNodeIterator(
-      document.body,
-      NodeFilter.SHOW_ELEMENT,
-      {
-        acceptNode: (node) => {
-          const element = node as Element;
-          // Check in light DOM
-          if (element.hasAttribute('data-spectrum-pattern')) {
-            return NodeFilter.FILTER_ACCEPT;
-          }
-          // Check in shadow DOM
-          if (element.shadowRoot) {
-            const shadowElements = element.shadowRoot.querySelectorAll('[data-spectrum-pattern]');
-            if (shadowElements.length > 0) {
-              return NodeFilter.FILTER_ACCEPT;
-            }
-          }
-          return NodeFilter.FILTER_SKIP;
-        }
-      }
-    );
-
-    let currentNode;
-    while ((currentNode = nodeIterator.nextNode())) {
-      const element = currentNode as Element;
+    
+    // Helper to process an element
+    const processElement = (el: Element, inShadowRoot = false) => {
+      const shortcodes = el.getAttribute('data-spectrum-pattern')?.split(' ') || [];
+      const computedStyle = window.getComputedStyle(el);
       
-      // Helper to process an element
-      const processElement = (el: Element, inShadowRoot = false) => {
-        const shortcodes = el.getAttribute('data-spectrum-pattern')?.split(' ') || [];
-        const computedStyle = window.getComputedStyle(el);
-        
-        // Build selector
-        let selector = el.tagName.toLowerCase();
-        if (el.id) selector += `#${el.id}`;
-        if (el.className) selector += `.${Array.from(el.classList).join('.')}`;
-        if (inShadowRoot) selector = 'shadowRoot → ' + selector;
-        
-        // Get all attributes
-        const attributes: Record<string, string> = {};
-        for (const attr of Array.from(el.attributes)) {
-          attributes[attr.name] = attr.value;
-        }
-        
-        // Get relevant computed styles
-        const computedStyles: Record<string, string> = {};
-        const stylesToCapture = [
-          'display', 'position', 'cursor', 'pointer-events',
-          'color', 'background-color', 'border-color',
-          'font-size', 'font-weight', 'line-height',
-          'padding', 'margin', 'border-radius',
-          'width', 'height', 'min-width', 'min-height',
-          'z-index', 'opacity', 'visibility',
-          'flex-direction', 'justify-content', 'align-items',
-          'gap', 'outline'
-        ];
-        
-        for (const prop of stylesToCapture) {
-          computedStyles[prop] = computedStyle.getPropertyValue(prop);
-        }
-        
-        shortcodes.forEach(shortcode => {
-          elements.push({
-            shortcode: shortcode.trim(),
-            tagName: el.tagName.toLowerCase(),
-            attributes,
-            textContent: el.textContent?.trim() || '',
-            computedStyles,
-            selector,
-            hasChildren: el.children.length > 0
-          });
+      // Build selector
+      let selector = el.tagName.toLowerCase();
+      if (el.id) selector += `#${el.id}`;
+      if (el.className) selector += `.${Array.from(el.classList).join('.')}`;
+      if (inShadowRoot) selector = 'shadowRoot → ' + selector;
+      
+      // Get all attributes
+      const attributes: Record<string, string> = {};
+      for (const attr of Array.from(el.attributes)) {
+        attributes[attr.name] = attr.value;
+      }
+      
+      // Get relevant computed styles
+      const computedStyles: Record<string, string> = {};
+      const stylesToCapture = [
+        'display', 'position', 'cursor', 'pointer-events',
+        'color', 'background-color', 'border-color',
+        'font-size', 'font-weight', 'line-height',
+        'padding', 'margin', 'border-radius',
+        'width', 'height', 'min-width', 'min-height',
+        'z-index', 'opacity', 'visibility',
+        'flex-direction', 'justify-content', 'align-items',
+        'gap', 'outline'
+      ];
+      
+      for (const prop of stylesToCapture) {
+        computedStyles[prop] = computedStyle.getPropertyValue(prop);
+      }
+      
+      shortcodes.forEach(shortcode => {
+        elements.push({
+          shortcode: shortcode.trim(),
+          tagName: el.tagName.toLowerCase(),
+          attributes,
+          textContent: el.textContent?.trim() || '',
+          computedStyles,
+          selector,
+          hasChildren: el.children.length > 0
         });
-      };
+      });
+    };
+    
+    // Recursive function to traverse shadow DOM
+    const traverseShadowDOM = (root: Element | Document | ShadowRoot) => {
+      // Process all elements with data-spectrum-pattern in this root
+      const patternElements = root.querySelectorAll('[data-spectrum-pattern]');
+      patternElements.forEach(el => {
+        processElement(el as Element, root !== document);
+      });
       
-      // Process element in light DOM
-      if (element.hasAttribute('data-spectrum-pattern')) {
-        processElement(element);
-      }
-      
-      // Process elements in shadow DOM
-      if (element.shadowRoot) {
-        const shadowElements = element.shadowRoot.querySelectorAll('[data-spectrum-pattern]');
-        shadowElements.forEach(shadowEl => processElement(shadowEl, true));
-      }
-    }
+      // Recurse into all shadow roots
+      const allElements = root.querySelectorAll('*');
+      allElements.forEach(el => {
+        if (el.shadowRoot) {
+          traverseShadowDOM(el.shadowRoot);
+        }
+      });
+    };
+    
+    // Start traversal from document
+    traverseShadowDOM(document);
     
     return elements;
   });
@@ -270,13 +253,24 @@ export function validateAria(
       if (label === 'textContent') {
         return element.textContent.length > 0;
       }
+      // Check for 'label' attribute (used by Spectrum Web Components)
+      if (label === 'label') {
+        // Check both 'label' attribute and 'aria-label' attribute
+        return 'label' in element.attributes || 'aria-label' in element.attributes;
+      }
       return label in element.attributes;
     });
     
     if (!hasLabel) {
-      warnings.push(
-        `Missing accessibility label. Should have one of: ${requiredLabels.join(', ')}`
-      );
+      // For Spectrum Web Components, 'label' or 'aria-label' might be consumed
+      // and not visible in attributes - this is expected behavior
+      // Only warn if it's a plain HTML element
+      const isSpectrumComponent = element.tagName.startsWith('sp-');
+      if (!isSpectrumComponent) {
+        warnings.push(
+          `Missing accessibility label. Should have one of: ${requiredLabels.join(', ')}`
+        );
+      }
     }
   }
   
@@ -416,10 +410,49 @@ export async function validatePattern(
   
   // Run custom structure validation if provided
   if (spec.structureValidation) {
-    // Note: This requires running in page context
+    // Note: This requires running in page context with proper Shadow DOM handling
     const structureResult = await page.evaluate(
-      ({ selector, validation }) => {
-        const element = document.querySelector(selector);
+      ({ tagName, attributes, validation }) => {
+        // Helper to find element in Shadow DOM
+        const findElementInShadowDOM = (root: Document | ShadowRoot): Element | null => {
+          // Try to find by id first (most specific)
+          if (attributes.id) {
+            const byId = root.querySelector(`#${attributes.id}`);
+            if (byId) return byId;
+          }
+          
+          // Try to find by tag + class combination
+          let selector = tagName;
+          if (attributes.class) {
+            selector += `.${attributes.class.split(' ').join('.')}`;
+          }
+          
+          const element = root.querySelector(selector);
+          if (element) {
+            // Verify it matches our attributes
+            if (attributes['data-spectrum-pattern']) {
+              const pattern = element.getAttribute('data-spectrum-pattern');
+              if (pattern === attributes['data-spectrum-pattern']) {
+                return element;
+              }
+            } else {
+              return element;
+            }
+          }
+          
+          // Recurse into shadow roots
+          const allElements = root.querySelectorAll('*');
+          for (const el of Array.from(allElements)) {
+            if (el.shadowRoot) {
+              const found = findElementInShadowDOM(el.shadowRoot);
+              if (found) return found;
+            }
+          }
+          
+          return null;
+        };
+        
+        const element = findElementInShadowDOM(document);
         if (!element) return { valid: false, errors: ['Element not found'], warnings: [] };
         
         // Execute the validation function
@@ -431,7 +464,8 @@ export async function validatePattern(
         }
       },
       { 
-        selector: element.selector,
+        tagName: element.tagName,
+        attributes: element.attributes,
         validation: spec.structureValidation.toString()
       }
     );

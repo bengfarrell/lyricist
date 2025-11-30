@@ -174,7 +174,8 @@ describe('LoadDialog', () => {
       const el = await fixture<LoadDialog>(html`<load-dialog></load-dialog>`);
       await el.updateComplete;
 
-      const deleteBtn = el.shadowRoot!.querySelector('.btn-danger') as HTMLButtonElement;
+      // Find delete button by variant="negative"
+      const deleteBtn = el.shadowRoot!.querySelector('sp-button[variant="negative"]') as HTMLButtonElement;
       expect(deleteBtn).toBeTruthy();
 
       deleteBtn.click();
@@ -203,7 +204,8 @@ describe('LoadDialog', () => {
       const el = await fixture<LoadDialog>(html`<load-dialog></load-dialog>`);
       await el.updateComplete;
 
-      const deleteBtn = el.shadowRoot!.querySelector('.btn-danger') as HTMLButtonElement;
+      // Find delete button by variant="negative"
+      const deleteBtn = el.shadowRoot!.querySelector('sp-button[variant="negative"]') as HTMLButtonElement;
       deleteBtn.click();
       await el.updateComplete;
 
@@ -220,7 +222,8 @@ describe('LoadDialog', () => {
       const el = await fixture<LoadDialog>(html`<load-dialog></load-dialog>`);
       await el.updateComplete;
       
-      const importBtn = Array.from(el.shadowRoot!.querySelectorAll('.btn-secondary')).find(
+      // Find Import JSON button by text content
+      const importBtn = Array.from(el.shadowRoot!.querySelectorAll('sp-button[variant="secondary"]')).find(
         btn => btn.textContent?.includes('Import JSON')
       ) as HTMLButtonElement;
       expect(importBtn).toBeTruthy();
@@ -235,7 +238,8 @@ describe('LoadDialog', () => {
       const fileInput = el.shadowRoot!.querySelector('.file-input') as HTMLInputElement;
       const clickSpy = vi.spyOn(fileInput, 'click');
 
-      const importBtn = Array.from(el.shadowRoot!.querySelectorAll('.btn-secondary')).find(
+      // Find Import JSON button by text content
+      const importBtn = Array.from(el.shadowRoot!.querySelectorAll('sp-button[variant="secondary"]')).find(
         btn => btn.textContent?.includes('Import JSON')
       ) as HTMLButtonElement;
       
@@ -253,7 +257,8 @@ describe('LoadDialog', () => {
       const el = await fixture<LoadDialog>(html`<load-dialog></load-dialog>`);
       await el.updateComplete;
       
-      const exportBtn = Array.from(el.shadowRoot!.querySelectorAll('.btn-secondary')).find(
+      // Find Export JSON button by text content
+      const exportBtn = Array.from(el.shadowRoot!.querySelectorAll('sp-button[variant="secondary"]')).find(
         btn => btn.textContent?.includes('Export JSON')
       ) as HTMLButtonElement;
       expect(exportBtn).toBeTruthy();
@@ -267,7 +272,8 @@ describe('LoadDialog', () => {
     const el = await fixture<LoadDialog>(html`<load-dialog></load-dialog>`);
     await el.updateComplete;
     
-    const closeBtn = Array.from(el.shadowRoot!.querySelectorAll('.btn')).find(
+    // Find Close button by text content
+    const closeBtn = Array.from(el.shadowRoot!.querySelectorAll('sp-button')).find(
       btn => btn.textContent?.includes('Close')
     ) as HTMLButtonElement;
     expect(closeBtn).toBeTruthy();

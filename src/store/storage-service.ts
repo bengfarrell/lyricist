@@ -52,12 +52,15 @@ export class StorageService {
         if (email) {
           // Regenerate userId from stored email (synchronously for compatibility)
           // This shouldn't happen in normal flow, but handles edge cases
-          return this._generateFallbackId();
+          userId = this._generateFallbackId();
+          localStorage.setItem(USER_ID_KEY, userId);
+          return userId;
         }
         
         // No userId and no email - this means user hasn't set up yet
-        // Return a temporary ID (will be replaced when they set email)
+        // Generate and store a temporary ID (will be replaced when they set email)
         userId = this._generateFallbackId();
+        localStorage.setItem(USER_ID_KEY, userId);
       }
       
       return userId;

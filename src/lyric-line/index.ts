@@ -6,6 +6,9 @@ import type { Chord } from '../store/types';
 // Spectrum Web Components
 import '@spectrum-web-components/textfield/sp-textfield.js';
 import '@spectrum-web-components/action-button/sp-action-button.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-duplicate.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-delete.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-close.js';
 
 export type { Chord };
 
@@ -630,7 +633,9 @@ export class LyricLine extends LitElement {
                   @click=${(e: MouseEvent) => e.stopPropagation()}
                 >
                   ${chord.name}
-                  <div class="chord-delete-btn" @click=${(e: MouseEvent) => this._handleDeleteChord(e, chord.id)}>×</div>
+                  <div class="chord-delete-btn" @click=${(e: MouseEvent) => this._handleDeleteChord(e, chord.id)}>
+                    <sp-icon-close style="width: 12px; height: 12px;"></sp-icon-close>
+                  </div>
                 </div>
               `)}
             </div>
@@ -663,17 +668,22 @@ export class LyricLine extends LitElement {
           ${this._isEditingText ? html`
             <sp-textfield 
               quiet
+              aria-label="Edit lyric text"
               data-spectrum-pattern="textfield"
               .value=${this.text}
               @blur=${this._handleTextBlur}
               @keydown=${this._handleTextKeyDown}
             ></sp-textfield>
           ` : this.text}
-          <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleDuplicate} title="Duplicate">⊕</sp-action-button>
-          <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleToggleChordSection} title="${this.hasChordSection ? 'Hide chords' : 'Add chords'}">
-            ${this.hasChordSection ? '−' : '♪'}
+          <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleDuplicate} title="Duplicate">
+            <sp-icon-duplicate slot="icon"></sp-icon-duplicate>
           </sp-action-button>
-          <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleDelete} title="Delete">×</sp-action-button>
+          <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleToggleChordSection} title="${this.hasChordSection ? 'Hide chords' : 'Add chords'}">
+            ${this.hasChordSection ? '−' : '+'}
+          </sp-action-button>
+          <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleDelete} title="Delete">
+            <sp-icon-delete slot="icon"></sp-icon-delete>
+          </sp-action-button>
         </div>
       </div>
     `;

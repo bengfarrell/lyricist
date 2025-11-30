@@ -19,7 +19,7 @@ export class AppHeader extends LitElement {
     const btn = this.shadowRoot?.querySelector('.btn-primary');
     const originalText = btn?.textContent || 'Save';
     if (btn) {
-      btn.textContent = '⏳ Saving...';
+      btn.textContent = 'Saving...';
     }
     
     try {
@@ -32,7 +32,7 @@ export class AppHeader extends LitElement {
       
       // Visual feedback
       if (btn) {
-        btn.textContent = '✓ Saved!';
+        btn.textContent = 'Saved!';
         setTimeout(() => {
           btn.textContent = originalText;
         }, 1500);
@@ -40,7 +40,7 @@ export class AppHeader extends LitElement {
     } catch (error) {
       console.error('Save error:', error);
       if (btn) {
-        btn.textContent = '❌ Error';
+        btn.textContent = 'Error';
         setTimeout(() => {
           btn.textContent = originalText;
         }, 2000);
@@ -58,7 +58,7 @@ export class AppHeader extends LitElement {
   render() {
     return html`
       <div class="header">
-        <h1>🎵 Lyricist</h1>
+        <h1>Lyricist</h1>
         <div class="header-controls">
           <sp-textfield 
             id="song-name-input"
@@ -68,7 +68,7 @@ export class AppHeader extends LitElement {
             .value=${this.store.songName}
             @input=${(e: InputEvent) => this.store.setSongName((e.target as HTMLInputElement).value)}
           ></sp-textfield>
-          <sp-button variant="accent" data-spectrum-pattern="button-accent" @click=${this._handleSave}>Save</sp-button>
+          <sp-button variant="primary" data-spectrum-pattern="button-primary" @click=${this._handleSave}>Save</sp-button>
           <sp-button variant="secondary" data-spectrum-pattern="button-secondary" @click=${() => this.store.setShowLoadDialog(true)}>Load</sp-button>
           <sp-button variant="secondary" data-spectrum-pattern="button-secondary" @click=${this._handleNew}>New</sp-button>
         </div>

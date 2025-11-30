@@ -5,6 +5,9 @@ import type { LyricLine, SavedSong } from '../../../src/store/types.js';
 import '../../../src/app-header/index.js';
 import '../../../src/lyrics-panel/index.js';
 import '../../../src/load-dialog/index.js';
+import '../../../src/lyric-canvas/index.js';
+import '../../../src/lyric-line/index.js';
+import '../../../src/lyricist-app/index.js';
 
 describe('Integration Tests', () => {
   beforeEach(() => {
@@ -286,9 +289,8 @@ describe('Integration Tests', () => {
       const lyricsPanel: any = await fixture(html`<lyrics-panel></lyrics-panel>`);
       await lyricsPanel.updateComplete;
 
-      // Click copy button
-      const copyBtn = lyricsPanel.shadowRoot!.querySelector('.copy-lyrics-btn') as HTMLButtonElement;
-      copyBtn.click();
+      // Trigger copy via custom event
+      window.dispatchEvent(new CustomEvent('copy-lyrics'));
       await lyricsPanel.updateComplete;
 
       // Verify clipboard was called with formatted text
@@ -463,6 +465,151 @@ describe('Integration Tests', () => {
 
       // Original array should be unchanged
       expect(songStore.lines[0].id).toBe('line-3');
+    });
+  });
+
+  describe('Canvas Layout and Visibility', () => {
+    it('should render canvas directly and show lyric lines', async () => {
+      // Add a lyric line to the store
+      songStore.addLine({
+        id: 'test-line-1',
+        type: 'line' as const,
+        text: 'Test lyric line',
+        chords: [],
+        hasChordSection: false,
+        x: 150,
+        y: 100,
+        rotation: 0,
+        zIndex: 1,
+      });
+
+      // Render just the canvas component (avoids sp-theme JSDOM issues)
+      const canvas: any = await fixture(html`<lyric-canvas></lyric-canvas>`);
+      await canvas.updateComplete;
+      
+      // Verify lyric line is rendered
+      const lyricLine = canvas.shadowRoot.querySelector('lyric-line');
+      expect(lyricLine).toBeTruthy();
+      
+      // Verify lyric line has content and is positioned
+      expect(lyricLine.text).toBe('Test lyric line');
+      expect(lyricLine.x).toBe(150);
+      expect(lyricLine.y).toBe(100);
+
+      // Verify the line element exists and has content rendered
+      await lyricLine.updateComplete;
+      const lyricLineDiv = lyricLine.shadowRoot.querySelector('.lyric-line');
+      expect(lyricLineDiv).toBeTruthy();
+      expect(lyricLineDiv.textContent).toContain('Test lyric line');
+    });
+
+    it('should render multiple lyric lines on canvas', async () => {
+      // Add multiple lines
+      songStore.addLine({
+        id: 'line-1',
+        type: 'line' as const,
+        text: 'First line',
+        chords: [],
+        hasChordSection: false,
+        x: 100,
+        y: 100,
+        rotation: 0,
+        zIndex: 1,
+      });
+
+      songStore.addLine({
+        id: 'line-2',
+        type: 'line' as const,
+        text: 'Second line',
+        chords: [],
+        hasChordSection: false,
+        x: 200,
+        y: 200,
+        rotation: 0,
+        zIndex: 2,
+      });
+
+      songStore.addLine({
+        id: 'line-3',
+        type: 'line' as const,
+        text: 'Third line',
+        chords: [],
+        hasChordSection: false,
+        x: 300,
+        y: 150,
+        rotation: 0,
+        zIndex: 3,
+      });
+
+      const canvas: any = await fixture(html`<lyric-canvas></lyric-canvas>`);
+      await canvas.updateComplete;
+
+      // Verify all lines are rendered
+      const lyricLines = canvas.shadowRoot.querySelectorAll('lyric-line');
+      expect(lyricLines.length).toBe(3);
+
+      // Verify each line has proper content
+      const line1 = Array.from(lyricLines).find((line: any) => line.id === 'line-1') as any;
+      const line2 = Array.from(lyricLines).find((line: any) => line.id === 'line-2') as any;
+      const line3 = Array.from(lyricLines).find((line: any) => line.id === 'line-3') as any;
+
+      expect(line1?.text).toBe('First line');
+      expect(line2?.text).toBe('Second line');
+      expect(line3?.text).toBe('Third line');
+
+      // Verify lines are positioned correctly
+      expect(line1?.x).toBe(100);
+      expect(line1?.y).toBe(100);
+      expect(line2?.x).toBe(200);
+      expect(line2?.y).toBe(200);
+      expect(line3?.x).toBe(300);
+      expect(line3?.y).toBe(150);
+    });
+
+    it('should show empty state when no lines exist', async () => {
+      // Ensure no lines in store
+      expect(songStore.lines).toHaveLength(0);
+
+      const canvas: any = await fixture(html`<lyric-canvas></lyric-canvas>`);
+      await canvas.updateComplete;
+
+      // Verify empty state is shown
+      const emptyState = canvas.shadowRoot.querySelector('.empty-state');
+      expect(emptyState).toBeTruthy();
+
+      // Verify no lyric lines are rendered
+      const lyricLines = canvas.shadowRoot.querySelectorAll('lyric-line');
+      expect(lyricLines.length).toBe(0);
+    });
+
+    it('should preserve positioning when lines are repositioned', async () => {
+      // Add a line
+      songStore.addLine({
+        id: 'movable-line',
+        type: 'line' as const,
+        text: 'Move me',
+        chords: [],
+        hasChordSection: false,
+        x: 100,
+        y: 100,
+        rotation: 0,
+        zIndex: 1,
+      });
+
+      const canvas: any = await fixture(html`<lyric-canvas></lyric-canvas>`);
+      await canvas.updateComplete;
+
+      const lyricLine: any = canvas.shadowRoot.querySelector('lyric-line');
+      expect(lyricLine.x).toBe(100);
+      expect(lyricLine.y).toBe(100);
+
+      // Update position
+      songStore.updateLinePosition('movable-line', 250, 300);
+      await canvas.updateComplete;
+
+      // Verify new position
+      expect(lyricLine.x).toBe(250);
+      expect(lyricLine.y).toBe(300);
     });
   });
 });

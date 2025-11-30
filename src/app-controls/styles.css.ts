@@ -6,11 +6,11 @@ export const appControlsStyles = css`
   }
 
   .controls {
-    padding: 20px 30px;
-    background: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
+    padding: var(--spectrum-spacing-400) var(--spectrum-spacing-500);
+    background: var(--spectrum-gray-75);
+    border-bottom: 1px solid var(--spectrum-gray-200);
     display: flex;
-    gap: 15px;
+    gap: var(--spectrum-spacing-300);
     align-items: stretch;
     height: 92px;
     box-sizing: border-box;
@@ -30,29 +30,29 @@ export const appControlsStyles = css`
 
   .input-container {
     display: flex;
-    gap: 10px;
+    gap: var(--spectrum-spacing-100);
     align-items: center;
   }
 
   .lyric-input {
     flex: 1;
-    padding: 12px 20px;
-    border: 2px solid #e9ecef;
-    border-radius: 8px;
-    font-size: 16px;
+    padding: var(--spectrum-spacing-200) var(--spectrum-spacing-400);
+    border: 2px solid var(--spectrum-gray-200);
+    border-radius: var(--spectrum-corner-radius-100);
+    font-size: var(--spectrum-font-size-200);
     transition: border-color 0.2s ease;
   }
 
   .lyric-input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--spectrum-blue-600);
   }
 
   .btn {
-    padding: 12px 24px;
+    padding: var(--spectrum-spacing-200) var(--spectrum-spacing-400);
     border: none;
-    border-radius: 8px;
-    font-size: 14px;
+    border-radius: var(--spectrum-corner-radius-100);
+    font-size: var(--spectrum-font-size-100);
     font-weight: 600;
     transition: all 0.2s ease;
     text-transform: uppercase;
@@ -62,22 +62,22 @@ export const appControlsStyles = css`
 
   .btn-primary {
     background: white;
-    color: #667eea;
+    color: var(--spectrum-blue-600);
   }
 
   .btn-primary:hover {
-    background: #f0f0f0;
+    background: var(--spectrum-gray-100);
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px var(--spectrum-transparent-black-400);
   }
   
   .btn-secondary {
-    background: #6c757d;
+    background: var(--spectrum-gray-500);
     color: white;
   }
   
   .btn-secondary:hover {
-    background: #5a6268;
+    background: var(--spectrum-gray-600);
   }
   
   .group-creator {
@@ -88,13 +88,13 @@ export const appControlsStyles = css`
   }
   
   .group-header {
-    margin-bottom: 8px;
+    margin-bottom: var(--spectrum-spacing-100);
   }
   
   .group-title {
     font-weight: 600;
-    color: #495057;
-    font-size: 13px;
+    color: var(--spectrum-gray-700);
+    font-size: var(--spectrum-font-size-75);
   }
 
   .lyric-creator {
@@ -105,30 +105,30 @@ export const appControlsStyles = css`
   }
   
   .lyric-header {
-    margin-bottom: 8px;
+    margin-bottom: var(--spectrum-spacing-100);
   }
   
   .lyric-title {
     font-weight: 600;
-    color: #495057;
-    font-size: 13px;
+    color: var(--spectrum-gray-700);
+    font-size: var(--spectrum-font-size-75);
   }
   
   .section-buttons {
     display: flex;
-    gap: 6px;
+    gap: var(--spectrum-spacing-100);
     flex-wrap: nowrap;
     overflow-x: auto;
     overflow-y: hidden;
   }
   
   .section-btn {
-    padding: 6px 12px;
+    padding: var(--spectrum-spacing-100) var(--spectrum-spacing-200);
     background: white;
-    border: 2px solid #667eea;
-    border-radius: 6px;
-    color: #667eea;
-    font-size: 12px;
+    border: 2px solid var(--spectrum-blue-600);
+    border-radius: var(--spectrum-corner-radius-300);
+    color: var(--spectrum-blue-600);
+    font-size: var(--spectrum-font-size-75);
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -137,42 +137,42 @@ export const appControlsStyles = css`
   }
   
   .section-btn:hover {
-    background: #667eea;
+    background: var(--spectrum-blue-600);
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 8px var(--spectrum-transparent-black-500);
   }
   
   .custom-section-form {
     display: flex;
-    gap: 10px;
+    gap: var(--spectrum-spacing-100);
   }
   
   .custom-section-input {
     flex: 1;
-    padding: 12px 20px;
-    border: 2px solid #e9ecef;
-    border-radius: 8px;
-    font-size: 16px;
+    padding: var(--spectrum-spacing-200) var(--spectrum-spacing-400);
+    border: 2px solid var(--spectrum-gray-200);
+    border-radius: var(--spectrum-corner-radius-100);
+    font-size: var(--spectrum-font-size-200);
     transition: border-color 0.2s ease;
   }
   
   .custom-section-input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--spectrum-blue-600);
   }
 
   .dice-btn {
-    padding: 12px 16px;
+    padding: var(--spectrum-spacing-200) var(--spectrum-spacing-300);
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    border-radius: 8px;
-    font-size: 20px;
+    border-radius: var(--spectrum-corner-radius-100);
+    font-size: var(--spectrum-font-size-300);
     line-height: 1;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+    box-shadow: 0 2px 4px var(--spectrum-transparent-black-400);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -180,7 +180,7 @@ export const appControlsStyles = css`
 
   .dice-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 8px var(--spectrum-transparent-black-500);
   }
 
   .dice-btn:active {

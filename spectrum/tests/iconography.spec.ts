@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Iconography Tests
@@ -332,7 +336,8 @@ test.describe('Iconography Standards', () => {
       const lines = content.split('\n');
       
       // Look for sp-icon-* without slot="icon"
-      const iconWithoutSlotPattern = /<sp-icon-[\w-]+(?!\s+slot="icon")[^>]*>/g;
+      // Match sp-icon tags that don't contain slot="icon" anywhere in the tag
+      const iconWithoutSlotPattern = /<sp-icon-[\w-]+(?![^>]*slot="icon")[^>]*>/g;
       
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];

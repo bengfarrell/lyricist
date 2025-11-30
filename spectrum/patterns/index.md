@@ -22,6 +22,21 @@ This directory contains documentation for common UI patterns implemented with Sp
 - [Selection patterns](./selection-patterns.md) - Single and multi-select behaviors
 - [Text overflow patterns](./text-overflow-patterns.md) - Truncation and wrapping strategies
 
+## Design Tokens Reference
+
+**📋 [`../tokens.json`](../tokens.json)** - Complete Spectrum design token definitions
+
+This JSON file contains **all official Spectrum design tokens** with their exact values. Use this as the authoritative source when:
+- Replacing hard-coded CSS values
+- Finding the correct token for a specific pixel value
+- Understanding token naming conventions
+- Implementing new Spectrum-compliant styles
+
+**Example token lookups:**
+- Spacing: `8px` = `--spectrum-spacing-100`
+- Border radius: `4px` = `--spectrum-corner-radius-75`
+- Colors: `rgb(41,41,41)` = `--spectrum-gray-800`
+
 ## About patterns
 
 UI patterns in Spectrum CSS can be:

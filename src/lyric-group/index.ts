@@ -5,6 +5,8 @@ import type { LyricLine } from '../store/types';
 
 // Spectrum Web Components
 import '@spectrum-web-components/action-button/sp-action-button.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-duplicate.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-delete.js';
 
 export class LyricGroup extends LitElement {
   static properties = {
@@ -136,9 +138,15 @@ export class LyricGroup extends LitElement {
           <span class="line-count">(${this.lines.length} line${this.lines.length !== 1 ? 's' : ''})</span>
         </div>
         
-        <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleDuplicate} title="Duplicate">⊕</sp-action-button>
-        <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleUngroup} title="Ungroup">⊟</sp-action-button>
-        <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleDelete} title="Delete">×</sp-action-button>
+        <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleDuplicate} title="Duplicate">
+          <sp-icon-duplicate slot="icon"></sp-icon-duplicate>
+        </sp-action-button>
+        <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleUngroup} title="Ungroup">
+          ⊟
+        </sp-action-button>
+        <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleDelete} title="Delete">
+          <sp-icon-delete slot="icon"></sp-icon-delete>
+        </sp-action-button>
       </div>
     `;
   }

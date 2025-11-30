@@ -6,6 +6,7 @@ import { editModalStyles } from './styles.css.ts';
 import '@spectrum-web-components/textfield/sp-textfield.js';
 import '@spectrum-web-components/button/sp-button.js';
 import '@spectrum-web-components/action-button/sp-action-button.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-close.js';
 
 /**
  * Simple modal for editing lyric text on mobile
@@ -72,11 +73,14 @@ export class EditModal extends LitElement {
         <div class="modal-content" data-spectrum-pattern="modal-open dialog">
           <div class="modal-header" data-spectrum-pattern="dialog-heading">
             <h3>Edit Lyric</h3>
-            <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleClose}>✕</sp-action-button>
+            <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleClose}>
+              <sp-icon-close slot="icon"></sp-icon-close>
+            </sp-action-button>
           </div>
           
           <div class="modal-body" data-spectrum-pattern="dialog-content">
             <sp-textfield 
+              aria-label="Edit lyric text"
               data-spectrum-pattern="textfield"
               .value=${text}
               @keydown=${this._handleKeyDown}

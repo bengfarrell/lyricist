@@ -66,6 +66,38 @@ See **[SPECTRUM_ICONS_GUIDE.md](../SPECTRUM_ICONS_GUIDE.md)** for complete migra
 
 See **[PATTERN_TESTING_GUIDE.md](./PATTERN_TESTING_GUIDE.md)** for complete documentation.
 
+### `architecture-patterns.spec.ts` 🆕
+**Architectural pattern validation** - ensures components are composed together correctly according to Spectrum guidelines.
+
+**What It Validates:**
+1. **Action Button Grouping** - Multiple action buttons must be wrapped in `<sp-action-group>`
+2. **Toolbar Attributes** - Action groups in toolbars must have `compact` and `quiet` attributes
+3. **Accessibility Labels** - All action buttons must have `aria-label` or `title` attributes
+
+**Why These Tests Matter:**
+- **Proper Spacing** - Action groups handle spacing between buttons correctly
+- **Semantic HTML** - Groups provide proper `toolbar` role for screen readers
+- **Consistent Styling** - Spectrum components need proper context to style correctly
+- **Catches Integration Issues** - Validates how components work together, not just individually
+
+**Example Violations Caught:**
+```html
+<!-- ❌ BAD: Ungrouped action buttons -->
+<div class="toolbar">
+  <sp-action-button>...</sp-action-button>
+  <sp-action-button>...</sp-action-button>
+</div>
+
+<!-- ✅ GOOD: Properly grouped -->
+<sp-action-group compact quiet>
+  <sp-action-button aria-label="Settings">...</sp-action-button>
+  <sp-action-button aria-label="Help">...</sp-action-button>
+</sp-action-group>
+```
+
+**Real-World Example:**
+These tests caught an issue in `app-navbar` where alignment buttons weren't wrapped in an action-group, causing missing spacing and improper toolbar semantics.
+
 ## Running the Tests
 
 **First, start the dev server in a separate terminal:**

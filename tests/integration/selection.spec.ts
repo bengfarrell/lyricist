@@ -1,20 +1,14 @@
 import { test, expect } from '@playwright/test';
+import { setupPage, addLyricLine } from './test-helpers';
 
 test.describe('Selection', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await setupPage(page);
     
-    // Wait for web components to be defined and rendered
-    await page.waitForSelector('lyricist-app');
-    await page.waitForSelector('app-controls');
-    await page.waitForSelector('lyrics-panel');
-    
-    await page.waitForTimeout(300);
-    
-    // Load sample song to have lines to work with
-    await page.getByRole('button', { name: 'Load Sample' }).click();
-    await page.waitForTimeout(500);
+    // Add some test lines to work with
+    await addLyricLine(page, 'First test line');
+    await addLyricLine(page, 'Second test line');
+    await addLyricLine(page, 'Third test line');
   });
 
   test('should select a line when clicked', async ({ page }) => {
@@ -239,16 +233,22 @@ test.describe('Selection', () => {
     
     await page.waitForTimeout(100);
     
-    // Load sample song again (which should clear selection)
-    await page.getByRole('button', { name: 'Load Sample' }).click();
-    await page.waitForTimeout(500);
+    // Create a new song (which should clear selection)
+    await page.evaluate(() => {
+      const app = document.querySelector('lyricist-app');
+      const store = (app as any)?._store || (app as any)?.store;
+      if (store?.newSong) {
+        store.newSong();
+      }
+    });
+    await page.waitForTimeout(300);
     
-    // Check that no lines are selected
+    // Check that no lines are selected (and canvas should be empty)
     const noSelection = await page.evaluate(() => {
       const app = document.querySelector('lyricist-app');
       const canvas = app?.shadowRoot?.querySelector('lyric-canvas');
       const lines = canvas?.shadowRoot?.querySelectorAll('lyric-line');
-      if (!lines) return true;
+      if (!lines || lines.length === 0) return true;
       
       for (const line of Array.from(lines)) {
         if ((line as HTMLElement).hasAttribute('selected')) {
@@ -261,4 +261,3 @@ test.describe('Selection', () => {
     expect(noSelection).toBe(true);
   });
 });
-

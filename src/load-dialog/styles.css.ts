@@ -11,7 +11,7 @@ export const loadDialogStyles = css`
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--spectrum-transparent-black-700);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -26,13 +26,13 @@ export const loadDialogStyles = css`
     max-width: 600px;
     max-height: 80vh;
     overflow-y: auto;
-    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 25px var(--spectrum-transparent-black-500);
   }
 
   .dialog h2 {
     margin: 0 0 20px 0;
-    font-size: 24px;
-    color: #333;
+    font-size: var(--spectrum-font-size-400);
+    color: var(--spectrum-gray-900);
   }
 
   .song-section {
@@ -45,9 +45,9 @@ export const loadDialogStyles = css`
 
   .section-heading {
     margin: 0 0 12px 0;
-    font-size: 16px;
+    font-size: var(--spectrum-font-size-200);
     font-weight: 600;
-    color: #6b7280;
+    color: var(--spectrum-gray-600);
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
@@ -60,7 +60,7 @@ export const loadDialogStyles = css`
 
   .song-item {
     padding: 15px;
-    border: 2px solid #e9ecef;
+    border: 2px solid var(--spectrum-gray-200);
     border-radius: 8px;
     transition: all 0.2s ease;
     display: flex;
@@ -70,17 +70,17 @@ export const loadDialogStyles = css`
   }
 
   .song-item:hover {
-    border-color: #667eea;
-    background: #f8f9fa;
+    border-color: var(--spectrum-blue-600);
+    background: var(--spectrum-gray-75);
   }
 
   .sample-item {
     border-style: dashed;
-    border-color: #d1d5db;
+    border-color: var(--spectrum-gray-300);
   }
 
   .sample-item:hover {
-    border-color: #667eea;
+    border-color: var(--spectrum-blue-600);
     border-style: solid;
   }
 
@@ -89,22 +89,22 @@ export const loadDialogStyles = css`
   }
 
   .song-item-name {
-    font-size: 18px;
+    font-size: var(--spectrum-font-size-300);
     font-weight: 600;
-    color: #333;
+    color: var(--spectrum-gray-900);
     margin-bottom: 5px;
   }
 
   .song-item-meta {
-    font-size: 14px;
-    color: #6b7280;
+    font-size: var(--spectrum-font-size-100);
+    color: var(--spectrum-gray-600);
   }
 
   .btn {
     padding: 8px 20px;
     border: none;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: var(--spectrum-font-size-100);
     font-weight: 600;
     transition: all 0.2s ease;
     text-transform: uppercase;
@@ -113,22 +113,22 @@ export const loadDialogStyles = css`
   }
 
   .btn-danger {
-    background: #ef4444;
+    background: var(--spectrum-red-600);
     color: white;
   }
 
   .btn-danger:hover {
-    background: #dc2626;
+    background: var(--spectrum-red-700);
   }
 
   .btn-secondary {
-    background: #f3f4f6;
-    color: #374151;
-    border: 2px solid #e5e7eb;
+    background: var(--spectrum-gray-100);
+    color: var(--spectrum-gray-800);
+    border: 2px solid var(--spectrum-gray-200);
   }
 
   .btn-secondary:hover {
-    background: #e5e7eb;
+    background: var(--spectrum-gray-200);
   }
 
   .dialog-actions {
@@ -140,13 +140,13 @@ export const loadDialogStyles = css`
   .export-section {
     margin-top: 20px;
     padding-top: 20px;
-    border-top: 1px solid #e9ecef;
+    border-top: 1px solid var(--spectrum-gray-200);
   }
 
   .export-section h3 {
     margin: 0 0 15px 0;
-    font-size: 18px;
-    color: #333;
+    font-size: var(--spectrum-font-size-300);
+    color: var(--spectrum-gray-900);
   }
 
   .export-actions {
@@ -159,7 +159,7 @@ export const loadDialogStyles = css`
   }
 
   .empty-message {
-    color: #6b7280;
+    color: var(--spectrum-gray-600);
     text-align: center;
     padding: 40px 0;
   }
@@ -175,12 +175,12 @@ export const loadDialogStyles = css`
     }
 
     .dialog h2 {
-      font-size: 20px;
+      font-size: var(--spectrum-font-size-300);
       margin-bottom: 16px;
     }
 
     .section-heading {
-      font-size: 14px;
+      font-size: var(--spectrum-font-size-100);
     }
 
     .song-item {
@@ -191,21 +191,21 @@ export const loadDialogStyles = css`
     }
 
     .song-item-name {
-      font-size: 16px;
+      font-size: var(--spectrum-font-size-200);
     }
 
     .song-item-meta {
-      font-size: 12px;
+      font-size: var(--spectrum-font-size-75);
     }
 
     .btn {
       padding: 6px 16px;
-      font-size: 12px;
+      font-size: var(--spectrum-font-size-75);
       width: 100%;
     }
 
     .export-section h3 {
-      font-size: 16px;
+      font-size: var(--spectrum-font-size-200);
     }
 
     .export-actions {
@@ -227,11 +227,11 @@ export const loadDialogStyles = css`
     }
 
     .dialog h2 {
-      font-size: 18px;
+      font-size: var(--spectrum-font-size-300);
     }
 
     .section-heading {
-      font-size: 13px;
+      font-size: var(--spectrum-font-size-75);
       margin-bottom: 10px;
     }
 
@@ -244,16 +244,16 @@ export const loadDialogStyles = css`
     }
 
     .song-item-name {
-      font-size: 15px;
+      font-size: var(--spectrum-font-size-200);
     }
 
     .song-item-meta {
-      font-size: 11px;
+      font-size: var(--spectrum-font-size-50);
     }
 
     .btn {
       padding: 6px 12px;
-      font-size: 11px;
+      font-size: var(--spectrum-font-size-50);
     }
 
     .export-section {
@@ -262,13 +262,13 @@ export const loadDialogStyles = css`
     }
 
     .export-section h3 {
-      font-size: 15px;
+      font-size: var(--spectrum-font-size-200);
       margin-bottom: 12px;
     }
 
     .empty-message {
       padding: 30px 0;
-      font-size: 14px;
+      font-size: var(--spectrum-font-size-100);
     }
   }
 `;

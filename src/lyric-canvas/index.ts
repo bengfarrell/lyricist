@@ -406,7 +406,7 @@ export class LyricCanvas extends LitElement {
       >
         ${this.store.items.length === 0 ? html`
           <div class="empty-state">
-            <div class="empty-state-icon">✨</div>
+            <div class="empty-state-icon"></div>
             <h2>Start Creating</h2>
             <p>Add your first lyric line to begin</p>
           </div>

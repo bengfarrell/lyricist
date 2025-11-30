@@ -8,6 +8,7 @@ import '../lyrics-panel/index';
 import '@spectrum-web-components/textfield/sp-textfield.js';
 import '@spectrum-web-components/button/sp-button.js';
 import '@spectrum-web-components/action-button/sp-action-button.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-close.js';
 
 // @ts-ignore - vite will resolve this
 const APP_VERSION = __APP_VERSION__;
@@ -155,13 +156,16 @@ export class FileModal extends LitElement {
           <div class="modal-header">
             <sp-textfield 
               id="file-modal-song-name"
+              aria-label="Song name"
               data-spectrum-pattern="textfield"
               placeholder="Enter song name..."
               quiet
               .value=${this.store.songName}
               @input=${(e: InputEvent) => this.store.setSongName((e.target as HTMLInputElement).value)}
             ></sp-textfield>
-            <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleClose}>✕</sp-action-button>
+            <sp-action-button quiet data-spectrum-pattern="action-button-quiet" @click=${this._handleClose}>
+              <sp-icon-close slot="icon"></sp-icon-close>
+            </sp-action-button>
           </div>
           
           <div class="modal-body">

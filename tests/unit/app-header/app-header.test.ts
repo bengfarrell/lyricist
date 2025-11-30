@@ -52,16 +52,16 @@ describe('AppHeader', () => {
   it('should render song name input', async () => {
     const el = await fixture<AppHeader>(html`<app-header></app-header>`);
     
-    const input = el.shadowRoot!.querySelector('.song-name-input') as HTMLInputElement;
+    const input = el.shadowRoot!.querySelector('#song-name-input') as HTMLInputElement;
     expect(input).toBeTruthy();
-    expect(input.placeholder).toBe('Song Name');
+    expect(input.getAttribute('placeholder')).toBe('Song Name');
   });
 
   it('should update song name when input changes', async () => {
     const el = await fixture<AppHeader>(html`<app-header></app-header>`);
     await el.updateComplete;
     
-    const input = el.shadowRoot!.querySelector('.song-name-input') as HTMLInputElement;
+    const input = el.shadowRoot!.querySelector('#song-name-input') as any;
     
     input.value = 'My New Song';
     input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -76,7 +76,7 @@ describe('AppHeader', () => {
     const el = await fixture<AppHeader>(html`<app-header></app-header>`);
     await el.updateComplete;
     
-    const input = el.shadowRoot!.querySelector('.song-name-input') as HTMLInputElement;
+    const input = el.shadowRoot!.querySelector('#song-name-input') as any;
     expect(input.value).toBe('Existing Song');
   });
 
@@ -99,7 +99,7 @@ describe('AppHeader', () => {
       const el = await fixture<AppHeader>(html`<app-header></app-header>`);
       await el.updateComplete;
       
-      const saveBtn = Array.from(el.shadowRoot!.querySelectorAll('.btn')).find(
+      const saveBtn = Array.from(el.shadowRoot!.querySelectorAll('sp-button')).find(
         btn => btn.textContent?.includes('Save')
       ) as HTMLButtonElement;
       expect(saveBtn).toBeTruthy();
@@ -121,7 +121,7 @@ describe('AppHeader', () => {
       const el = await fixture<AppHeader>(html`<app-header></app-header>`);
       await el.updateComplete;
       
-      const saveBtn = Array.from(el.shadowRoot!.querySelectorAll('.btn')).find(
+      const saveBtn = Array.from(el.shadowRoot!.querySelectorAll('sp-button')).find(
         btn => btn.textContent?.includes('Save')
       ) as HTMLButtonElement;
 
@@ -143,9 +143,9 @@ describe('AppHeader', () => {
       const el = await fixture<AppHeader>(html`<app-header></app-header>`);
       await el.updateComplete;
       
-      const loadBtn = Array.from(el.shadowRoot!.querySelectorAll('.btn')).find(
-        btn => btn.textContent?.includes('Load')
-      ) as HTMLButtonElement;
+      // Query buttons by position: Save, Load, New (second button is Load)
+      const buttons = el.shadowRoot!.querySelectorAll('sp-button');
+      const loadBtn = buttons[1] as HTMLButtonElement; // Second button is Load
       expect(loadBtn).toBeTruthy();
 
       loadBtn.click();
@@ -177,9 +177,9 @@ describe('AppHeader', () => {
       const el = await fixture<AppHeader>(html`<app-header></app-header>`);
       await el.updateComplete;
       
-      const newBtn = Array.from(el.shadowRoot!.querySelectorAll('.btn')).find(
-        btn => btn.textContent?.includes('New')
-      ) as HTMLButtonElement;
+      // Query buttons by position: Save, Load, New (third button is New)
+      const buttons = el.shadowRoot!.querySelectorAll('sp-button');
+      const newBtn = buttons[2] as HTMLButtonElement; // Third button is New
 
       newBtn.click();
       await el.updateComplete;
@@ -211,9 +211,9 @@ describe('AppHeader', () => {
       const el = await fixture<AppHeader>(html`<app-header></app-header>`);
       await el.updateComplete;
       
-      const newBtn = Array.from(el.shadowRoot!.querySelectorAll('.btn')).find(
-        btn => btn.textContent?.includes('New')
-      ) as HTMLButtonElement;
+      // Query buttons by position: Save, Load, New (third button is New)
+      const buttons = el.shadowRoot!.querySelectorAll('sp-button');
+      const newBtn = buttons[2] as HTMLButtonElement; // Third button is New
 
       newBtn.click();
       await el.updateComplete;
@@ -225,68 +225,18 @@ describe('AppHeader', () => {
     });
   });
 
-  describe('load sample functionality', () => {
-    it('should load sample song when button is clicked', async () => {
-      // Reset mock to return sample data
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          sampleSongs: [{
-            name: 'Morning Coffee (Sample)',
-            lastModified: '2024-01-01T00:00:00.000Z',
-            wordLadderSets: [],
-            items: [
-              {
-                id: 'line-1',
-                type: 'line',
-                text: 'Sample line',
-                chords: [],
-                hasChordSection: false,
-                x: 100,
-                y: 100,
-                rotation: 0,
-                zIndex: 1
-              }
-            ]
-          }]
-        }),
-      } as Response);
-      
-      const el = await fixture<AppHeader>(html`<app-header></app-header>`);
-      await el.updateComplete;
-      
-      // Force sample content reload
-      await (songStore as any)._loadSampleContent();
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const sampleBtn = Array.from(el.shadowRoot!.querySelectorAll('.btn')).find(
-        btn => btn.textContent?.includes('Load Sample')
-      ) as HTMLButtonElement;
-      expect(sampleBtn).toBeTruthy();
-
-      sampleBtn.click();
-      await el.updateComplete;
-      
-      // Wait for the async load to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      expect(songStore.songName).toContain('Morning Coffee');
-      expect(songStore.lines.length).toBeGreaterThan(0);
-    });
-  });
-
   it('should render all action buttons', async () => {
     const el = await fixture<AppHeader>(html`<app-header></app-header>`);
     
-    const buttons = el.shadowRoot!.querySelectorAll('.btn');
-    expect(buttons.length).toBeGreaterThanOrEqual(4); // Save, Load, New, Load Sample
+    const buttons = el.shadowRoot!.querySelectorAll('sp-button');
+    expect(buttons.length).toBe(3); // Save, Load, New
   });
 
   it('should update when store changes', async () => {
     const el = await fixture<AppHeader>(html`<app-header></app-header>`);
     await el.updateComplete;
 
-    const input = el.shadowRoot!.querySelector('.song-name-input') as HTMLInputElement;
+    const input = el.shadowRoot!.querySelector('#song-name-input') as any;
     expect(input.value).toBe('');
 
     // Change song name in store
