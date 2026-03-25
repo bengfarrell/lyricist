@@ -50,10 +50,13 @@ export class SongStore {
   
   // Sample content for loading
   private _sampleContent: SampleContent | null = null;
-  
+
   // Reactive hosts (Lit components)
   private _hosts = new Set<ReactiveControllerHost>();
-  
+
+  // Debounce timer for auto-save when song name changes
+  private _autoSaveTimer: number | null = null;
+
   constructor() {
     // Load saved songs from localStorage first (immediate)
     this._savedSongs = storageService.loadSongs();
@@ -207,7 +210,26 @@ export class SongStore {
     this.notify();
     this.autoSave();
   }
-  
+
+  /**
+   * Notify hosts and auto-save with debounce
+   * Use this for song name changes to avoid saving on every keystroke
+   */
+  private notifyAndAutoSaveDebounced(): void {
+    this.notify();
+
+    // Clear existing timer
+    if (this._autoSaveTimer !== null) {
+      clearTimeout(this._autoSaveTimer);
+    }
+
+    // Set new timer to auto-save after 500ms of no changes
+    this._autoSaveTimer = window.setTimeout(() => {
+      this.autoSave();
+      this._autoSaveTimer = null;
+    }, 500);
+  }
+
   // ===== Getters =====
   
   get items(): CanvasItem[] {
@@ -320,10 +342,10 @@ export class SongStore {
   }
   
   // ===== Song Metadata Actions =====
-  
+
   setSongName(name: string): void {
     this._songName = name;
-    this.notifyAndAutoSave();
+    this.notifyAndAutoSaveDebounced();
   }
   
   // ===== Line Management Actions =====
@@ -619,6 +641,12 @@ export class SongStore {
   }
   
   loadSong(song: SavedSong): void {
+    // Clear any pending auto-save timer
+    if (this._autoSaveTimer !== null) {
+      clearTimeout(this._autoSaveTimer);
+      this._autoSaveTimer = null;
+    }
+
     this._songName = song.name;
     
     // Support both old format (lines) and new format (items)
@@ -680,6 +708,12 @@ export class SongStore {
   }
   
   newSong(): void {
+    // Clear any pending auto-save timer
+    if (this._autoSaveTimer !== null) {
+      clearTimeout(this._autoSaveTimer);
+      this._autoSaveTimer = null;
+    }
+
     this._songName = '';
     this._items = [];
     this._wordLadderSets = [{ ...DEFAULT_WORD_LADDER_SET }];

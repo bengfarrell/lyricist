@@ -164,6 +164,126 @@ export const loadDialogStyles = css`
     padding: 40px 0;
   }
 
+  /* Tab styles */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e5e7eb;
+  }
+
+  .tab {
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #6b7280;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: -2px;
+  }
+
+  .tab:hover {
+    color: #374151;
+    background: #f9fafb;
+  }
+
+  .tab.active {
+    color: #2563eb;
+    border-bottom-color: #2563eb;
+  }
+
+  .tab-content {
+    min-height: 200px;
+  }
+
+  /* Current song tab styles */
+  .current-song-info {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .info-label {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .info-value {
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+  }
+
+  .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #2563eb;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: #6b7280;
+    text-align: center;
+  }
+
+  .lyrics-preview {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .preview-line {
+    padding: 8px 0;
+    border-bottom: 1px solid #e5e7eb;
+    color: #374151;
+    font-size: 14px;
+  }
+
+  .preview-line:last-child {
+    border-bottom: none;
+  }
+
+  .preview-more {
+    padding: 8px 0;
+    color: #6b7280;
+    font-style: italic;
+    font-size: 12px;
+    text-align: center;
+  }
+
   /* Mobile responsive styles */
   @media (max-width: 768px) {
     .dialog {
@@ -214,6 +334,24 @@ export const loadDialogStyles = css`
 
     .dialog-actions {
       flex-direction: column;
+    }
+
+    .stats-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .info-value {
+      font-size: 18px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+    }
+
+    .tab {
+      padding: 10px 16px;
+      font-size: 14px;
     }
   }
 
@@ -268,6 +406,28 @@ export const loadDialogStyles = css`
 
     .empty-message {
       padding: 30px 0;
+      font-size: 13px;
+    }
+
+    .info-value {
+      font-size: 16px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+    }
+
+    .preview-line {
+      font-size: 13px;
+      padding: 6px 0;
+    }
+
+    .tab {
+      padding: 8px 12px;
       font-size: 14px;
     }
   }

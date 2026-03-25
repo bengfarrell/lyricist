@@ -2,6 +2,7 @@ import { LitElement, html } from 'lit';
 import { property } from 'lit/decorators.js';
 import { SongStoreController } from '../store/index';
 import { fileModalStyles } from './styles.css.ts';
+import type { SavedSong } from '../store/types';
 import '../lyrics-panel/index';
 
 // @ts-ignore - vite will resolve this
@@ -11,23 +12,25 @@ const APP_VERSION = __APP_VERSION__;
  * Full-screen modal for file management
  */
 export class FileModal extends LitElement {
+  static properties = {
+    _selectedTab: { type: String, state: true }
+  };
+
   static styles = fileModalStyles;
-  
+
   private store = new SongStoreController(this);
-  
-  @property({ type: Boolean })
-  private showDocumentPicker = false;
+  private _selectedTab: string = 'current-song';
 
   private _handleClose(): void {
     this.store.setShowFileModal(false);
   }
 
   private async _handleSave(): Promise<void> {
-    // Show saving state
-    const btn = this.shadowRoot?.querySelector('.btn-save');
-    const originalText = btn?.textContent || 'Save';
+    // Show syncing state
+    const btn = this.shadowRoot?.querySelector('.btn-primary');
+    const originalText = btn?.textContent || 'Sync to Cloud';
     if (btn) {
-      btn.textContent = '⏳ Saving...';
+      btn.textContent = '⏳ Syncing...';
     }
     
     try {
@@ -40,15 +43,15 @@ export class FileModal extends LitElement {
       
       // Visual feedback
       if (btn) {
-        btn.textContent = '✓ Saved!';
+        btn.textContent = '✓ Synced!';
         setTimeout(() => {
           btn.textContent = originalText;
         }, 1500);
       }
     } catch (error) {
-      console.error('Save error:', error);
+      console.error('Sync error:', error);
       if (btn) {
-        btn.textContent = '❌ Error';
+        btn.textContent = '❌ Sync Failed';
         setTimeout(() => {
           btn.textContent = originalText;
         }, 2000);
@@ -63,12 +66,10 @@ export class FileModal extends LitElement {
     this.store.newSong();
   }
 
-  private async _handleLoad(): Promise<void> {
-    // Refresh songs from cloud before showing picker
-    await this.store.refreshSongsFromCloud();
-    this.showDocumentPicker = !this.showDocumentPicker;
+  private _switchTab(tab: string): void {
+    this._selectedTab = tab;
   }
-  
+
   private _handleDocumentSelect(songName: string): void {
     // Check saved songs first
     let song = this.store.savedSongs.find(s => s.name === songName);
@@ -80,7 +81,7 @@ export class FileModal extends LitElement {
     
     if (song) {
       this.store.loadSong(song);
-      this.showDocumentPicker = false;
+      this._selectedTab = 'current-song'; // Switch to current song tab after loading
     }
   }
 
@@ -97,8 +98,57 @@ export class FileModal extends LitElement {
       lyricsPanel.dispatchEvent(new CustomEvent('copy-lyrics', { bubbles: true, composed: true }));
     }
   }
-  
-  private _renderDocumentPicker() {
+
+  private _renderCurrentSongTab() {
+    const items = this.store.items;
+
+    return html`
+      <div class="current-song-content">
+        <div class="song-name-section">
+          <label for="current-song-name-input" class="visually-hidden">Song name</label>
+          <input
+            id="current-song-name-input"
+            type="text"
+            class="song-name-input"
+            placeholder="Enter song name..."
+            .value=${this.store.songName}
+            @input=${(e: InputEvent) => this.store.setSongName((e.target as HTMLInputElement).value)}
+          />
+        </div>
+
+        <div class="lyrics-preview-section">
+          <h4>Lyrics Preview</h4>
+          <lyrics-panel></lyrics-panel>
+        </div>
+
+        <div class="current-song-actions">
+          <button
+            class="btn btn-secondary"
+            @click=${this._copyLyrics}
+            ?disabled=${items.length === 0}
+          >
+            Copy Lyrics
+          </button>
+          <button
+            class="btn btn-primary"
+            @click=${this._handleSave}
+            ?disabled=${items.length === 0}
+          >
+            Sync to Cloud
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  private async _deleteSong(song: SavedSong, e: MouseEvent): Promise<void> {
+    e.stopPropagation();
+    if (confirm(`Delete "${song.name}"? This will remove it from local storage and the cloud.`)) {
+      await this.store.deleteSong(song.name);
+    }
+  }
+
+  private _renderAllSongsTab() {
     const allSongs = [
       ...this.store.savedSongs,
       ...(this.store.sampleContent?.sampleSongs ?? [])
@@ -121,7 +171,7 @@ export class FileModal extends LitElement {
             const isSample = this.store.sampleContent?.sampleSongs?.some(s => s.songId === song.songId);
             const itemCount = (song.items || song.lines || []).length;
             const date = new Date(song.lastModified).toLocaleDateString();
-            
+
             return html`
               <div class="document-item ${isSample ? 'sample-document' : ''}" @click=${() => this._handleDocumentSelect(song.name)}>
                 <div class="document-info">
@@ -130,7 +180,18 @@ export class FileModal extends LitElement {
                     ${itemCount} items • ${isSample ? 'Sample' : date}
                   </div>
                 </div>
-                <div class="document-arrow">→</div>
+                <div class="document-actions">
+                  ${!isSample ? html`
+                    <button
+                      class="btn btn-delete"
+                      @click=${(e: MouseEvent) => this._deleteSong(song, e)}
+                      title="Delete song"
+                    >
+                      Delete
+                    </button>
+                  ` : ''}
+                  <div class="document-arrow">→</div>
+                </div>
               </div>
             `;
           })}
@@ -148,70 +209,35 @@ export class FileModal extends LitElement {
       <div class="modal-backdrop" @click=${this._handleBackdropClick}>
         <div class="modal-content">
           <div class="modal-header">
-            <label for="file-modal-song-name" class="visually-hidden" data-spectrum-pattern="field-label">Song name</label>
-            <input 
-              id="file-modal-song-name"
-              type="text" 
-              class="song-name-input" 
-              data-spectrum-pattern="textfield"
-              placeholder="Enter song name..."
-              .value=${this.store.songName}
-              @input=${(e: InputEvent) => this.store.setSongName((e.target as HTMLInputElement).value)}
-            />
-            <button class="close-btn" data-spectrum-pattern="action-button-quiet" @click=${this._handleClose}>✕</button>
+            <h2>Songs</h2>
+            <button class="close-btn" @click=${this._handleClose}>✕</button>
           </div>
-          
-          <div class="modal-body">
-            <div class="section lyrics-section">
-              <h3>${this.showDocumentPicker ? 'Select a Song' : 'Lyrics Preview'}</h3>
-              <div class="lyrics-preview">
-                ${this.showDocumentPicker ? this._renderDocumentPicker() : html`<lyrics-panel></lyrics-panel>`}
-              </div>
-              <div class="actions-container">
-                <div class="actions-row">
-                  <button 
-                    class="btn btn-secondary" 
-                    data-spectrum-pattern="button-secondary" 
-                    @click=${this._copyLyrics}
-                    ?disabled=${this.store.items.length === 0}
-                    title="Copy lyrics to clipboard"
-                  >
-                    Copy
-                  </button>
-                  <button 
-                    class="btn btn-secondary btn-save" 
-                    data-spectrum-pattern="button-secondary" 
-                    @click=${this._handleSave}
-                    ?disabled=${this.store.items.length === 0}
-                    title="Save song"
-                  >
-                    Save
-                  </button>
-                </div>
-                <div class="button-divider"></div>
-                <div class="actions-row">
-                  <button 
-                    class="btn btn-secondary" 
-                    data-spectrum-pattern="button-secondary" 
-                    @click=${this._handleNew}
-                    ?disabled=${this.store.items.length === 0}
-                    title="Start a new song"
-                  >
-                    New
-                  </button>
-                  <button 
-                    class="btn btn-secondary ${this.showDocumentPicker ? 'btn-active' : ''}" 
-                    data-spectrum-pattern="button-secondary" 
-                    @click=${this._handleLoad}
-                    title="Load a saved song"
-                  >
-                    Load
-                  </button>
-                </div>
-              </div>
+
+          <div class="tabs-container">
+            <div class="tabs">
+              <button
+                class="tab ${this._selectedTab === 'current-song' ? 'active' : ''}"
+                @click=${() => this._switchTab('current-song')}
+              >
+                Current Song
+              </button>
+              <button
+                class="tab ${this._selectedTab === 'all-songs' ? 'active' : ''}"
+                @click=${() => this._switchTab('all-songs')}
+              >
+                All Songs
+              </button>
             </div>
+            <button class="btn btn-secondary new-song-btn" @click=${this._handleNew}>New Song</button>
           </div>
-          
+
+          <div class="modal-body">
+            ${this._selectedTab === 'current-song'
+              ? this._renderCurrentSongTab()
+              : this._renderAllSongsTab()
+            }
+          </div>
+
           <div class="modal-footer">
             <span class="version-text">Version ${APP_VERSION}</span>
           </div>

@@ -52,7 +52,13 @@ export class EmailPrompt extends LitElement {
   }
 
   private _handleSkip(): void {
-    // Allow skip but warn user
+    // If user already has an email, just close without warning
+    if (this.store.userEmail) {
+      this.store.setShowEmailPrompt(false);
+      return;
+    }
+
+    // Only warn if user doesn't have an email set
     if (confirm('Without an email, your songs won\'t sync across devices. Continue anyway?')) {
       this.store.setShowEmailPrompt(false);
     }

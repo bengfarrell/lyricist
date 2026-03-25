@@ -55,8 +55,7 @@ export const fileModalStyles = css`
   }
 
   .modal-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid #e5e7eb;
+    padding: 20px 24px 16px 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -64,9 +63,11 @@ export const fileModalStyles = css`
     flex-shrink: 0;
   }
 
-  .modal-header .song-name-input {
-    flex: 1;
-    min-width: 0;
+  .modal-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
   }
 
   .close-btn {
@@ -83,6 +84,51 @@ export const fileModalStyles = css`
   .close-btn:hover {
     background: #f3f4f6;
     color: #1f2937;
+  }
+
+  /* Tab styles */
+  .tabs-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 24px;
+    border-bottom: 2px solid #e5e7eb;
+    flex-shrink: 0;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .tab {
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #6b7280;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: -2px;
+  }
+
+  .tab:hover {
+    color: #374151;
+    background: #f9fafb;
+  }
+
+  .tab.active {
+    color: #2563eb;
+    border-bottom-color: #2563eb;
+  }
+
+  .new-song-btn {
+    margin-bottom: 2px;
+    flex-shrink: 0;
   }
 
   .modal-body {
@@ -234,6 +280,71 @@ export const fileModalStyles = css`
     border-color: #1f2937;
   }
 
+  .btn-primary {
+    background: #2563eb;
+    color: white;
+    border: 2px solid #2563eb;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+  }
+
+  /* Current Song Tab Styles */
+  .current-song-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    height: 100%;
+  }
+
+  .song-name-section {
+    flex-shrink: 0;
+  }
+
+  .song-name-section .song-name-input {
+    width: 100%;
+  }
+
+  .lyrics-preview-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .lyrics-preview-section h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .lyrics-preview-section lyrics-panel {
+    flex: 1;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .current-song-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    flex-shrink: 0;
+  }
+
+  .empty-message {
+    padding: 60px 20px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 16px;
+  }
+
   .document-picker {
     width: 100%;
     height: 100%;
@@ -271,6 +382,7 @@ export const fileModalStyles = css`
     display: flex;
     flex-direction: column;
     gap: 4px;
+    flex: 1;
   }
 
   .document-title {
@@ -282,6 +394,35 @@ export const fileModalStyles = css`
   .document-meta {
     font-size: 13px;
     color: #6b7280;
+  }
+
+  .document-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .btn-delete {
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #dc2626;
+    background: transparent;
+    border: 1px solid #dc2626;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .btn-delete:hover {
+    background: #dc2626;
+    color: white;
+    transform: scale(1.05);
+  }
+
+  .btn-delete:active {
+    transform: scale(0.98);
   }
 
   .document-arrow {
@@ -318,6 +459,10 @@ export const fileModalStyles = css`
 
     .modal-header {
       padding: 12px 16px;
+    }
+
+    .modal-header h2 {
+      font-size: 20px;
     }
 
     .modal-body {
@@ -365,6 +510,27 @@ export const fileModalStyles = css`
     .document-meta {
       font-size: 12px;
     }
+
+    .tabs-container {
+      padding: 0 16px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tabs {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .tab {
+      padding: 10px 16px;
+      font-size: 14px;
+    }
+
+    .new-song-btn {
+      font-size: 12px;
+      padding: 8px 12px;
+    }
   }
 
   @media (max-width: 480px) {
@@ -376,6 +542,10 @@ export const fileModalStyles = css`
 
     .modal-header {
       padding: 10px 12px;
+    }
+
+    .modal-header h2 {
+      font-size: 18px;
     }
 
     .modal-body {
@@ -415,6 +585,27 @@ export const fileModalStyles = css`
 
     .document-meta {
       font-size: 11px;
+    }
+
+    .tabs-container {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .tabs {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .tab {
+      padding: 8px 12px;
+      font-size: 13px;
+      flex: 1;
+    }
+
+    .new-song-btn {
+      width: 100%;
+      margin-bottom: 0;
     }
   }
 `;
