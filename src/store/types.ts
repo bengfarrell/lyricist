@@ -35,21 +35,25 @@ export interface SavedSong {
   userId: string; // Unique ID of the user who created this song
   items?: CanvasItem[]; // New format: mixed lines and groups
   lines?: LyricLine[]; // Legacy format: only lines
-  wordLadderSets?: WordLadderSet[]; // Word ladder data for this song
+  wordLadderColumns?: WordLadderColumn[]; // Word ladder columns for this song
   lastModified: string;
   exportedAt?: string;
 }
 
 export interface WordLadderColumn {
+  id: string;
   title: string;
   placeholder: string;
   words: string[];
+  muted?: boolean;
 }
 
+// Legacy type - kept for backward compatibility
 export interface WordLadderSet {
   id: string;
-  leftColumn: WordLadderColumn;
-  rightColumn: WordLadderColumn;
+  columns?: WordLadderColumn[];
+  leftColumn?: WordLadderColumn;
+  rightColumn?: WordLadderColumn;
 }
 
 export interface SampleSong {

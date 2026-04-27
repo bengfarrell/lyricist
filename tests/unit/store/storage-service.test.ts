@@ -171,30 +171,35 @@ describe('StorageService', () => {
   });
 
   describe('getUserId', () => {
-    it('should generate and store a new user ID if none exists', () => {
+    it('should generate a temporary user ID if none exists', () => {
       const userId = storageService.getUserId();
-      
+
       expect(userId).toBeTruthy();
       expect(userId.length).toBeGreaterThan(0);
-      
-      // Verify it's stored in localStorage
+      expect(userId).toMatch(/^temp-/); // Should start with 'temp-'
+
+      // Temporary IDs are NOT stored in localStorage
       const storedId = localStorage.getItem('lyricist-user-id');
-      expect(storedId).toBe(userId);
+      expect(storedId).toBeNull();
     });
 
-    it('should return the same user ID on subsequent calls', () => {
+    it('should generate different temporary IDs on subsequent calls when no ID is stored', () => {
       const userId1 = storageService.getUserId();
       const userId2 = storageService.getUserId();
-      
-      expect(userId1).toBe(userId2);
+
+      // Both should be temporary IDs
+      expect(userId1).toMatch(/^temp-/);
+      expect(userId2).toMatch(/^temp-/);
+      // They should be different since they're truly temporary
+      expect(userId1).not.toBe(userId2);
     });
 
     it('should use existing user ID from localStorage', () => {
       const existingId = 'existing-user-id-123';
       localStorage.setItem('lyricist-user-id', existingId);
-      
+
       const userId = storageService.getUserId();
-      
+
       expect(userId).toBe(existingId);
     });
   });

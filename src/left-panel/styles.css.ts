@@ -103,6 +103,78 @@ export const leftPanelStyles = css`
     padding: 20px;
     overflow-y: auto;
     background: #ffffff;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .column-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 0;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #e9ecef;
+  }
+
+  .nav-btn {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    color: #374151;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    line-height: 1;
+    transition: all 0.2s ease;
+    padding: 0;
+  }
+
+  .nav-btn:hover:not(:disabled) {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+  }
+
+  .nav-btn:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+
+  .nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .column-indicator {
+    font-size: 13px;
+    color: #6b7280;
+    font-weight: 500;
+    flex: 1;
+    text-align: center;
+  }
+
+  .add-column-btn {
+    background: #3b82f6;
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  .add-column-btn:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+  }
+
+  .add-column-btn:active {
+    transform: translateY(0);
   }
 
   .word-ladder {
@@ -136,10 +208,23 @@ export const leftPanelStyles = css`
     position: relative;
     z-index: 1;
     overflow: hidden;
+    transition: opacity 0.3s ease;
+  }
+
+  .word-column.muted {
+    opacity: 0.4;
+  }
+
+  .column-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
   }
 
   .column-title {
-    margin: 0 0 12px 0;
+    margin: 0;
     font-size: 14px;
     font-weight: 600;
     color: #1f2937;
@@ -148,6 +233,7 @@ export const leftPanelStyles = css`
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex: 1;
   }
 
   .column-title.editable {
@@ -155,6 +241,44 @@ export const leftPanelStyles = css`
     padding: 4px 8px;
     border-radius: 4px;
     transition: background 0.2s ease;
+  }
+
+  .mute-btn {
+    background: transparent;
+    border: 1px solid #d1d5db;
+    color: #6b7280;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+    transition: all 0.2s ease;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .mute-btn:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+  }
+
+  .mute-btn:active {
+    transform: scale(0.95);
+  }
+
+  .mute-btn.muted {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #dc2626;
+  }
+
+  .mute-btn.muted:hover {
+    background: #fecaca;
+    border-color: #f87171;
   }
 
   .column-title.editable:hover {

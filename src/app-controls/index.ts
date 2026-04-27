@@ -14,41 +14,28 @@ export class AppControls extends LitElement {
   private _customSectionName: string = '';
 
   private _getWordLadderPlaceholder(): string {
-    const currentSet = this.store.currentWordLadderSet;
-    const leftWords = currentSet.leftColumn.words;
-    const rightWords = currentSet.rightColumn.words;
-    
-    const leftIndex = this.store.wordLadderSelectedLeft;
-    const rightIndex = this.store.wordLadderSelectedRight;
-    
-    // Check if we should show word ladder text
-    // This includes: actual selections OR when both lists are empty (showing placeholders)
-    const hasLeftSelection = leftIndex !== -1 || leftWords.length === 0;
-    const hasRightSelection = rightIndex !== -1 || rightWords.length === 0;
-    
-    if (hasLeftSelection && hasRightSelection) {
-      // Get left word or placeholder
-      let leftText: string;
-      if (leftIndex !== -1 && leftWords.length > 0) {
-        leftText = leftWords[leftIndex];
-      } else {
-        // Use category title for empty lists
-        leftText = currentSet.leftColumn.title.toLowerCase();
-      }
-      
-      // Get right word or placeholder
-      let rightText: string;
-      if (rightIndex !== -1 && rightWords.length > 0) {
-        rightText = rightWords[rightIndex];
-      } else {
-        // Use category title for empty lists
-        rightText = currentSet.rightColumn.title.toLowerCase();
-      }
-      
-      return `${leftText} ${rightText}`;
+    const columns = this.store.wordLadderColumns;
+    const selectedIndices = this.store.wordLadderSelectedIndices;
+
+    if (columns.length === 0) {
+      return DEFAULT_LINE_TEXT;
     }
-    
-    return DEFAULT_LINE_TEXT;
+
+    // Build text from selected words or placeholders
+    const words: string[] = [];
+    columns.forEach((column, index) => {
+      const selectedIndex = selectedIndices[index] ?? -1;
+
+      if (selectedIndex !== -1 && column.words.length > 0) {
+        // Use selected word
+        words.push(column.words[selectedIndex]);
+      } else if (column.words.length === 0) {
+        // Use column title as placeholder for empty lists
+        words.push(column.title.toLowerCase());
+      }
+    });
+
+    return words.length > 0 ? words.join(' ') : DEFAULT_LINE_TEXT;
   }
 
   private _addLine(e: Event): void {
@@ -86,34 +73,60 @@ export class AppControls extends LitElement {
   }
 
   private _rollDice(): void {
-    const currentSet = this.store.currentWordLadderSet;
-    const leftWords = currentSet.leftColumn.words;
-    const rightWords = currentSet.rightColumn.words;
-    
-    // Pick random words or use -1 for placeholders
-    let leftIndex = -1;
-    let rightIndex = -1;
-    
-    if (leftWords.length > 0) {
-      leftIndex = Math.floor(Math.random() * leftWords.length);
-    }
-    
-    if (rightWords.length > 0) {
-      rightIndex = Math.floor(Math.random() * rightWords.length);
-    }
-    
-    // Store the selected indices so the left panel can show the connection
-    this.store.setWordLadderSelection(leftIndex, rightIndex);
-    
-    // If both are actual words, set the value; otherwise clear it (will use placeholder)
-    if (leftIndex !== -1 && rightIndex !== -1) {
-      const combinedText = `${leftWords[leftIndex]} ${rightWords[rightIndex]}`;
-      this.store.setNewLineInputText(combinedText);
+    const columns = this.store.wordLadderColumns;
+
+    // Pick 2 random columns (can be any columns, not just adjacent)
+    if (columns.length === 0) return;
+
+    // Filter out muted columns
+    const activeColumnIndices = columns
+      .map((col, index) => col.muted ? -1 : index)
+      .filter(index => index !== -1);
+
+    if (activeColumnIndices.length === 0) return; // No active columns
+
+    let col1Index: number, col2Index: number;
+
+    if (activeColumnIndices.length === 1) {
+      col1Index = activeColumnIndices[0];
+      col2Index = activeColumnIndices[0];
     } else {
-      // Clear the input value so placeholder shows
+      // Pick two different random active columns
+      const randomIdx1 = Math.floor(Math.random() * activeColumnIndices.length);
+      col1Index = activeColumnIndices[randomIdx1];
+
+      let randomIdx2;
+      do {
+        randomIdx2 = Math.floor(Math.random() * activeColumnIndices.length);
+      } while (randomIdx2 === randomIdx1 && activeColumnIndices.length > 1);
+      col2Index = activeColumnIndices[randomIdx2];
+    }
+
+    // Pick random words from those columns
+    const selectedIndices = new Array(columns.length).fill(-1);
+
+    if (columns[col1Index].words.length > 0) {
+      selectedIndices[col1Index] = Math.floor(Math.random() * columns[col1Index].words.length);
+    }
+
+    if (columns[col2Index].words.length > 0) {
+      selectedIndices[col2Index] = Math.floor(Math.random() * columns[col2Index].words.length);
+    }
+
+    // Store the selected indices
+    this.store.setWordLadderSelection(selectedIndices);
+
+    // Build the combined text from selected words
+    const selectedWords = selectedIndices
+      .map((index, colIndex) => index !== -1 ? columns[colIndex].words[index] : null)
+      .filter(word => word !== null);
+
+    if (selectedWords.length > 0) {
+      this.store.setNewLineInputText(selectedWords.join(' '));
+    } else {
       this.store.setNewLineInputText('');
     }
-    
+
     this.requestUpdate();
   }
   

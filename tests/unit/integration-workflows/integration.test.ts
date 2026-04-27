@@ -286,9 +286,8 @@ describe('Integration Tests', () => {
       const lyricsPanel: any = await fixture(html`<lyrics-panel></lyrics-panel>`);
       await lyricsPanel.updateComplete;
 
-      // Click copy button
-      const copyBtn = lyricsPanel.shadowRoot!.querySelector('.copy-lyrics-btn') as HTMLButtonElement;
-      copyBtn.click();
+      // Dispatch copy-lyrics event (replaces clicking button that no longer exists)
+      window.dispatchEvent(new CustomEvent('copy-lyrics'));
       await lyricsPanel.updateComplete;
 
       // Verify clipboard was called with formatted text

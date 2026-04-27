@@ -225,61 +225,14 @@ describe('AppHeader', () => {
     });
   });
 
-  describe('load sample functionality', () => {
-    it('should load sample song when button is clicked', async () => {
-      // Reset mock to return sample data
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          sampleSongs: [{
-            name: 'Morning Coffee (Sample)',
-            lastModified: '2024-01-01T00:00:00.000Z',
-            wordLadderSets: [],
-            items: [
-              {
-                id: 'line-1',
-                type: 'line',
-                text: 'Sample line',
-                chords: [],
-                hasChordSection: false,
-                x: 100,
-                y: 100,
-                rotation: 0,
-                zIndex: 1
-              }
-            ]
-          }]
-        }),
-      } as Response);
-      
-      const el = await fixture<AppHeader>(html`<app-header></app-header>`);
-      await el.updateComplete;
-      
-      // Force sample content reload
-      await (songStore as any)._loadSampleContent();
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const sampleBtn = Array.from(el.shadowRoot!.querySelectorAll('.btn')).find(
-        btn => btn.textContent?.includes('Load Sample')
-      ) as HTMLButtonElement;
-      expect(sampleBtn).toBeTruthy();
-
-      sampleBtn.click();
-      await el.updateComplete;
-      
-      // Wait for the async load to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      expect(songStore.songName).toContain('Morning Coffee');
-      expect(songStore.lines.length).toBeGreaterThan(0);
-    });
-  });
+  // Note: Load sample functionality has been moved/removed from app-header
+  // Sample songs are now loaded through the load dialog
 
   it('should render all action buttons', async () => {
     const el = await fixture<AppHeader>(html`<app-header></app-header>`);
-    
+
     const buttons = el.shadowRoot!.querySelectorAll('.btn');
-    expect(buttons.length).toBeGreaterThanOrEqual(4); // Save, Load, New, Load Sample
+    expect(buttons.length).toBeGreaterThanOrEqual(3); // Save, Load, New
   });
 
   it('should update when store changes', async () => {

@@ -37,12 +37,9 @@ export class LeftPanel extends LitElement {
   static styles = leftPanelStyles;
   
   private store = new SongStoreController(this);
-  private _newLeftWord: string = '';
-  private _newRightWord: string = '';
-  private _editingLeftTitle: boolean = false;
-  private _editingRightTitle: boolean = false;
-  private _editLeftTitleValue: string = '';
-  private _editRightTitleValue: string = '';
+  private _newWords: Map<number, string> = new Map(); // columnIndex -> input value
+  private _editingTitles: Set<number> = new Set(); // which column indices are being edited
+  private _editTitleValues: Map<number, string> = new Map(); // columnIndex -> title value
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -69,108 +66,80 @@ export class LeftPanel extends LitElement {
   private _handleAddSet(): void {
     this._addSet();
   }
-  
-  private _getWordSetConfig(): WordSet[] {
-    // Convert the store's word ladder sets to the local WordSet format
-    return this.store.wordLadderSets.map(set => ({
-      leftTitle: set.leftColumn.title,
-      rightTitle: set.rightColumn.title,
-      leftPlaceholder: set.leftColumn.placeholder,
-      rightPlaceholder: set.rightColumn.placeholder,
-      leftWords: set.leftColumn.words,
-      rightWords: set.rightColumn.words
-    }));
+
+  private _getVisibleColumns() {
+    const columns = this.store.wordLadderColumns;
+    const offset = this.store.wordLadderColumnViewOffset;
+    return columns.slice(offset, offset + 2);
   }
 
-  private _getCurrentSet(): WordSet {
-    const index = this.store.wordLadderSetIndex;
-    const wordSets = this._getWordSetConfig();
-    return wordSets[index] || {
-      leftTitle: 'Left',
-      rightTitle: 'Right',
-      leftPlaceholder: 'word',
-      rightPlaceholder: 'word',
-      leftWords: [],
-      rightWords: []
-    };
+  private _getVisibleColumnIndices() {
+    const offset = this.store.wordLadderColumnViewOffset;
+    return [offset, offset + 1];
   }
 
   private _nextSet(): void {
-    const wordSets = this._getWordSetConfig();
-    if (wordSets.length <= 1) return; // Don't navigate if there's only one or no sets
+    const wordSets = this.store.wordLadderSets;
+    if (wordSets.length <= 1) return;
     const currentIndex = this.store.wordLadderSetIndex;
     const newIndex = (currentIndex + 1) % wordSets.length;
     if (newIndex !== currentIndex) {
       this.store.setWordLadderSetIndex(newIndex);
-      this._newLeftWord = '';
-      this._newRightWord = '';
-      this._editingLeftTitle = false;
-      this._editingRightTitle = false;
+      this._newWords.clear();
+      this._editingTitles.clear();
+      this._editTitleValues.clear();
       this._selectRandomPairing();
     }
   }
 
   private _prevSet(): void {
-    const wordSets = this._getWordSetConfig();
-    if (wordSets.length <= 1) return; // Don't navigate if there's only one or no sets
+    const wordSets = this.store.wordLadderSets;
+    if (wordSets.length <= 1) return;
     const currentIndex = this.store.wordLadderSetIndex;
     const newIndex = (currentIndex - 1 + wordSets.length) % wordSets.length;
     if (newIndex !== currentIndex) {
       this.store.setWordLadderSetIndex(newIndex);
-      this._newLeftWord = '';
-      this._newRightWord = '';
-      this._editingLeftTitle = false;
-      this._editingRightTitle = false;
+      this._newWords.clear();
+      this._editingTitles.clear();
+      this._editTitleValues.clear();
       this._selectRandomPairing();
     }
   }
 
   private _selectRandomPairing(): void {
-    const currentSet = this.store.currentWordLadderSet;
-    const leftWords = currentSet.leftColumn.words;
-    const rightWords = currentSet.rightColumn.words;
+    const columns = this.store.wordLadderColumns;
 
-    // Pick random indices if words are available, otherwise select placeholders
-    let leftIndex = -1;
-    let rightIndex = -1;
+    // Pick random indices for each column
+    const selectedIndices = columns.map(col => {
+      return col.words.length > 0 ? Math.floor(Math.random() * col.words.length) : -1;
+    });
 
-    if (leftWords.length > 0) {
-      leftIndex = Math.floor(Math.random() * leftWords.length);
-    } else {
-      // Select placeholder by using -1
-      leftIndex = -1;
-    }
-
-    if (rightWords.length > 0) {
-      rightIndex = Math.floor(Math.random() * rightWords.length);
-    } else {
-      // Select placeholder by using -1
-      rightIndex = -1;
-    }
-
-    // Always set selection, even if both are placeholders
-    this.store.setWordLadderSelection(leftIndex, rightIndex);
+    this.store.setWordLadderSelection(selectedIndices);
   }
 
   private _addSet(): void {
     this.store.addWordLadderSet();
-    this._editingLeftTitle = false;
-    this._editingRightTitle = false;
-    
+    this._editingTitles.clear();
+    this._editTitleValues.clear();
+    this._newWords.clear();
+
     // Navigate to the newly added set (last one in the array)
     const newIndex = this.store.wordLadderSets.length - 1;
     this.store.setWordLadderSetIndex(newIndex);
   }
 
-  private _startEditLeftTitle(): void {
-    const currentSet = this.store.currentWordLadderSet;
-    this._editLeftTitleValue = currentSet.leftColumn.title;
-    this._editingLeftTitle = true;
+  private _startEditTitle(columnIndex: number): void {
+    const columns = this.store.wordLadderColumns;
+    const column = columns[columnIndex];
+    if (!column) return;
+
+    this._editTitleValues.set(columnIndex, column.title);
+    this._editingTitles.add(columnIndex);
     this.requestUpdate();
-    
+
     // Focus the input after render
     this.updateComplete.then(() => {
-      const input = this.shadowRoot?.querySelector('.edit-left-title') as HTMLInputElement;
+      const input = this.shadowRoot?.querySelector(`.edit-title-${columnIndex}`) as HTMLInputElement;
       if (input) {
         input.focus();
         input.select();
@@ -178,330 +147,255 @@ export class LeftPanel extends LitElement {
     });
   }
 
-  private _startEditRightTitle(): void {
-    const currentSet = this.store.currentWordLadderSet;
-    this._editRightTitleValue = currentSet.rightColumn.title;
-    this._editingRightTitle = true;
-    this.requestUpdate();
-    
-    // Focus the input after render
-    this.updateComplete.then(() => {
-      const input = this.shadowRoot?.querySelector('.edit-right-title') as HTMLInputElement;
-      if (input) {
-        input.focus();
-        input.select();
-      }
-    });
-  }
-
-  private _saveLeftTitle(e: Event): void {
+  private _saveTitle(columnIndex: number, e: Event): void {
     e.preventDefault();
-    if (this._editLeftTitleValue.trim()) {
-      this.store.updateWordLadderColumnTitle('left', this._editLeftTitleValue.trim());
+    const titleValue = this._editTitleValues.get(columnIndex);
+    if (titleValue?.trim()) {
+      this.store.updateWordLadderColumnTitle(columnIndex, titleValue.trim());
     }
-    this._editingLeftTitle = false;
+    this._editingTitles.delete(columnIndex);
+    this._editTitleValues.delete(columnIndex);
   }
 
-  private _saveRightTitle(e: Event): void {
-    e.preventDefault();
-    if (this._editRightTitleValue.trim()) {
-      this.store.updateWordLadderColumnTitle('right', this._editRightTitleValue.trim());
-    }
-    this._editingRightTitle = false;
+  private _cancelEditTitle(columnIndex: number): void {
+    this._editingTitles.delete(columnIndex);
+    this._editTitleValues.delete(columnIndex);
   }
 
-  private _cancelEditLeftTitle(): void {
-    this._editingLeftTitle = false;
+  private _selectSuggestion(columnIndex: number, suggestion: string): void {
+    this._editTitleValues.set(columnIndex, suggestion);
+    this.store.updateWordLadderColumnTitle(columnIndex, suggestion);
+    this._editingTitles.delete(columnIndex);
   }
 
-  private _cancelEditRightTitle(): void {
-    this._editingRightTitle = false;
-  }
-
-  private _selectLeftSuggestion(suggestion: string): void {
-    this._editLeftTitleValue = suggestion;
-    this.store.updateWordLadderColumnTitle('left', suggestion);
-    this._editingLeftTitle = false;
-  }
-
-  private _selectRightSuggestion(suggestion: string): void {
-    this._editRightTitleValue = suggestion;
-    this.store.updateWordLadderColumnTitle('right', suggestion);
-    this._editingRightTitle = false;
-  }
-
-  private _addLeftWord(e?: Event): void {
+  private _addWord(columnIndex: number, e?: Event): void {
     if (e) e.preventDefault();
-    const word = this._newLeftWord.trim();
-    if (!word) return;
-    
-    const currentSet = this.store.currentWordLadderSet;
-    const newWords = [...currentSet.leftColumn.words, word];
-    this.store.setWordLadderLeftWords(newWords);
-    this._newLeftWord = '';
-    
-    // Auto-select the newly added word
-    const newIndex = newWords.length - 1;
-    
-    // If right column has words, select the first one (or keep current selection)
-    const rightWords = currentSet.rightColumn.words;
-    let rightIndex = this.store.wordLadderSelectedRight;
-    
-    // If no right selection yet but right words exist, select the first one
-    if (rightIndex === -1 && rightWords.length > 0) {
-      rightIndex = 0;
+    const input = this._newWords.get(columnIndex)?.trim();
+    if (!input) return;
+
+    const columns = this.store.wordLadderColumns;
+    const column = columns[columnIndex];
+    if (!column) return;
+
+    // Split by commas and trim each word
+    const wordsToAdd = input
+      .split(',')
+      .map(word => word.trim())
+      .filter(word => word.length > 0);
+
+    if (wordsToAdd.length === 0) return;
+
+    // Add all words to the column
+    const newWords = [...column.words, ...wordsToAdd];
+    this.store.setWordLadderColumnWords(columnIndex, newWords);
+    this._newWords.set(columnIndex, '');
+
+    // Auto-select the last added word
+    const selectedIndices = [...this.store.wordLadderSelectedIndices];
+    while (selectedIndices.length < columns.length) {
+      selectedIndices.push(-1);
     }
-    
-    this.store.setWordLadderSelection(newIndex, rightIndex);
+    selectedIndices[columnIndex] = newWords.length - 1;
+
+    this.store.setWordLadderSelection(selectedIndices);
   }
-  
-  private _handleLeftInputBlur(): void {
-    this._addLeftWord();
+
+  private _handleInputBlur(columnIndex: number): void {
+    this._addWord(columnIndex);
   }
-  
-  private _handleLeftInputKeyDown(e: KeyboardEvent): void {
+
+  private _handleInputKeyDown(columnIndex: number, e: KeyboardEvent): void {
     if (e.key === 'Tab') {
       e.preventDefault();
-      this._addLeftWord();
-      // Focus the right input
-      this.updateComplete.then(() => {
-        const rightInput = this.shadowRoot?.querySelector('.word-column:nth-child(2) .word-input-inline') as HTMLInputElement;
-        if (rightInput) rightInput.focus();
-      });
+      this._addWord(columnIndex);
     }
   }
 
-  private _addRightWord(e?: Event): void {
-    if (e) e.preventDefault();
-    const word = this._newRightWord.trim();
-    if (!word) return;
-    
-    const currentSet = this.store.currentWordLadderSet;
-    const newWords = [...currentSet.rightColumn.words, word];
-    this.store.setWordLadderRightWords(newWords);
-    this._newRightWord = '';
-    
-    // Auto-select the newly added word
-    const newIndex = newWords.length - 1;
-    
-    // If left column has words, select the first one (or keep current selection)
-    const leftWords = currentSet.leftColumn.words;
-    let leftIndex = this.store.wordLadderSelectedLeft;
-    
-    // If no left selection yet but left words exist, select the first one
-    if (leftIndex === -1 && leftWords.length > 0) {
-      leftIndex = 0;
-    }
-    
-    this.store.setWordLadderSelection(leftIndex, newIndex);
-  }
-  
-  private _handleRightInputBlur(): void {
-    this._addRightWord();
-  }
-  
-  private _handleRightInputKeyDown(e: KeyboardEvent): void {
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      this._addRightWord();
-      // Focus the left input (wrap around)
-      this.updateComplete.then(() => {
-        const leftInput = this.shadowRoot?.querySelector('.word-column:nth-child(1) .word-input-inline') as HTMLInputElement;
-        if (leftInput) leftInput.focus();
-      });
-    }
-  }
+  private _removeWord(columnIndex: number, wordIndex: number): void {
+    const columns = this.store.wordLadderColumns;
+    const column = columns[columnIndex];
+    if (!column) return;
 
-  private _removeLeftWord(wordIndex: number): void {
-    const currentSet = this.store.currentWordLadderSet;
-    const newWords = currentSet.leftColumn.words.filter((_, i) => i !== wordIndex);
-    this.store.setWordLadderLeftWords(newWords);
-    
-    // Auto-select a new random word from the remaining words
-    let newLeftIndex = -1;
+    const newWords = column.words.filter((_, i) => i !== wordIndex);
+    this.store.setWordLadderColumnWords(columnIndex, newWords);
+
+    // Update selection
+    const selectedIndices = [...this.store.wordLadderSelectedIndices];
+    while (selectedIndices.length < columns.length) {
+      selectedIndices.push(-1);
+    }
+
+    const currentIndex = selectedIndices[columnIndex] ?? -1;
+    let newIndex = -1;
+
     if (newWords.length > 0) {
       // If we removed the selected word, pick a new random one
-      if (wordIndex === this.store.wordLadderSelectedLeft) {
-        newLeftIndex = Math.floor(Math.random() * newWords.length);
-      } else {
+      if (wordIndex === currentIndex) {
+        newIndex = Math.floor(Math.random() * newWords.length);
+      } else if (currentIndex > wordIndex) {
         // Adjust the index if it changed due to removal
-        const currentIndex = this.store.wordLadderSelectedLeft;
-        if (currentIndex > wordIndex) {
-          newLeftIndex = currentIndex - 1;
-        } else {
-          newLeftIndex = currentIndex;
-        }
+        newIndex = currentIndex - 1;
+      } else {
+        newIndex = currentIndex;
       }
     }
-    
-    this.store.setWordLadderSelection(newLeftIndex, this.store.wordLadderSelectedRight);
+
+    selectedIndices[columnIndex] = newIndex;
+    this.store.setWordLadderSelection(selectedIndices);
   }
 
-  private _removeRightWord(wordIndex: number): void {
-    const currentSet = this.store.currentWordLadderSet;
-    const newWords = currentSet.rightColumn.words.filter((_, i) => i !== wordIndex);
-    this.store.setWordLadderRightWords(newWords);
-    
-    // Auto-select a new random word from the remaining words
-    let newRightIndex = -1;
-    if (newWords.length > 0) {
-      // If we removed the selected word, pick a new random one
-      if (wordIndex === this.store.wordLadderSelectedRight) {
-        newRightIndex = Math.floor(Math.random() * newWords.length);
-      } else {
-        // Adjust the index if it changed due to removal
-        const currentIndex = this.store.wordLadderSelectedRight;
-        if (currentIndex > wordIndex) {
-          newRightIndex = currentIndex - 1;
-        } else {
-          newRightIndex = currentIndex;
-        }
-      }
+  private _selectWord(columnIndex: number, wordIndex: number): void {
+    const columns = this.store.wordLadderColumns;
+    const selectedIndices = [...this.store.wordLadderSelectedIndices];
+
+    // Ensure array is long enough
+    while (selectedIndices.length < columns.length) {
+      selectedIndices.push(-1);
     }
-    
-    this.store.setWordLadderSelection(this.store.wordLadderSelectedLeft, newRightIndex);
-  }
 
-  private _selectLeftWord(index: number): void {
-    const rightIndex = this.store.wordLadderSelectedRight;
-    this.store.setWordLadderSelection(index, rightIndex);
-  }
-
-  private _selectRightWord(index: number): void {
-    const leftIndex = this.store.wordLadderSelectedLeft;
-    this.store.setWordLadderSelection(leftIndex, index);
+    selectedIndices[columnIndex] = wordIndex;
+    this.store.setWordLadderSelection(selectedIndices);
   }
 
   render() {
-    const currentSet = this._getCurrentSet();
-    const leftWords = currentSet.leftWords;
-    const rightWords = currentSet.rightWords;
-    const hasMultipleSets = this._getWordSetConfig().length > 1;
-    
+    const visibleColumns = this._getVisibleColumns();
+    const visibleColumnIndices = this._getVisibleColumnIndices();
+    const selectedIndices = this.store.wordLadderSelectedIndices;
+    const totalColumns = this.store.wordLadderColumns.length;
+    const offset = this.store.wordLadderColumnViewOffset;
+
+    const canGoBack = offset > 0;
+    const canGoForward = offset + 2 < totalColumns;
+
+    // Combine left and right suggestions
+    const allSuggestions = [...new Set([...LEFT_CATEGORY_SUGGESTIONS, ...RIGHT_CATEGORY_SUGGESTIONS])];
+
     return html`
       <div class="left-panel-content">
+        ${canGoBack || canGoForward || totalColumns > 2 ? html`
+          <div class="column-nav">
+            <button
+              class="nav-btn"
+              @click=${() => {
+                const currentOffset = this.store.wordLadderColumnViewOffset;
+                if (currentOffset > 0) {
+                  this.store.setWordLadderColumnViewOffset(currentOffset - 1);
+                }
+              }}
+              ?disabled=${!canGoBack}
+              title="Previous columns"
+            >‹</button>
+            <span class="column-indicator">Columns ${offset + 1}-${Math.min(offset + 2, totalColumns)} of ${totalColumns}</span>
+            <button
+              class="nav-btn"
+              @click=${() => {
+                const totalColumns = this.store.wordLadderColumns.length;
+                const currentOffset = this.store.wordLadderColumnViewOffset;
+                if (currentOffset + 2 < totalColumns) {
+                  this.store.setWordLadderColumnViewOffset(currentOffset + 1);
+                }
+              }}
+              ?disabled=${!canGoForward}
+              title="Next columns"
+            >›</button>
+            <button
+              class="add-column-btn"
+              @click=${() => this.store.addWordLadderColumn()}
+              title="Add column"
+            >+ Add Column</button>
+          </div>
+        ` : html`
+          <div class="column-nav">
+            <button
+              class="add-column-btn"
+              @click=${() => this.store.addWordLadderColumn()}
+              title="Add column"
+            >+ Add Column</button>
+          </div>
+        `}
         <div class="word-ladder">
-          <div class="word-column">
-            ${this._editingLeftTitle ? html`
-              <div class="edit-title-container">
-                <form class="edit-title-form" data-spectrum-pattern="form" @submit=${this._saveLeftTitle}>
-                  <input
-                    type="text"
-                    class="edit-left-title"
-                    data-spectrum-pattern="textfield"
-                  .value=${this._editLeftTitleValue}
-                  @input=${(e: InputEvent) => {
-                    this._editLeftTitleValue = (e.target as HTMLInputElement).value;
-                  }}
-                    @blur=${this._saveLeftTitle}
-                    @keydown=${(e: KeyboardEvent) => {
-                      if (e.key === 'Escape') this._cancelEditLeftTitle();
-                    }}
-                  />
-                </form>
-                <div class="suggestion-chips" data-spectrum-pattern="action-group-horizontal">
-                  ${LEFT_CATEGORY_SUGGESTIONS.map(suggestion => html`
-                    <button 
-                      class="suggestion-chip"
-                      data-spectrum-pattern="action-button"
-                      @mousedown=${(e: Event) => { e.preventDefault(); this._selectLeftSuggestion(suggestion); }}
-                      type="button"
-                    >${suggestion}</button>
-                  `)}
-                </div>
-              </div>
-            ` : html`
-              <h3 class="column-title editable" @click=${this._startEditLeftTitle} title="Click to edit">${currentSet.leftTitle}</h3>
-            `}
-            <div class="word-list">
-              <!-- Add word item at the top -->
-              <form class="word-item add-word-item" data-spectrum-pattern="form" @submit=${this._addLeftWord} @click=${(e: MouseEvent) => {
-                const input = (e.currentTarget as HTMLFormElement).querySelector('.word-input-inline') as HTMLInputElement;
-                if (input) input.focus();
-              }}>
-                <input
-                  type="text"
-                  class="word-input-inline"
-                  data-spectrum-pattern="textfield"
-                  placeholder="+ Add word..."
-                .value=${this._newLeftWord}
-                @input=${(e: InputEvent) => {
-                  this._newLeftWord = (e.target as HTMLInputElement).value;
-                }}
-                  @blur=${this._handleLeftInputBlur}
-                  @keydown=${this._handleLeftInputKeyDown}
-                />
-              </form>
-              
-              ${leftWords.map((word, index) => html`
-                <div class="word-item ${index === this.store.wordLadderSelectedLeft ? 'selected' : ''}" data-spectrum-pattern="list-item-selectable" @click=${() => this._selectLeftWord(index)}>
-                  <span class="word-text">${word}</span>
-                  <button class="remove-btn" data-spectrum-pattern="action-button-quiet" @click=${(e: Event) => { e.stopPropagation(); this._removeLeftWord(index); }} title="Remove">×</button>
-                </div>
-              `)}
-            </div>
-          </div>
+          ${visibleColumns.map((column, viewIndex) => {
+            const columnIndex = visibleColumnIndices[viewIndex];
+            const isEditing = this._editingTitles.has(columnIndex);
+            const editValue = this._editTitleValues.get(columnIndex) || '';
+            const newWord = this._newWords.get(columnIndex) || '';
+            const selectedWordIndex = selectedIndices[columnIndex] ?? -1;
 
-          <div class="word-column">
-            ${this._editingRightTitle ? html`
-              <div class="edit-title-container">
-                <form class="edit-title-form" data-spectrum-pattern="form" @submit=${this._saveRightTitle}>
-                  <input
-                    type="text"
-                    class="edit-right-title"
-                    data-spectrum-pattern="textfield"
-                  .value=${this._editRightTitleValue}
-                  @input=${(e: InputEvent) => {
-                    this._editRightTitleValue = (e.target as HTMLInputElement).value;
-                  }}
-                    @blur=${this._saveRightTitle}
-                    @keydown=${(e: KeyboardEvent) => {
-                      if (e.key === 'Escape') this._cancelEditRightTitle();
-                    }}
-                  />
-                </form>
-                <div class="suggestion-chips" data-spectrum-pattern="action-group-horizontal">
-                  ${RIGHT_CATEGORY_SUGGESTIONS.map(suggestion => html`
-                    <button 
-                      class="suggestion-chip"
-                      data-spectrum-pattern="action-button"
-                      @mousedown=${(e: Event) => { e.preventDefault(); this._selectRightSuggestion(suggestion); }}
-                      type="button"
-                    >${suggestion}</button>
+            return html`
+              <div class="word-column ${column.muted ? 'muted' : ''}">
+                <div class="column-header">
+                  ${isEditing ? html`
+                    <div class="edit-title-container">
+                      <form class="edit-title-form" data-spectrum-pattern="form" @submit=${(e: Event) => this._saveTitle(columnIndex, e)}>
+                        <input
+                          type="text"
+                          class="edit-title-${columnIndex}"
+                          data-spectrum-pattern="textfield"
+                          .value=${editValue}
+                          @input=${(e: InputEvent) => {
+                            this._editTitleValues.set(columnIndex, (e.target as HTMLInputElement).value);
+                            this.requestUpdate();
+                          }}
+                          @blur=${(e: Event) => this._saveTitle(columnIndex, e)}
+                          @keydown=${(e: KeyboardEvent) => {
+                            if (e.key === 'Escape') this._cancelEditTitle(columnIndex);
+                          }}
+                        />
+                      </form>
+                      <div class="suggestion-chips" data-spectrum-pattern="action-group-horizontal">
+                        ${allSuggestions.map(suggestion => html`
+                          <button
+                            class="suggestion-chip"
+                            data-spectrum-pattern="action-button"
+                            @mousedown=${(e: Event) => { e.preventDefault(); this._selectSuggestion(columnIndex, suggestion); }}
+                            type="button"
+                          >${suggestion}</button>
+                        `)}
+                      </div>
+                    </div>
+                  ` : html`
+                    <h3 class="column-title editable" @click=${() => this._startEditTitle(columnIndex)} title="Click to edit">${column.title}</h3>
+                  `}
+                  <button
+                    class="mute-btn ${column.muted ? 'muted' : ''}"
+                    @click=${() => this.store.toggleWordLadderColumnMuted(columnIndex)}
+                    title="${column.muted ? 'Unmute column (include in randomization)' : 'Mute column (exclude from randomization)'}"
+                    aria-label="${column.muted ? 'Unmute column' : 'Mute column'}"
+                  >
+                    ${column.muted ? '🔇' : '🔊'}
+                  </button>
+                </div>
+                <div class="word-list">
+                  <!-- Add word item at the top -->
+                  <form class="word-item add-word-item" data-spectrum-pattern="form" @submit=${(e: Event) => this._addWord(columnIndex, e)} @click=${(e: MouseEvent) => {
+                    const input = (e.currentTarget as HTMLFormElement).querySelector('.word-input-inline') as HTMLInputElement;
+                    if (input) input.focus();
+                  }}>
+                    <input
+                      type="text"
+                      class="word-input-inline"
+                      data-spectrum-pattern="textfield"
+                      placeholder="+ Add word (or comma-separated list)..."
+                      .value=${newWord}
+                      @input=${(e: InputEvent) => {
+                        this._newWords.set(columnIndex, (e.target as HTMLInputElement).value);
+                        this.requestUpdate();
+                      }}
+                      @blur=${() => this._handleInputBlur(columnIndex)}
+                      @keydown=${(e: KeyboardEvent) => this._handleInputKeyDown(columnIndex, e)}
+                    />
+                  </form>
+
+                  ${column.words.map((word, wordIndex) => html`
+                    <div class="word-item ${wordIndex === selectedWordIndex ? 'selected' : ''}" data-spectrum-pattern="list-item-selectable" @click=${() => this._selectWord(columnIndex, wordIndex)}>
+                      <span class="word-text">${word}</span>
+                      <button class="remove-btn" data-spectrum-pattern="action-button-quiet" @click=${(e: Event) => { e.stopPropagation(); this._removeWord(columnIndex, wordIndex); }} title="Remove">×</button>
+                    </div>
                   `)}
                 </div>
               </div>
-            ` : html`
-              <h3 class="column-title editable" @click=${this._startEditRightTitle} title="Click to edit">${currentSet.rightTitle}</h3>
-            `}
-            <div class="word-list">
-              <!-- Add word item at the top -->
-              <form class="word-item add-word-item" data-spectrum-pattern="form" @submit=${this._addRightWord} @click=${(e: MouseEvent) => {
-                const input = (e.currentTarget as HTMLFormElement).querySelector('.word-input-inline') as HTMLInputElement;
-                if (input) input.focus();
-              }}>
-                <input
-                  type="text"
-                  class="word-input-inline"
-                  data-spectrum-pattern="textfield"
-                  placeholder="+ Add word..."
-                .value=${this._newRightWord}
-                @input=${(e: InputEvent) => {
-                  this._newRightWord = (e.target as HTMLInputElement).value;
-                }}
-                  @blur=${this._handleRightInputBlur}
-                  @keydown=${this._handleRightInputKeyDown}
-                />
-              </form>
-              
-              ${rightWords.map((word, index) => html`
-                <div class="word-item ${index === this.store.wordLadderSelectedRight ? 'selected' : ''}" data-spectrum-pattern="list-item-selectable" @click=${() => this._selectRightWord(index)}>
-                  <span class="word-text">${word}</span>
-                  <button class="remove-btn" data-spectrum-pattern="action-button-quiet" @click=${(e: Event) => { e.stopPropagation(); this._removeRightWord(index); }} title="Remove">×</button>
-                </div>
-              `)}
-            </div>
-          </div>
+            `;
+          })}
         </div>
       </div>
     `;

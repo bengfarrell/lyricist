@@ -99,6 +99,26 @@ export class FileModal extends LitElement {
     }
   }
 
+  private _downloadJSON(): void {
+    const song = {
+      name: this.store.songName || 'Untitled',
+      items: this.store.items,
+      wordLadderColumns: this.store.wordLadderColumns,
+      lastModified: new Date().toISOString(),
+    };
+
+    const jsonString = JSON.stringify(song, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${song.name || 'untitled'}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   private _renderCurrentSongTab() {
     const items = this.store.items;
 
@@ -128,6 +148,13 @@ export class FileModal extends LitElement {
             ?disabled=${items.length === 0}
           >
             Copy Lyrics
+          </button>
+          <button
+            class="btn btn-secondary"
+            @click=${this._downloadJSON}
+            ?disabled=${items.length === 0}
+          >
+            Download
           </button>
           <button
             class="btn btn-primary"

@@ -108,7 +108,7 @@ describe('LyricsPanel', () => {
   });
 
   describe('copy functionality', () => {
-    it('should copy lyrics to clipboard', async () => {
+    it('should copy lyrics to clipboard when event is dispatched', async () => {
       const mockWriteText = vi.fn(() => Promise.resolve());
       Object.assign(navigator, {
         clipboard: { writeText: mockWriteText },
@@ -131,10 +131,8 @@ describe('LyricsPanel', () => {
       const el = await fixture<LyricsPanel>(html`<lyrics-panel></lyrics-panel>`);
       await el.updateComplete;
 
-      const copyBtn = el.shadowRoot!.querySelector('.copy-lyrics-btn') as HTMLButtonElement;
-      expect(copyBtn).toBeTruthy();
-
-      copyBtn.click();
+      // Dispatch the copy-lyrics event
+      window.dispatchEvent(new CustomEvent('copy-lyrics'));
       await el.updateComplete;
 
       expect(mockWriteText).toHaveBeenCalled();
@@ -166,24 +164,14 @@ describe('LyricsPanel', () => {
       const el = await fixture<LyricsPanel>(html`<lyrics-panel></lyrics-panel>`);
       await el.updateComplete;
 
-      const copyBtn = el.shadowRoot!.querySelector('.copy-lyrics-btn') as HTMLButtonElement;
-      copyBtn.click();
+      // Dispatch the copy-lyrics event
+      window.dispatchEvent(new CustomEvent('copy-lyrics'));
       await el.updateComplete;
 
       expect(mockWriteText).toHaveBeenCalled();
       const copiedText = ((mockWriteText as any).mock.calls[0][0] as string) || '';
       expect(copiedText).toContain('Test lyric');
     });
-  });
-
-  it('should display song name in header', async () => {
-    songStore.setSongName('Test Song Name');
-
-    const el = await fixture<LyricsPanel>(html`<lyrics-panel></lyrics-panel>`);
-    await el.updateComplete;
-
-    const header = el.shadowRoot!.querySelector('.lyrics-panel-header');
-    expect(header).toBeTruthy();
   });
 
   it('should update when store changes', async () => {

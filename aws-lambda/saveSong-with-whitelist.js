@@ -70,7 +70,7 @@ export const handler = async (event) => {
         songId: song.songId,
         name: song.name,
         items: song.items || [],
-        wordLadderSets: song.wordLadderSets || [],
+        wordLadderColumns: song.wordLadderColumns || [],
         lastModified: song.lastModified || new Date().toISOString(),
         exportedAt: song.exportedAt
       }

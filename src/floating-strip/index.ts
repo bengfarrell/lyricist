@@ -15,45 +15,57 @@ export class FloatingStrip extends LitElement {
   private _showSectionPicker: boolean = false;
 
   private _getWordLadderPlaceholder(): string {
-    const currentSet = this.store.currentWordLadderSet;
-    const leftWords = currentSet.leftColumn.words;
-    const rightWords = currentSet.rightColumn.words;
-    
-    const leftIndex = this.store.wordLadderSelectedLeft;
-    const rightIndex = this.store.wordLadderSelectedRight;
-    
+    const columns = this.store.wordLadderColumns;
+    const selectedIndices = this.store.wordLadderSelectedIndices;
+
     // Only show word ladder combination if we have actual words selected
-    if (leftIndex !== -1 && rightIndex !== -1 && 
-        leftWords.length > 0 && rightWords.length > 0) {
-      return `${leftWords[leftIndex]} ${rightWords[rightIndex]}`;
+    const selectedWords = selectedIndices
+      .map((index, colIndex) => {
+        if (index !== -1 && columns[colIndex]?.words.length > 0) {
+          return columns[colIndex].words[index];
+        }
+        return null;
+      })
+      .filter(word => word !== null);
+
+    if (selectedWords.length > 0) {
+      return selectedWords.join(' ');
     }
-    
+
     return "Add a song lyric here...";
   }
 
   private _addLine(e: Event): void {
     e.preventDefault();
-    
+
+    // Check if we're in word ladder mode
+    const wasInWordLadderMode = this.store.currentPanel === 'word-ladder';
+
     // If input is empty, try to use word ladder selection, otherwise use default
     let text = this.store.newLineInputText.trim();
     if (!text) {
-      const currentSet = this.store.currentWordLadderSet;
-      const leftWords = currentSet.leftColumn.words;
-      const rightWords = currentSet.rightColumn.words;
-      const leftIndex = this.store.wordLadderSelectedLeft;
-      const rightIndex = this.store.wordLadderSelectedRight;
-      
-      if (leftIndex !== -1 && rightIndex !== -1 && 
-          leftWords.length > 0 && rightWords.length > 0) {
-        text = `${leftWords[leftIndex]} ${rightWords[rightIndex]}`;
+      const columns = this.store.wordLadderColumns;
+      const selectedIndices = this.store.wordLadderSelectedIndices;
+
+      const selectedWords = selectedIndices
+        .map((index, colIndex) => {
+          if (index !== -1 && columns[colIndex]?.words.length > 0) {
+            return columns[colIndex].words[index];
+          }
+          return null;
+        })
+        .filter(word => word !== null);
+
+      if (selectedWords.length > 0) {
+        text = selectedWords.join(' ');
       } else {
         text = DEFAULT_LINE_TEXT;
       }
     }
-    
+
     const rotation = (Math.random() * 10) - 5;
     const maxZ = this.store.getMaxZIndex();
-    
+
     const newLine: LyricLine = {
       id: `line-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type: 'line',
@@ -67,6 +79,11 @@ export class FloatingStrip extends LitElement {
     };
 
     this.store.addLine(newLine);
+
+    // If we were in word ladder mode, switch to canvas to show the new lyric
+    if (wasInWordLadderMode) {
+      this.store.setCurrentPanel('canvas');
+    }
   }
   
   private _handleInput(e: InputEvent): void {
@@ -75,24 +92,48 @@ export class FloatingStrip extends LitElement {
   }
 
   private _rollDice(): void {
-    const currentSet = this.store.currentWordLadderSet;
-    const leftWords = currentSet.leftColumn.words;
-    const rightWords = currentSet.rightColumn.words;
-    
-    let leftIndex = -1;
-    let rightIndex = -1;
-    
-    if (leftWords.length > 0) {
-      leftIndex = Math.floor(Math.random() * leftWords.length);
+    const columns = this.store.wordLadderColumns;
+
+    if (columns.length === 0) return;
+
+    // Filter out muted columns
+    const activeColumnIndices = columns
+      .map((col, index) => col.muted ? -1 : index)
+      .filter(index => index !== -1);
+
+    if (activeColumnIndices.length === 0) return; // No active columns
+
+    // Pick 2 random active columns (can be any columns)
+    let col1Index: number, col2Index: number;
+
+    if (activeColumnIndices.length === 1) {
+      col1Index = activeColumnIndices[0];
+      col2Index = activeColumnIndices[0];
+    } else {
+      const randomIdx1 = Math.floor(Math.random() * activeColumnIndices.length);
+      col1Index = activeColumnIndices[randomIdx1];
+
+      let randomIdx2;
+      do {
+        randomIdx2 = Math.floor(Math.random() * activeColumnIndices.length);
+      } while (randomIdx2 === randomIdx1 && activeColumnIndices.length > 1);
+      col2Index = activeColumnIndices[randomIdx2];
     }
-    
-    if (rightWords.length > 0) {
-      rightIndex = Math.floor(Math.random() * rightWords.length);
+
+    // Pick random words from those columns
+    const selectedIndices = new Array(columns.length).fill(-1);
+
+    if (columns[col1Index].words.length > 0) {
+      selectedIndices[col1Index] = Math.floor(Math.random() * columns[col1Index].words.length);
     }
-    
-    // Update the selection - this should trigger a re-render via the reactive controller
-    this.store.setWordLadderSelection(leftIndex, rightIndex);
-    
+
+    if (columns[col2Index].words.length > 0) {
+      selectedIndices[col2Index] = Math.floor(Math.random() * columns[col2Index].words.length);
+    }
+
+    // Update the selection
+    this.store.setWordLadderSelection(selectedIndices);
+
     // Force update to ensure placeholder refreshes
     this.requestUpdate();
   }
@@ -267,44 +308,29 @@ export class FloatingStrip extends LitElement {
     `;
   }
 
-  private _nextSet(): void {
-    // Dispatch event to left-panel
-    this.dispatchEvent(new CustomEvent('next-word-set', { bubbles: true, composed: true }));
-  }
-
-  private _prevSet(): void {
-    // Dispatch event to left-panel
-    this.dispatchEvent(new CustomEvent('prev-word-set', { bubbles: true, composed: true }));
-  }
-
-  private _addSet(): void {
-    // Dispatch event to left-panel
-    this.dispatchEvent(new CustomEvent('add-word-set', { bubbles: true, composed: true }));
-  }
-
   private _copyLyrics(): void {
     // Dispatch event to lyrics-panel
     this.dispatchEvent(new CustomEvent('copy-lyrics', { bubbles: true, composed: true }));
   }
 
-  private _renderWordLadderControls() {
-    const hasMultipleSets = this.store.wordLadderSets.length > 1;
-    const currentIndex = this.store.wordLadderSetIndex + 1; // Convert to 1-based for humans
-    const totalSets = this.store.wordLadderSets.length;
-    
-    return html`
-      <div class="word-ladder-controls">
-        <button class="dice-btn-icon" data-spectrum-pattern="action-button" @click=${this._rollDice} title="Roll the dice for random word combo!" aria-label="Roll random word combo">
-          🎲
-        </button>
-        <div class="word-ladder-nav">
-          <button class="carousel-btn" @click=${this._prevSet} ?disabled=${!hasMultipleSets} title="Previous set">‹</button>
-          <span class="set-index">${currentIndex} of ${totalSets}</span>
-          <button class="carousel-btn" @click=${this._nextSet} ?disabled=${!hasMultipleSets} title="Next set">›</button>
-        </div>
-        <button class="add-set-btn" @click=${this._addSet} title="Add new category">+ Add Set</button>
-      </div>
-    `;
+  private _downloadJSON(): void {
+    const song = {
+      name: this.store.songName || 'Untitled',
+      items: this.store.items,
+      wordLadderColumns: this.store.wordLadderColumns,
+      lastModified: new Date().toISOString(),
+    };
+
+    const jsonString = JSON.stringify(song, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${song.name || 'untitled'}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   private _renderLyricsControls() {
@@ -313,6 +339,9 @@ export class FloatingStrip extends LitElement {
         <span class="lyrics-info">📝 Song Lyrics</span>
         <button class="btn btn-secondary" @click=${this._copyLyrics} title="Copy all lyrics">
           📋 Copy to Clipboard
+        </button>
+        <button class="btn btn-secondary" @click=${this._downloadJSON} title="Download song as JSON">
+          💾 Download
         </button>
       </div>
     `;
@@ -332,8 +361,7 @@ export class FloatingStrip extends LitElement {
         ` : html`
           <div class="strip-content">
             <div class="controls-area">
-              ${isCanvasMode ? this._renderCanvasControls() : ''}
-              ${currentPanel === 'word-ladder' ? this._renderWordLadderControls() : ''}
+              ${isCanvasMode || currentPanel === 'word-ladder' ? this._renderCanvasControls() : ''}
               ${currentPanel === 'lyrics' ? this._renderLyricsControls() : ''}
             </div>
           </div>

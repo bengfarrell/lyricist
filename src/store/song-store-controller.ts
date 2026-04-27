@@ -98,23 +98,32 @@ export class SongStoreController implements ReactiveController {
   get stripRetracted(): boolean {
     return songStore.stripRetracted;
   }
-  
-  get wordLadderSetIndex(): number {
-    return songStore.wordLadderSetIndex;
+
+  get wordLadderColumns() {
+    return songStore.wordLadderColumns;
   }
-  
+
+  get wordLadderColumnViewOffset(): number {
+    return songStore.wordLadderColumnViewOffset;
+  }
+
+  get wordLadderSelectedIndices(): number[] {
+    return songStore.wordLadderSelectedIndices;
+  }
+
+  // Legacy getters
   get wordLadderVerbs(): string[] {
     return songStore.wordLadderVerbs;
   }
-  
+
   get wordLadderNouns(): string[] {
     return songStore.wordLadderNouns;
   }
-  
+
   get wordLadderLocations(): string[] {
     return songStore.wordLadderLocations;
   }
-  
+
   get wordLadderAdjectives(): string[] {
     return songStore.wordLadderAdjectives;
   }
@@ -125,6 +134,10 @@ export class SongStoreController implements ReactiveController {
 
   get currentWordLadderSet() {
     return songStore.currentWordLadderSet;
+  }
+
+  get wordLadderSetIndex() {
+    return songStore.wordLadderSetIndex;
   }
 
   get wordLadderSelectedLeft(): number {
@@ -343,16 +356,42 @@ export class SongStoreController implements ReactiveController {
     songStore.setWordLadderRightWords(words);
   }
 
-  setWordLadderSelection(leftIndex: number, rightIndex: number): void {
-    songStore.setWordLadderSelection(leftIndex, rightIndex);
+  setWordLadderSelection(indices: number[]): void {
+    songStore.setWordLadderSelection(indices);
+  }
+
+  // Legacy method
+  setWordLadderSelectionLegacy(leftIndex: number, rightIndex: number): void {
+    songStore.setWordLadderSelectionLegacy(leftIndex, rightIndex);
+  }
+
+  setWordLadderColumnViewOffset(offset: number): void {
+    songStore.setWordLadderColumnViewOffset(offset);
+  }
+
+  setWordLadderColumnWords(columnIndex: number, words: string[]): void {
+    songStore.setWordLadderColumnWords(columnIndex, words);
+  }
+
+  addWordLadderColumn(): void {
+    songStore.addWordLadderColumn();
   }
 
   addWordLadderSet(): void {
     songStore.addWordLadderSet();
   }
 
-  updateWordLadderColumnTitle(column: 'left' | 'right', title: string): void {
-    songStore.updateWordLadderColumnTitle(column, title);
+  updateWordLadderColumnTitle(columnIndex: number, title: string): void {
+    songStore.updateWordLadderColumnTitle(columnIndex, title);
+  }
+
+  toggleWordLadderColumnMuted(columnIndex: number): void {
+    songStore.toggleWordLadderColumnMuted(columnIndex);
+  }
+
+  // Legacy method
+  updateWordLadderColumnTitleLegacy(column: 'left' | 'right', title: string): void {
+    songStore.updateWordLadderColumnTitleLegacy(column, title);
   }
   
   // ===== Utility Methods =====
