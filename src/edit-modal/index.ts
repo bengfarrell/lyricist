@@ -1,5 +1,5 @@
 import { LitElement, html } from 'lit';
-import { SongStoreController } from '../store/index';
+import { SongStoreController } from '../utils/index';
 import { editModalStyles } from './styles.css.ts';
 
 /**
@@ -26,6 +26,7 @@ export class EditModal extends LitElement {
   }
 
   private _handleKeyDown(e: KeyboardEvent): void {
+    e.stopPropagation(); // Prevent global keyboard shortcuts when editing
     if (e.key === 'Enter') {
       e.preventDefault();
       this._handleSave();

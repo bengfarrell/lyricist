@@ -1,5 +1,5 @@
 import { LitElement, html } from 'lit';
-import { SongStoreController } from '../store/index';
+import { SongStoreController } from '../utils/index';
 import { emailPromptStyles } from './styles.css.ts';
 
 /**
@@ -89,6 +89,7 @@ export class EmailPrompt extends LitElement {
                 placeholder="your.email@example.com"
                 .value=${this.email}
                 @input=${this._handleInput}
+                @keydown=${(e: KeyboardEvent) => e.stopPropagation()}
                 ?disabled=${this.isSubmitting}
                 required
                 autofocus

@@ -1,8 +1,8 @@
 import { LitElement, html } from 'lit';
 import { property } from 'lit/decorators.js';
-import { SongStoreController } from '../store/index';
+import { SongStoreController } from '../utils/index';
 import { fileModalStyles } from './styles.css.ts';
-import type { SavedSong } from '../store/types';
+import type { SavedSong } from '../utils/types';
 import '../lyrics-panel/index';
 
 // @ts-ignore - vite will resolve this
@@ -133,6 +133,7 @@ export class FileModal extends LitElement {
             placeholder="Enter song name..."
             .value=${this.store.songName}
             @input=${(e: InputEvent) => this.store.setSongName((e.target as HTMLInputElement).value)}
+            @keydown=${(e: KeyboardEvent) => e.stopPropagation()}
           />
         </div>
 

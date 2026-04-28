@@ -1,7 +1,7 @@
 import { LitElement, html, PropertyValues } from 'lit';
-import { cursorManager } from '../cursor-manager/index';
+import { cursorManager } from '../utils/cursor-manager';
 import { lyricLineStyles } from './styles.css.ts';
-import type { Chord } from '../store/types';
+import type { Chord } from '../utils/types';
 
 export type { Chord };
 
@@ -266,6 +266,7 @@ export class LyricLine extends LitElement {
   }
 
   private _handleTextKeyDown(e: KeyboardEvent): void {
+    e.stopPropagation(); // Prevent global keyboard shortcuts when editing
     if (e.key === 'Enter') {
       e.preventDefault();
       (e.target as HTMLElement).blur();

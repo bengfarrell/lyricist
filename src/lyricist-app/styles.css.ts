@@ -51,47 +51,4 @@ export const lyricistAppStyles = css`
     z-index: 0;
     pointer-events: none;
   }
-
-  /* Overlay panels for hybrid canvas + lyrics views */
-  .panel-overlay {
-    position: absolute;
-    z-index: 0;
-    opacity: 1;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-  }
-
-  .panel-overlay-left {
-    left: 0;
-    top: 0;
-    width: 50%;
-    height: 100%;
-  }
-
-  .panel-overlay-right {
-    right: 0;
-    top: 0;
-    left: auto;
-    width: 50%;
-    height: 100%;
-  }
-
-  .panel-overlay-top {
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 50%;
-  }
-
-  .panel-overlay-bottom {
-    bottom: 0;
-    left: 0;
-    top: auto;
-    width: 100%;
-    height: 50%;
-  }
-
-  .panel-overlay.visible {
-    visibility: visible;
-  }
 `;

@@ -65,16 +65,6 @@ export const lyricsPanelStyles = css`
       );
   }
 
-  /* Hide scrollbar when used as overlay in canvas mode */
-  :host([overlay]) .lyrics-panel-content {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
-  }
-
-  :host([overlay]) .lyrics-panel-content::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
-  }
-
   .lyrics-text {
     font-family: 'Courier New', 'Courier', monospace;
     font-size: 16px;

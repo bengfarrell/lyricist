@@ -1,6 +1,6 @@
 import { LitElement, html } from 'lit';
-import { SongStoreController, DEFAULT_LINE_TEXT } from '../store/index';
-import type { LyricLine } from '../store/index';
+import { SongStoreController, DEFAULT_LINE_TEXT } from '../utils/index';
+import type { LyricLine } from '../utils/index';
 import { appControlsStyles } from './styles.css.ts';
 
 /**
@@ -74,8 +74,8 @@ export class AppControls extends LitElement {
 
   private _rollDice(): void {
     const columns = this.store.wordLadderColumns;
+    const randomColumnCount = this.store.wordLadderRandomColumnCount;
 
-    // Pick 2 random columns (can be any columns, not just adjacent)
     if (columns.length === 0) return;
 
     // Filter out muted columns
@@ -85,32 +85,20 @@ export class AppControls extends LitElement {
 
     if (activeColumnIndices.length === 0) return; // No active columns
 
-    let col1Index: number, col2Index: number;
+    // Determine how many columns to actually use (min of configured count and available columns)
+    const numColumnsToUse = Math.min(randomColumnCount, activeColumnIndices.length);
 
-    if (activeColumnIndices.length === 1) {
-      col1Index = activeColumnIndices[0];
-      col2Index = activeColumnIndices[0];
-    } else {
-      // Pick two different random active columns
-      const randomIdx1 = Math.floor(Math.random() * activeColumnIndices.length);
-      col1Index = activeColumnIndices[randomIdx1];
-
-      let randomIdx2;
-      do {
-        randomIdx2 = Math.floor(Math.random() * activeColumnIndices.length);
-      } while (randomIdx2 === randomIdx1 && activeColumnIndices.length > 1);
-      col2Index = activeColumnIndices[randomIdx2];
-    }
+    // Shuffle active column indices and take the first N
+    const shuffled = [...activeColumnIndices].sort(() => Math.random() - 0.5);
+    const selectedColumnIndices = shuffled.slice(0, numColumnsToUse);
 
     // Pick random words from those columns
     const selectedIndices = new Array(columns.length).fill(-1);
 
-    if (columns[col1Index].words.length > 0) {
-      selectedIndices[col1Index] = Math.floor(Math.random() * columns[col1Index].words.length);
-    }
-
-    if (columns[col2Index].words.length > 0) {
-      selectedIndices[col2Index] = Math.floor(Math.random() * columns[col2Index].words.length);
+    for (const colIndex of selectedColumnIndices) {
+      if (columns[colIndex].words.length > 0) {
+        selectedIndices[colIndex] = Math.floor(Math.random() * columns[colIndex].words.length);
+      }
     }
 
     // Store the selected indices
@@ -187,9 +175,9 @@ export class AppControls extends LitElement {
             
             ${this._showCustomSectionInput ? html`
               <form class="custom-section-form" data-spectrum-pattern="form" @submit=${this._handleCustomSectionSubmit}>
-                <input 
-                  type="text" 
-                  class="custom-section-input" 
+                <input
+                  type="text"
+                  class="custom-section-input"
                   data-spectrum-pattern="textfield"
                   placeholder="Enter custom section name..."
                   .value=${this._customSectionName}
@@ -197,6 +185,7 @@ export class AppControls extends LitElement {
                     this._customSectionName = (e.target as HTMLInputElement).value;
                     this.requestUpdate();
                   }}
+                  @keydown=${(e: KeyboardEvent) => e.stopPropagation()}
                 />
                 <button type="submit" class="btn btn-primary" data-spectrum-pattern="button-primary">Create</button>
                 <button type="button" class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${() => {
@@ -227,17 +216,26 @@ export class AppControls extends LitElement {
             </div>
             <form class="input-container" data-spectrum-pattern="form" @submit=${this._addLine}>
               <label for="lyric-input" class="visually-hidden" data-spectrum-pattern="field-label">Lyric line</label>
-              <input 
+              <input
                 id="lyric-input"
-                type="text" 
-                class="lyric-input" 
+                type="text"
+                class="lyric-input"
                 data-spectrum-pattern="textfield"
                 placeholder=${inputPlaceholder}
                 .value=${this.store.newLineInputText}
                 @input=${this._handleInput}
+                @keydown=${(e: KeyboardEvent) => e.stopPropagation()}
               />
               <button type="submit" class="btn btn-primary" data-spectrum-pattern="button-primary">Add Line</button>
             </form>
+            <button
+              class="config-btn"
+              @click=${() => this.store.setShowWordLadderConfig(true)}
+              title="Configure word ladder settings"
+              aria-label="Configure word ladder"
+            >
+              ⚙️ Configure
+            </button>
           </div>
         `}
       </div>

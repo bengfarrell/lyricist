@@ -208,11 +208,6 @@ export const leftPanelStyles = css`
     position: relative;
     z-index: 1;
     overflow: hidden;
-    transition: opacity 0.3s ease;
-  }
-
-  .word-column.muted {
-    opacity: 0.4;
   }
 
   .column-header {
@@ -243,46 +238,62 @@ export const leftPanelStyles = css`
     transition: background 0.2s ease;
   }
 
-  .mute-btn {
-    background: transparent;
-    border: 1px solid #d1d5db;
-    color: #6b7280;
-    width: 32px;
-    height: 32px;
-    border-radius: 4px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    line-height: 1;
-    transition: all 0.2s ease;
-    padding: 0;
-    flex-shrink: 0;
-  }
-
-  .mute-btn:hover {
-    background: #f3f4f6;
-    border-color: #9ca3af;
-  }
-
-  .mute-btn:active {
-    transform: scale(0.95);
-  }
-
-  .mute-btn.muted {
-    background: #fee2e2;
-    border-color: #fca5a5;
-    color: #dc2626;
-  }
-
-  .mute-btn.muted:hover {
-    background: #fecaca;
-    border-color: #f87171;
-  }
-
   .column-title.editable:hover {
     background: rgba(0, 0, 0, 0.05);
+  }
+
+  /* Toggle Switch */
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #e5e7eb;
+    transition: 0.3s;
+    border-radius: 24px;
+    border: 2px solid #d1d5db;
+  }
+
+  .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+  }
+
+  .toggle-switch input:checked + .toggle-slider {
+    background-color: #10b981;
+    border-color: #059669;
+  }
+
+  .toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+  }
+
+  .toggle-slider:hover {
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
   }
 
   .edit-title-container {

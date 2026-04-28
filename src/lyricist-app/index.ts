@@ -1,6 +1,7 @@
 import { LitElement, html } from 'lit';
-import { SongStoreController } from '../store/index';
+import { SongStoreController } from '../utils/index';
 import { lyricistAppStyles } from './styles.css.ts';
+import { keyboardManager } from '../utils/keyboard-manager';
 import '../app-navbar/index';
 import '../floating-strip/index';
 import '../file-modal/index';
@@ -10,48 +11,38 @@ import '../left-panel/index';
 import '../load-dialog/index';
 import '../email-prompt/index';
 import '../edit-modal/index.ts';
+import '../word-ladder-config-modal/index.ts';
 
 /**
  * Main application component that composes all child components
  */
 export class LyricistApp extends LitElement {
   static styles = lyricistAppStyles;
-  
+
   private store = new SongStoreController(this);
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    // Initialize global keyboard shortcuts
+    keyboardManager.init();
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    // Clean up keyboard shortcuts
+    keyboardManager.destroy();
+  }
 
   render() {
     const currentPanel = this.store.currentPanel;
-    const isCanvasLyricsLeft = currentPanel === 'canvas-lyrics-left';
-    const isCanvasLyricsRight = currentPanel === 'canvas-lyrics-right';
-    const isCanvasLyricsTop = currentPanel === 'canvas-lyrics-top';
-    const isCanvasLyricsBottom = currentPanel === 'canvas-lyrics-bottom';
-    const isHybridMode = isCanvasLyricsLeft || isCanvasLyricsRight || isCanvasLyricsTop || isCanvasLyricsBottom;
-    
+
     return html`
       <div class="container">
         <app-navbar></app-navbar>
-        
+
         <div class="main-content">
           <left-panel class="panel ${currentPanel === 'word-ladder' ? 'visible' : 'hidden'}"></left-panel>
-          
-          <!-- Canvas visible in canvas mode and hybrid modes -->
-          <lyric-canvas class="panel ${currentPanel === 'canvas' || isHybridMode ? 'visible' : 'hidden'}"></lyric-canvas>
-          
-          <!-- Lyrics as background overlay in hybrid modes -->
-          ${isCanvasLyricsLeft ? html`
-            <lyrics-panel class="panel-overlay panel-overlay-left visible" overlay></lyrics-panel>
-          ` : ''}
-          ${isCanvasLyricsRight ? html`
-            <lyrics-panel class="panel-overlay panel-overlay-right visible" overlay></lyrics-panel>
-          ` : ''}
-          ${isCanvasLyricsTop ? html`
-            <lyrics-panel class="panel-overlay panel-overlay-top visible" overlay></lyrics-panel>
-          ` : ''}
-          ${isCanvasLyricsBottom ? html`
-            <lyrics-panel class="panel-overlay panel-overlay-bottom visible" overlay></lyrics-panel>
-          ` : ''}
-          
-          <!-- Lyrics full screen in lyrics-only mode -->
+          <lyric-canvas class="panel ${currentPanel === 'canvas' ? 'visible' : 'hidden'}"></lyric-canvas>
           <lyrics-panel class="panel ${currentPanel === 'lyrics' ? 'visible' : 'hidden'}"></lyrics-panel>
         </div>
 
@@ -62,6 +53,7 @@ export class LyricistApp extends LitElement {
       <file-modal></file-modal>
       <email-prompt></email-prompt>
       <edit-modal></edit-modal>
+      <word-ladder-config-modal></word-ladder-config-modal>
     `;
   }
 }

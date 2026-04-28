@@ -244,6 +244,19 @@ export const floatingStripStyles = css`
     transform: translateY(-1px);
   }
 
+  .align-btn.delete-btn {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #dc2626;
+    font-size: 20px;
+    font-weight: bold;
+  }
+
+  .align-btn.delete-btn:hover {
+    background: #fecaca;
+    border-color: #f87171;
+  }
+
   .section-picker-wrapper {
     position: relative;
     flex-shrink: 0;
@@ -457,6 +470,32 @@ export const floatingStripStyles = css`
     font-size: 16px;
     font-weight: 600;
     opacity: 0.95;
+  }
+
+  .config-btn-icon {
+    background: #f3f4f6;
+    border: 2px solid #d1d5db;
+    color: #1f2937;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    height: 44px;
+  }
+
+  .config-btn-icon:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+    transform: scale(1.05);
+  }
+
+  .config-btn-icon:active {
+    transform: scale(0.95);
   }
 
   /* Mobile responsive styles */

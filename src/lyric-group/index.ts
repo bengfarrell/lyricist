@@ -1,7 +1,7 @@
 import { LitElement, html, PropertyValues } from 'lit';
-import { cursorManager } from '../cursor-manager/index';
+import { cursorManager } from '../utils/cursor-manager';
 import { lyricGroupStyles } from './styles.css.ts';
-import type { LyricLine } from '../store/types';
+import type { LyricLine } from '../utils/types';
 
 export class LyricGroup extends LitElement {
   static properties = {

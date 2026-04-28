@@ -14,6 +14,34 @@ export const lyricCanvasStyles = css`
     position: relative;
     overflow: hidden;
     touch-action: none;
+    background-color: #fafafa;
+    background-image:
+      linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  .canvas.cursor-grab {
+    cursor: grab;
+  }
+
+  .canvas.cursor-grabbing {
+    cursor: grabbing;
+  }
+
+  .canvas-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform-origin: 0 0;
+    will-change: transform;
+    pointer-events: none;
+  }
+
+  .canvas-content > * {
+    pointer-events: auto;
   }
 
   .empty-state {

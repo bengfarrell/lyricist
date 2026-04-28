@@ -1,7 +1,7 @@
 import { LitElement, html } from 'lit';
-import { SongStoreController, DEFAULT_LINE_TEXT } from '../store/index';
-import type { LyricLine, CanvasItem } from '../store/index';
-import { cursorManager } from '../cursor-manager/index';
+import { SongStoreController, DEFAULT_LINE_TEXT } from '../utils/index';
+import type { LyricLine, CanvasItem } from '../utils/index';
+import { cursorManager } from '../utils/cursor-manager';
 import '../lyric-line/index.js';
 import '../lyric-group/index.js';
 import { lyricCanvasStyles } from './styles.css.ts';
@@ -22,9 +22,19 @@ export class LyricCanvas extends LitElement {
   private _isSelectionBoxActive: boolean = false;
   private _selectionBoxStart: { x: number; y: number } | null = null;
   private _selectionBoxEnd: { x: number; y: number } | null = null;
-  
+
   // Track pointer down position for selection box
   private _canvasPointerDownPos: { x: number; y: number } | null = null;
+
+  // Pan state
+  private _isPanning: boolean = false;
+  private _panStartX: number = 0;
+  private _panStartY: number = 0;
+  private _panStartPanX: number = 0;
+  private _panStartPanY: number = 0;
+
+  // Touch tracking for multi-touch detection
+  private _activeTouches: Map<number, PointerEvent> = new Map();
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -71,6 +81,23 @@ export class LyricCanvas extends LitElement {
   }
 
   private _handlePointerMove(e: PointerEvent): void {
+    // Update active touches
+    if (this._activeTouches.has(e.pointerId)) {
+      this._activeTouches.set(e.pointerId, e);
+    }
+
+    // Handle panning
+    if (this._isPanning) {
+      const deltaX = e.clientX - this._panStartX;
+      const deltaY = e.clientY - this._panStartY;
+
+      this.store.setCanvasPan(
+        this._panStartPanX + deltaX,
+        this._panStartPanY + deltaY
+      );
+      return;
+    }
+
     // Check if any line is potentially being dragged and start drag if movement detected
     if (!this._draggedItem) {
       // Look for any lyric-line or lyric-group that might be in drag mode
@@ -109,9 +136,9 @@ export class LyricCanvas extends LitElement {
       const itemElement = this.shadowRoot?.querySelector(`${elementSelector}[id="${this._draggedItem.id}"]`) as any;
       if (!itemElement) return;
 
-      // Calculate new position relative to canvas, accounting for where user clicked within the element
-      const newX = e.clientX - rect.left - itemElement._offsetX;
-      const newY = e.clientY - rect.top - itemElement._offsetY;
+      // Calculate new position relative to canvas, accounting for where user clicked within the element and pan offset
+      const newX = e.clientX - rect.left - itemElement._offsetX - this.store.canvasPanX;
+      const newY = e.clientY - rect.top - itemElement._offsetY - this.store.canvasPanY;
 
       this.store.updateLinePosition(this._draggedItem.id, newX, newY);
       return;
@@ -121,11 +148,12 @@ export class LyricCanvas extends LitElement {
     if (this._isSelectionBoxActive && this._selectionBoxStart) {
       const canvas = this.shadowRoot?.querySelector('.canvas');
       if (!canvas) return;
-      
+
       const rect = canvas.getBoundingClientRect();
+      // Account for pan offset
       this._selectionBoxEnd = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
+        x: e.clientX - rect.left - this.store.canvasPanX,
+        y: e.clientY - rect.top - this.store.canvasPanY
       };
       
       // Update selection in real-time
@@ -135,6 +163,14 @@ export class LyricCanvas extends LitElement {
   }
 
   private _handlePointerUp(e: PointerEvent): void {
+    // Clean up active touches
+    this._activeTouches.delete(e.pointerId);
+
+    // Stop panning if we were panning and no more touches
+    if (this._isPanning && this._activeTouches.size < 2) {
+      this._isPanning = false;
+    }
+
     // Handle item drag end
     if (this._draggedItem) {
       const elementSelector = this._draggedItem.type === 'line' ? 'lyric-line' : 'lyric-group';
@@ -151,8 +187,9 @@ export class LyricCanvas extends LitElement {
       const canvas = this.shadowRoot?.querySelector('.canvas');
       if (canvas) {
         const rect = canvas.getBoundingClientRect();
-        const pointerUpX = e.clientX - rect.left;
-        const pointerUpY = e.clientY - rect.top;
+        // Account for pan offset
+        const pointerUpX = e.clientX - rect.left - this.store.canvasPanX;
+        const pointerUpY = e.clientY - rect.top - this.store.canvasPanY;
         
         // Calculate distance between pointerdown and pointerup
         const dx = pointerUpX - this._canvasPointerDownPos.x;
@@ -342,52 +379,115 @@ export class LyricCanvas extends LitElement {
   }
 
   private _handleCanvasDoubleClick(e: PointerEvent): void {
-    // Only add line if double-clicking directly on canvas background
-    if (e.target !== e.currentTarget) return;
-    
+    // Only add line if double-clicking on canvas background or canvas-content (not on items)
+    const target = e.target as HTMLElement;
+    const isCanvasBackground = target === e.currentTarget || target.classList.contains('canvas-content');
+    if (!isCanvasBackground) return;
+
     const canvas = e.currentTarget as HTMLElement;
     const rect = canvas.getBoundingClientRect();
-    
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
-    
+
+    // Account for pan offset
+    const clickX = e.clientX - rect.left - this.store.canvasPanX;
+    const clickY = e.clientY - rect.top - this.store.canvasPanY;
+
     this._addLineAtPosition(clickX, clickY);
   }
   
   private _handleCanvasPointerDown(e: PointerEvent): void {
-    // Only start selection box if clicking directly on canvas background
-    if (e.target !== e.currentTarget) return;
-    
+    // Only handle if clicking on canvas background or canvas-content (not on items)
+    const target = e.target as HTMLElement;
+    const isCanvasBackground = target === e.currentTarget || target.classList.contains('canvas-content');
+    if (!isCanvasBackground) return;
+
+    // Track active touches
+    this._activeTouches.set(e.pointerId, e);
+
+    // Check if this is a 2-finger touch, trackpad gesture, or spacebar is held
+    const isTwoFingerGesture = this._activeTouches.size === 2 ||
+                                (e.pointerType === 'touch' && this._activeTouches.size >= 2);
+    const isSpacebarPan = this.store.isSpacebarPanMode;
+
+    if (isTwoFingerGesture || isSpacebarPan) {
+      // Start panning
+      this._isPanning = true;
+      this._panStartX = e.clientX;
+      this._panStartY = e.clientY;
+      this._panStartPanX = this.store.canvasPanX;
+      this._panStartPanY = this.store.canvasPanY;
+
+      // Cancel any selection box
+      this._isSelectionBoxActive = false;
+      this._selectionBoxStart = null;
+      this._selectionBoxEnd = null;
+      this._canvasPointerDownPos = null;
+
+      this.requestUpdate();
+      return;
+    }
+
     const canvas = e.currentTarget as HTMLElement;
     const rect = canvas.getBoundingClientRect();
-    
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
-    
+
+    // Account for pan offset
+    const clickX = e.clientX - rect.left - this.store.canvasPanX;
+    const clickY = e.clientY - rect.top - this.store.canvasPanY;
+
     this._isSelectionBoxActive = true;
     this._selectionBoxStart = { x: clickX, y: clickY };
     this._selectionBoxEnd = { ...this._selectionBoxStart };
     this._canvasPointerDownPos = { x: clickX, y: clickY };
-    
+
     // Clear selection if shift is not held
     if (!e.shiftKey) {
       this.store.clearSelection();
     }
-    
+
     this.requestUpdate();
+  }
+
+  private _handleCanvasPointerUp(e: PointerEvent): void {
+    // Remove from active touches
+    this._activeTouches.delete(e.pointerId);
+
+    // Stop panning if we were panning
+    if (this._isPanning && this._activeTouches.size < 2) {
+      this._isPanning = false;
+    }
+  }
+
+  private _handleCanvasWheel(e: WheelEvent): void {
+    // Check if this is a 2-finger trackpad pan (ctrlKey is set for pinch gestures, not for pan)
+    // On trackpad, 2-finger pan shows up as wheel events without ctrlKey
+    // We check if it's a trackpad by looking at deltaMode and the presence of shiftKey
+    const isTrackpadPan = !e.ctrlKey && e.deltaMode === 0;
+
+    if (isTrackpadPan) {
+      e.preventDefault();
+
+      // Adjust pan by the wheel delta
+      this.store.adjustCanvasPan(-e.deltaX, -e.deltaY);
+    }
   }
 
   render() {
     const selectionBox = this._isSelectionBoxActive && this._selectionBoxStart && this._selectionBoxEnd
       ? this._getSelectionBoxRect()
       : null;
-    
+
+    const transformStyle = `translate(${this.store.canvasPanX}px, ${this.store.canvasPanY}px)`;
+    const backgroundPositionStyle = `${this.store.canvasPanX}px ${this.store.canvasPanY}px`;
+
+    // Determine cursor based on pan mode
+    const isPanMode = this.store.isSpacebarPanMode || this._isPanning;
+    const cursorClass = isPanMode ? (this._isPanning ? 'cursor-grabbing' : 'cursor-grab') : '';
+
     return html`
-      <div class="canvas" 
+      <div class="canvas ${cursorClass}" style="background-position: ${backgroundPositionStyle}"
         @drag-start=${this._handleDragStart}
         @cancel-drag=${this._handleCancelDrag}
         @open-edit-modal=${this._handleOpenEditModal}
-        @delete-line=${this._handleDeleteLine} 
+        @delete-line=${this._handleDeleteLine}
         @duplicate-line=${this._handleDuplicateLine}
         @delete-group=${this._handleDeleteGroup}
         @duplicate-group=${this._handleDuplicateGroup}
@@ -402,7 +502,9 @@ export class LyricCanvas extends LitElement {
         @line-selected=${this._handleLineSelected}
         @group-selected=${this._handleGroupSelected}
         @pointerdown=${this._handleCanvasPointerDown}
+        @pointerup=${this._handleCanvasPointerUp}
         @dblclick=${this._handleCanvasDoubleClick}
+        @wheel=${this._handleCanvasWheel}
       >
         ${this.store.items.length === 0 ? html`
           <div class="empty-state">
@@ -411,8 +513,9 @@ export class LyricCanvas extends LitElement {
             <p>Add your first lyric line to begin</p>
           </div>
         ` : ''}
-        
-        ${this.store.items.map(item => {
+
+        <div class="canvas-content" style="transform: ${transformStyle}">
+          ${this.store.items.map(item => {
           if (item.type === 'line') {
             return html`
               <lyric-line
@@ -441,16 +544,17 @@ export class LyricCanvas extends LitElement {
               ></lyric-group>
             `;
           }
-        })}
-        
-        ${selectionBox ? html`
-          <div class="selection-box" style="
-            left: ${selectionBox.left}px;
-            top: ${selectionBox.top}px;
-            width: ${selectionBox.right - selectionBox.left}px;
-            height: ${selectionBox.bottom - selectionBox.top}px;
-          "></div>
-        ` : ''}
+          })}
+
+          ${selectionBox ? html`
+            <div class="selection-box" style="
+              left: ${selectionBox.left}px;
+              top: ${selectionBox.top}px;
+              width: ${selectionBox.right - selectionBox.left}px;
+              height: ${selectionBox.bottom - selectionBox.top}px;
+            "></div>
+          ` : ''}
+        </div>
       </div>
     `;
   }

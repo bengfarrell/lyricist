@@ -1,6 +1,6 @@
 import { LitElement, html } from 'lit';
-import { SongStoreController, DEFAULT_LINE_TEXT } from '../store/index';
-import type { LyricLine } from '../store/index';
+import { SongStoreController, DEFAULT_LINE_TEXT } from '../utils/index';
+import type { LyricLine } from '../utils/index';
 import { floatingStripStyles } from './styles.css.ts';
 
 /**
@@ -217,6 +217,17 @@ export class FloatingStrip extends LitElement {
     this.store.setStripRetracted(!this.store.stripRetracted);
   }
 
+  private _deleteSelectedItems(): void {
+    if (this.store.selectedLineIds.size === 0) return;
+
+    const count = this.store.selectedLineIds.size;
+    const itemWord = count === 1 ? 'item' : 'items';
+
+    if (confirm(`Delete ${count} selected ${itemWord}?`)) {
+      this.store.deleteSelectedItems();
+    }
+  }
+
   private _renderCanvasControls() {
     const hasSelection = this.store.selectedLineIds.size > 0;
     
@@ -234,9 +245,9 @@ export class FloatingStrip extends LitElement {
         <div class="group-creator">
           ${this._showCustomSectionInput ? html`
             <form class="custom-section-form" data-spectrum-pattern="form" @submit=${this._handleCustomSectionSubmit}>
-              <input 
-                type="text" 
-                class="custom-section-input" 
+              <input
+                type="text"
+                class="custom-section-input"
                 data-spectrum-pattern="textfield"
                 placeholder="Enter section name..."
                 .value=${this._customSectionName}
@@ -244,6 +255,7 @@ export class FloatingStrip extends LitElement {
                   this._customSectionName = (e.target as HTMLInputElement).value;
                   this.requestUpdate();
                 }}
+                @keydown=${(e: KeyboardEvent) => e.stopPropagation()}
               />
               <button type="submit" class="btn btn-primary" data-spectrum-pattern="button-primary">Create</button>
               <button type="button" class="btn btn-secondary" data-spectrum-pattern="button-secondary" @click=${() => {
@@ -258,6 +270,7 @@ export class FloatingStrip extends LitElement {
                 <button class="align-btn" data-spectrum-pattern="action-button" @click=${() => this._alignItems('left')} title="Align left">◧</button>
                 <button class="align-btn" data-spectrum-pattern="action-button" @click=${() => this._alignItems('center')} title="Align center">◫</button>
                 <button class="align-btn" data-spectrum-pattern="action-button" @click=${() => this._alignItems('right')} title="Align right">◨</button>
+                <button class="align-btn delete-btn" data-spectrum-pattern="action-button" @click=${this._deleteSelectedItems} title="Delete selected items (Backspace/Delete)">×</button>
               </div>
               <div class="section-picker-wrapper">
                 <button 
@@ -292,18 +305,27 @@ export class FloatingStrip extends LitElement {
         <div class="lyric-creator">
           <form class="input-container" data-spectrum-pattern="form" @submit=${this._addLine}>
             <label for="lyric-input" class="visually-hidden" data-spectrum-pattern="field-label">Lyric line</label>
-            <input 
+            <input
               id="lyric-input"
-              type="text" 
-              class="lyric-input" 
+              type="text"
+              class="lyric-input"
               data-spectrum-pattern="textfield"
               placeholder=${inputPlaceholder}
               .value=${this.store.newLineInputText}
               @input=${this._handleInput}
+              @keydown=${(e: KeyboardEvent) => e.stopPropagation()}
             />
             <button type="submit" class="btn btn-primary" data-spectrum-pattern="button-primary">Add Lyric</button>
           </form>
         </div>
+        <button
+          class="config-btn-icon"
+          @click=${() => this.store.setShowWordLadderConfig(true)}
+          title="Configure word ladder settings"
+          aria-label="Configure word ladder"
+        >
+          ⚙️
+        </button>
       `}
     `;
   }
@@ -350,7 +372,7 @@ export class FloatingStrip extends LitElement {
   render() {
     const isRetracted = this.store.stripRetracted;
     const currentPanel = this.store.currentPanel;
-    const isCanvasMode = currentPanel === 'canvas' || currentPanel === 'canvas-lyrics-left' || currentPanel === 'canvas-lyrics-right' || currentPanel === 'canvas-lyrics-top' || currentPanel === 'canvas-lyrics-bottom';
+    const isCanvasMode = currentPanel === 'canvas';
 
     return html`
       <div class="floating-strip ${isRetracted ? 'retracted' : ''}">

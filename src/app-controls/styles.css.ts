@@ -75,11 +75,39 @@ export const appControlsStyles = css`
     background: #6c757d;
     color: white;
   }
-  
+
   .btn-secondary:hover {
     background: #5a6268;
   }
-  
+
+  .config-btn {
+    margin-top: 12px;
+    padding: 10px 16px;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .config-btn:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .config-btn:active {
+    transform: translateY(0);
+  }
+
   .group-creator {
     flex: 1;
     display: flex;

@@ -1,6 +1,6 @@
 import { LitElement, html } from 'lit';
-import { SongStoreController } from '../store/index';
-import type { SavedSong } from '../store/index';
+import { SongStoreController } from '../utils/index';
+import type { SavedSong } from '../utils/index';
 import { loadDialogStyles } from './styles.css.ts';
 
 /**

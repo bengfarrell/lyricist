@@ -1,5 +1,5 @@
 import { LitElement, html } from 'lit';
-import { SongStoreController } from '../store/index';
+import { SongStoreController } from '../utils/index';
 import { leftPanelStyles } from './styles.css.ts';
 
 /**
@@ -205,6 +205,7 @@ export class LeftPanel extends LitElement {
   }
 
   private _handleInputKeyDown(columnIndex: number, e: KeyboardEvent): void {
+    e.stopPropagation(); // Prevent global keyboard shortcuts when typing
     if (e.key === 'Tab') {
       e.preventDefault();
       this._addWord(columnIndex);
@@ -322,7 +323,7 @@ export class LeftPanel extends LitElement {
             const selectedWordIndex = selectedIndices[columnIndex] ?? -1;
 
             return html`
-              <div class="word-column ${column.muted ? 'muted' : ''}">
+              <div class="word-column">
                 <div class="column-header">
                   ${isEditing ? html`
                     <div class="edit-title-container">
@@ -338,6 +339,7 @@ export class LeftPanel extends LitElement {
                           }}
                           @blur=${(e: Event) => this._saveTitle(columnIndex, e)}
                           @keydown=${(e: KeyboardEvent) => {
+                            e.stopPropagation(); // Prevent global keyboard shortcuts when editing
                             if (e.key === 'Escape') this._cancelEditTitle(columnIndex);
                           }}
                         />
@@ -356,14 +358,14 @@ export class LeftPanel extends LitElement {
                   ` : html`
                     <h3 class="column-title editable" @click=${() => this._startEditTitle(columnIndex)} title="Click to edit">${column.title}</h3>
                   `}
-                  <button
-                    class="mute-btn ${column.muted ? 'muted' : ''}"
-                    @click=${() => this.store.toggleWordLadderColumnMuted(columnIndex)}
-                    title="${column.muted ? 'Unmute column (include in randomization)' : 'Mute column (exclude from randomization)'}"
-                    aria-label="${column.muted ? 'Unmute column' : 'Mute column'}"
-                  >
-                    ${column.muted ? '🔇' : '🔊'}
-                  </button>
+                  <label class="toggle-switch" title="${column.muted ? 'Column muted (excluded from randomizer)' : 'Column active (included in randomizer)'}">
+                    <input
+                      type="checkbox"
+                      .checked=${!column.muted}
+                      @change=${() => this.store.toggleWordLadderColumnMuted(columnIndex)}
+                    />
+                    <span class="toggle-slider"></span>
+                  </label>
                 </div>
                 <div class="word-list">
                   <!-- Add word item at the top -->

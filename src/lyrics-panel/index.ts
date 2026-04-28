@@ -1,21 +1,16 @@
 import { LitElement, html } from 'lit';
-import { SongStoreController } from '../store/index';
-import type { LyricLine, CanvasItem } from '../store/index';
+import { SongStoreController } from '../utils/index';
+import type { LyricLine, CanvasItem } from '../utils/index';
 import { lyricsPanelStyles } from './styles.css.ts';
 
 /**
  * Panel component for displaying formatted lyrics with chords
  */
 export class LyricsPanel extends LitElement {
-  static properties = {
-    overlay: { type: Boolean, reflect: true }
-  };
-
   static styles = lyricsPanelStyles;
-  
+
   private store = new SongStoreController(this);
-  
-  overlay = false;
+
   private _maxCharsPerLine = 80; // Default, will be calculated dynamically
 
   connectedCallback(): void {
